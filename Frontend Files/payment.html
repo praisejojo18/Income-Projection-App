@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prontox · Payments</title>
+
+    <!-- Font Awesome 6 (Free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        /* ============================================================
+           PRONTOX COLOR PALETTE & FONTS
+           ============================================================ */
+
+        /* --- COLORS (Light Mode - default) --- */
+        :root {
+            --bg: #F0F4F8;
+            --surface: #FFFFFF;
+            --surface-2: #F8FAFC;
+            --surface-3: #F1F5F9;
+            --text-primary: #1A2332;
+            --text-secondary: #475569;
+            --text-muted: #94A3B8;
+            --border: #E2E8F0;
+            --accent: #00AFEF;
+            --accent-hover: #0099D3;
+            --accent-dark: #0088CC;
+            --accent-light: #E6F6FE;
+            --accent-mid: #B3E5FC;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --danger-light: #fee2e2;
+            --success: #10b981;
+            --success-light: #d1fae5;
+
+            /* Status Colors */
+            --status-submitted: #8b5cf6;
+            --status-submitted-bg: #ede9fe;
+            --status-review: #f59e0b;
+            --status-review-bg: #fef3c7;
+            --status-approved: #3b82f6;
+            --status-approved-bg: #dbeafe;
+            --status-implemented: #10b981;
+            --status-implemented-bg: #d1fae5;
+
+            /* Shadows */
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
+            --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.08);
+
+            /* Border Radius */
+            --radius: 14px;
+            --radius-sm: 10px;
+            --radius-xs: 8px;
+
+            /* Transitions */
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Navbar */
+            --nav-height: 68px;
+        }
+
+        /* --- DARK MODE OVERRIDES --- */
+        [data-theme="dark"] {
+            --bg: #0E0F11;
+            --surface: #1A1E21;
+            --surface-2: #24292E;
+            --surface-3: #2D3338;
+            --text-primary: #E7E9EB;
+            --text-secondary: #AAB0B6;
+            --text-muted: #888E99;
+            --border: #353E46;
+            --accent: #60A5FA;
+            --accent-hover: #3B82F6;
+            --accent-dark: #2563EB;
+            --accent-light: #1a3a5a;
+            --accent-mid: #2a4a6a;
+            --danger: #f87171;
+            --danger-hover: #ef4444;
+            --danger-light: #4a1a1a;
+            --success: #34d399;
+            --success-light: #0a3a2a;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
+            --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.6);
+            --status-submitted: #a78bfa;
+            --status-submitted-bg: #2d1b4e;
+            --status-review: #fbbf24;
+            --status-review-bg: #4d3a0a;
+            --status-approved: #60a5fa;
+            --status-approved-bg: #1a2a4a;
+            --status-implemented: #34d399;
+            --status-implemented-bg: #0a3a2a;
+        }
+
+        /* --- RESET & BASE --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            background: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        input,
+        select {
+            font-family: inherit;
+            outline: none;
+        }
+
+        /* ============================================================
+           NAVBAR
+           ============================================================ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            height: var(--nav-height);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background var(--transition), border-color var(--transition);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .nav-logo .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: var(--radius-xs);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: background var(--transition);
+        }
+        .nav-logo span {
+            color: var(--accent);
+            transition: color var(--transition);
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 6px;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s;
+        }
+        .hamburger:hover {
+            background: var(--surface-2);
+        }
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2.5px;
+            background: var(--text-primary);
+            border-radius: 4px;
+            transition: all 0.25s ease;
+            transform-origin: center;
+        }
+        .hamburger.open span:nth-child(1) {
+            transform: translateY(7.5px) rotate(45deg);
+        }
+        .hamburger.open span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger.open span:nth-child(3) {
+            transform: translateY(-7.5px) rotate(-45deg);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-right .icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: transparent;
+        }
+        .nav-right .icon-btn:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+        .nav-right .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .nav-right .avatar:hover {
+            border-color: var(--accent);
+        }
+
+        /* ============================================================
+           SIDEBAR (grouped)
+           ============================================================ */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background var(--transition), border-color var(--transition);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sidebar);
+            overflow-y: auto;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .sidebar-header .close-sidebar {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar-header .close-sidebar:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sidebar-nav .nav-group {
+            margin-bottom: 6px;
+        }
+        .sidebar-nav .nav-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-nav .nav-group-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 8px 16px 4px 16px;
+            user-select: none;
+            transition: color var(--transition);
+        }
+
+        .sidebar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 16px;
+            border-radius: var(--radius-xs);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-nav .nav-item i {
+            width: 20px;
+            font-size: 1rem;
+            color: var(--text-muted);
+            transition: color 0.15s;
+        }
+        .sidebar-nav .nav-item:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+        .sidebar-nav .nav-item:hover i {
+            color: var(--accent);
+        }
+        .sidebar-nav .nav-item.active {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+        .sidebar-nav .nav-item.active i {
+            color: var(--accent);
+        }
+
+        .sidebar-nav .nav-item.logout {
+            color: var(--danger);
+            padding-top: 10px;
+        }
+        .sidebar-nav .nav-item.logout i {
+            color: var(--danger);
+        }
+        .sidebar-nav .nav-item.logout:hover {
+            background: var(--danger-light);
+            color: var(--danger-hover);
+        }
+        .sidebar-nav .nav-item.logout:hover i {
+            color: var(--danger-hover);
+        }
+
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
+        .main-content {
+            flex: 1;
+            padding: 30px 28px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            transition: padding 0.3s;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+        .page-header h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+            transition: color var(--transition);
+        }
+
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+
+        /* ============================================================
+           PAYMENT PAGE SPECIFIC STYLES
+           ============================================================ */
+        .payment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .payment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .payment-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .payment-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .payment-card h3 i {
+            color: var(--accent);
+        }
+
+        /* ---- search ---- */
+        .search-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-area input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .search-area input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .search-area .search-btn {
+            padding: 10px 20px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .search-area .search-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* ---- customer info ---- */
+        .customer-info {
+            background: var(--surface-2);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .customer-info .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .customer-info .row:last-child {
+            border-bottom: none;
+        }
+        .customer-info .label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .customer-info .value {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .customer-info .value .badge {
+            background: var(--success-light);
+            color: var(--success);
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .customer-info .value .badge.inactive {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+
+        /* ---- payment form ---- */
+        .payment-form .form-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .payment-form .form-row label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            min-width: 120px;
+        }
+        .payment-form .form-row input {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            width: 100px;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .payment-form .form-row input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .payment-form .form-row .amount-display {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent);
+            min-width: 100px;
+        }
+        .payment-form .hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            padding: 10px 14px;
+            background: var(--surface-2);
+            border-radius: var(--radius-xs);
+            border-left: 3px solid var(--accent);
+        }
+
+        .payment-form .confirm-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s;
+        }
+        .payment-form .confirm-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* ---- recent payments table ---- */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: border-color var(--transition);
+        }
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 600px;
+        }
+        .table-wrap th {
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--surface-2);
+            border-bottom: 2px solid var(--border);
+            transition: background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .table-wrap td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+            transition: border-color var(--transition), color var(--transition);
+        }
+        .table-wrap tr:last-child td {
+            border-bottom: none;
+        }
+
+        .no-result {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .no-result i {
+            font-size: 2rem;
+            color: var(--border);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 16px;
+            }
+            .payment-form .form-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .payment-form .form-row input {
+                width: 100%;
+            }
+            .payment-form .form-row .amount-display {
+                text-align: center;
+            }
+            .search-area {
+                flex-direction: column;
+            }
+            .search-area .search-btn {
+                width: 100%;
+            }
+            .customer-info .row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .payment-card {
+                padding: 16px;
+            }
+            .table-wrap table {
+                font-size: 0.75rem;
+                min-width: 480px;
+            }
+            .table-wrap th,
+            .table-wrap td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── NAVBAR ─── -->
+    <header class="navbar">
+        <div class="nav-left">
+            <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="#" class="nav-logo" id="logoLink">
+                <div class="logo-icon">P</div>
+                <span>Prontox</span>
+            </a>
+        </div>
+        <div class="nav-right">
+            <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <div class="avatar" id="avatarBtn" tabindex="0">JD</div>
+        </div>
+    </header>
+
+    <!-- ─── SIDEBAR OVERLAY ─── -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight:700;color:var(--text-primary);">Menu</span>
+            <button class="close-sidebar" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-group">
+                <div class="nav-group-label">MAIN</div>
+                <a href="#" class="nav-item" data-page="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="#" class="nav-item" data-page="customer"><i class="fas fa-user-friends"></i> Customers</a>
+                <a href="#" class="nav-item" data-page="income-projection"><i class="fas fa-chart-line"></i> Income Projection</a>
+                <a href="#" class="nav-item active" data-page="payments"><i class="fas fa-credit-card"></i> Payments</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">REPORTS</div>
+                <a href="#" class="nav-item" data-page="monthly-income"><i class="fas fa-calendar-alt"></i> Monthly Income</a>
+                <a href="#" class="nav-item" data-page="projection-vs-actual"><i class="fas fa-arrows-left-right"></i> Proj vs Actual</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">SYSTEM</div>
+                <a href="#" class="nav-item" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+                <a href="#" class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <main class="main-content" id="mainContent">
+
+        <!-- ==========================================================
+             PAGE: Payments (NEW)
+             ========================================================== -->
+        <div id="page-payments" class="page-content active">
+            <div class="page-header">
+                <h2>Process Payment</h2>
+                <p>Find a customer and extend their subscription by multiple months.</p>
+            </div>
+
+            <div class="payment-grid">
+
+                <!-- LEFT: Payment Form -->
+                <div class="payment-card">
+                    <h3><i class="fas fa-user-check"></i> Customer & Payment</h3>
+
+                    <!-- Search -->
+                    <div class="search-area">
+                        <input type="text" id="searchInput" placeholder="Search by name or ID..." />
+                        <button class="search-btn" id="searchBtn"><i class="fas fa-search"></i> Search</button>
+                    </div>
+
+                    <!-- Customer info -->
+                    <div id="customerInfo" class="customer-info">
+                        <div class="row">
+                            <span class="label">Customer</span>
+                            <span class="value" id="displayName">—</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Plan</span>
+                            <span class="value" id="displayPlan">—</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Status</span>
+                            <span class="value" id="displayStatus">—</span>
+                        </div>
+                        <div class="row">
+                            <span class="label">Expiry</span>
+                            <span class="value" id="displayExpiry">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment form -->
+                    <div class="payment-form">
+                        <div class="form-row">
+                            <label>Months to extend</label>
+                            <input type="number" id="monthsInput" value="1" min="1" step="1" />
+                        </div>
+                        <div class="form-row">
+                            <label>Amount</label>
+                            <span class="amount-display" id="amountDisplay">₦0</span>
+                        </div>
+
+                        <div class="hint">
+                            <i class="fas fa-info-circle"></i> Extending by multiple months updates expiry and total amount.
+                        </div>
+
+                        <button class="confirm-btn" id="confirmPaymentBtn">
+                            <i class="fas fa-check-circle"></i> Confirm Payment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Recent Payments -->
+                <div class="payment-card">
+                    <h3><i class="fas fa-history"></i> Recent Payments</h3>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Plan</th>
+                                    <th>Amount</th>
+                                    <th>New Expiry</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentPaymentsBody">
+                                <!-- rendered by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="noRecent" class="no-result" style="display:none;">
+                        <i class="fas fa-receipt"></i>
+                        <p>No recent payments recorded.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ─── other pages (placeholder) ─── -->
+        <div id="page-dashboard" class="page-content">
+            <div class="page-header"><h2>Dashboard</h2><p>Welcome back!</p></div>
+            <div class="placeholder-page"><i class="fas fa-th-large"></i><h3>Dashboard</h3><p>Overview coming soon.</p></div>
+        </div>
+        <div id="page-customer" class="page-content">
+            <div class="page-header"><h2>Customers</h2><p>Manage your customers.</p></div>
+            <div class="placeholder-page"><i class="fas fa-user-friends"></i><h3>Customer List</h3><p>Customer data here.</p></div>
+        </div>
+        <div id="page-income-projection" class="page-content">
+            <div class="page-header"><h2>Income Projection</h2><p>Forecast revenue.</p></div>
+            <div class="placeholder-page"><i class="fas fa-chart-line"></i><h3>Projection</h3><p>Charts here.</p></div>
+        </div>
+        <div id="page-monthly-income" class="page-content">
+            <div class="page-header"><h2>Monthly Income</h2><p>Monthly breakdown.</p></div>
+            <div class="placeholder-page"><i class="fas fa-calendar-alt"></i><h3>Monthly</h3><p>Data here.</p></div>
+        </div>
+        <div id="page-projection-vs-actual" class="page-content">
+            <div class="page-header"><h2>Proj vs Actual</h2><p>Compare.</p></div>
+            <div class="placeholder-page"><i class="fas fa-arrows-left-right"></i><h3>Comparison</h3><p>Charts here.</p></div>
+        </div>
+        <div id="page-settings" class="page-content">
+            <div class="page-header"><h2>Settings</h2><p>Preferences.</p></div>
+            <div class="placeholder-page"><i class="fas fa-cog"></i><h3>Settings</h3><p>General settings.</p></div>
+        </div>
+
+    </main>
+
+    <!-- ─── JAVASCRIPT ─── -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── MOCK DATA ───
+
+            // Customers
+            const customers = [{
+                id: 1,
+                name: 'James Williams',
+                plan: 'Premium',
+                status: 'active',
+                price: 99000, // ₦99,000/mo
+                expiry: '2026-08-31'
+            }, {
+                id: 2,
+                name: 'Sarah Miller',
+                plan: 'SME silver',
+                status: 'active',
+                price: 199000,
+                expiry: '2026-08-19'
+            }, {
+                id: 3,
+                name: 'Michael Lee',
+                plan: 'Gold',
+                status: 'active',
+                price: 49000,
+                expiry: '2026-08-23'
+            }, {
+                id: 4,
+                name: 'Lisa Hernandez',
+                plan: 'Silver',
+                status: 'active',
+                price: 29000,
+                expiry: '2026-08-06'
+            }, {
+                id: 5,
+                name: 'Maria Lee',
+                plan: 'Gold',
+                status: 'active',
+                price: 49000,
+                expiry: '2026-08-21'
+            }, {
+                id: 6,
+                name: 'Charles Wilson',
+                plan: 'Gold',
+                status: 'active',
+                price: 49000,
+                expiry: '2026-08-17'
+            }, {
+                id: 7,
+                name: 'William Garcia',
+                plan: 'SME silver',
+                status: 'active',
+                price: 199000,
+                expiry: '2026-09-12'
+            }, {
+                id: 8,
+                name: 'Emma Johnson',
+                plan: 'Platinum',
+                status: 'active',
+                price: 150000,
+                expiry: '2026-09-05'
+            }];
+
+            // Recent payments (initial)
+            let recentPayments = [
+                { customer: 'Sarah Miller', plan: 'SME silver', amount: 199000, newExpiry: '2026-08-19',
+                date: '2026-07-30' },
+                { customer: 'Michael Lee', plan: 'Gold', amount: 49000, newExpiry: '2026-08-23', date: '2026-07-30' },
+                { customer: 'Lisa Hernandez', plan: 'Silver', amount: 29000, newExpiry: '2026-08-06',
+                date: '2026-07-29' },
+                { customer: 'Maria Lee', plan: 'Gold', amount: 49000, newExpiry: '2026-08-21', date: '2026-07-28' },
+                { customer: 'Charles Wilson', plan: 'Gold', amount: 49000, newExpiry: '2026-08-17',
+                date: '2026-07-25' },
+                { customer: 'William Garcia', plan: 'SME silver', amount: 199000, newExpiry: '2026-09-12',
+                    date: '2026-07-18' },
+                { customer: 'James Williams', plan: 'Premium', amount: 99000, newExpiry: '2026-08-31',
+                date: '2026-07-09' },
+            ];
+
+            // ─── DOM REFS ───
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const displayName = document.getElementById('displayName');
+            const displayPlan = document.getElementById('displayPlan');
+            const displayStatus = document.getElementById('displayStatus');
+            const displayExpiry = document.getElementById('displayExpiry');
+            const monthsInput = document.getElementById('monthsInput');
+            const amountDisplay = document.getElementById('amountDisplay');
+            const confirmBtn = document.getElementById('confirmPaymentBtn');
+            const recentBody = document.getElementById('recentPaymentsBody');
+            const noRecent = document.getElementById('noRecent');
+
+            // ─── STATE ───
+            let selectedCustomer = null;
+
+            // ─── HELPERS ───
+            function formatCurrency(amount) {
+                return '₦' + amount.toLocaleString();
+            }
+
+            function formatDate(dateStr) {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+
+            function addMonths(dateStr, months) {
+                const d = new Date(dateStr);
+                d.setMonth(d.getMonth() + months);
+                return d.toISOString().split('T')[0];
+            }
+
+            // ─── RENDER RECENT PAYMENTS ───
+            function renderRecent() {
+                if (recentPayments.length === 0) {
+                    recentBody.innerHTML = '';
+                    noRecent.style.display = 'block';
+                    return;
+                }
+                noRecent.style.display = 'none';
+                let html = '';
+                recentPayments.forEach(p => {
+                    html += `
+                        <tr>
+                            <td>${p.customer}</td>
+                            <td>${p.plan}</td>
+                            <td>${formatCurrency(p.amount)}</td>
+                            <td>${formatDate(p.newExpiry)}</td>
+                            <td>${formatDate(p.date)}</td>
+                        </tr>
+                    `;
+                });
+                recentBody.innerHTML = html;
+            }
+
+            // ─── UPDATE PAYMENT FORM ───
+            function updatePaymentForm() {
+                if (!selectedCustomer) {
+                    displayName.textContent = '—';
+                    displayPlan.textContent = '—';
+                    displayStatus.textContent = '—';
+                    displayExpiry.textContent = '—';
+                    amountDisplay.textContent = '₦0';
+                    return;
+                }
+                displayName.textContent = selectedCustomer.name;
+                displayPlan.textContent = selectedCustomer.plan;
+                const statusBadge = selectedCustomer.status === 'active' ?
+                    '<span class="badge">Active</span>' :
+                    '<span class="badge inactive">Inactive</span>';
+                displayStatus.innerHTML = statusBadge;
+                displayExpiry.textContent = formatDate(selectedCustomer.expiry);
+                updateAmount();
+            }
+
+            // ─── UPDATE AMOUNT ───
+            function updateAmount() {
+                if (!selectedCustomer) {
+                    amountDisplay.textContent = '₦0';
+                    return;
+                }
+                const months = parseInt(monthsInput.value) || 1;
+                const total = selectedCustomer.price * months;
+                amountDisplay.textContent = formatCurrency(total);
+            }
+
+            // ─── SEARCH CUSTOMER ───
+            function searchCustomer(query) {
+                if (!query.trim()) {
+                    selectedCustomer = null;
+                    updatePaymentForm();
+                    return;
+                }
+                const lower = query.toLowerCase().trim();
+                // search by name or ID (convert to string)
+                const found = customers.find(c =>
+                    c.name.toLowerCase().includes(lower) ||
+                    c.id.toString() === lower
+                );
+                if (found) {
+                    selectedCustomer = found;
+                } else {
+                    selectedCustomer = null;
+                    alert('Customer not found. Please try again.');
+                }
+                updatePaymentForm();
+            }
+
+            // ─── CONFIRM PAYMENT ───
+            function confirmPayment() {
+                if (!selectedCustomer) {
+                    alert('Please search and select a customer first.');
+                    return;
+                }
+                const months = parseInt(monthsInput.value) || 1;
+                if (months < 1) {
+                    alert('Months must be at least 1.');
+                    return;
+                }
+                const amount = selectedCustomer.price * months;
+                const newExpiry = addMonths(selectedCustomer.expiry, months);
+
+                // Add to recent payments
+                const today = new Date().toISOString().split('T')[0];
+                recentPayments.unshift({
+                    customer: selectedCustomer.name,
+                    plan: selectedCustomer.plan,
+                    amount: amount,
+                    newExpiry: newExpiry,
+                    date: today
+                });
+
+                // Update customer expiry
+                selectedCustomer.expiry = newExpiry;
+
+                // Re-render
+                renderRecent();
+                updatePaymentForm();
+
+                // Feedback
+                alert(`✅ Payment confirmed for ${selectedCustomer.name}.\nNew expiry: ${formatDate(newExpiry)}`);
+
+                // Reset search? We keep the customer selected.
+            }
+
+            // ─── EVENT LISTENERS ───
+            searchBtn.addEventListener('click', function() {
+                searchCustomer(searchInput.value);
+            });
+
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchCustomer(searchInput.value);
+                }
+            });
+
+            monthsInput.addEventListener('input', updateAmount);
+
+            confirmBtn.addEventListener('click', confirmPayment);
+
+            // ─── SIDEBAR / NAV (minimal) ───
+            // For simplicity, we keep the sidebar toggle and navigation from previous version
+            // but we only show the Payments page as active.
+
+            // We'll reuse the toggle logic from earlier
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+            const navItems = document.querySelectorAll('.sidebar-nav .nav-item:not(.logout)');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const avatarBtn = document.getElementById('avatarBtn');
+
+            // ─── THEME ───
+            let darkMode = false;
+
+            function applyTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeIcon.className = 'fas fa-sun';
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeIcon.className = 'fas fa-moon';
+                }
+                darkMode = isDark;
+                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+            }
+
+            try {
+                const saved = localStorage.getItem('prontox-theme');
+                if (saved === 'dark') applyTheme(true);
+                else if (saved === 'light') applyTheme(false);
+                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+                else applyTheme(false);
+            } catch (_) { applyTheme(false); }
+
+            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+            // ─── SIDEBAR TOGGLE ───
+            function openSidebar() {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('open');
+                hamburgerBtn.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+                hamburgerBtn.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            hamburgerBtn.addEventListener('click', function() {
+                if (sidebar.classList.contains('open')) closeSidebar();
+                else openSidebar();
+            });
+            closeSidebarBtn.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // ─── NAVIGATION (simple) ───
+            function navigateTo(pageId) {
+                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+                const target = document.getElementById('page-' + pageId);
+                if (target) target.classList.add('active');
+                navItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.page === pageId) item.classList.add('active');
+                });
+                closeSidebar();
+                // update header
+                const header = document.querySelector('.page-content.active .page-header');
+                if (header) {
+                    const h2 = header.querySelector('h2');
+                    const p = header.querySelector('p');
+                    const configs = {
+                        dashboard: { title: 'Dashboard', desc: 'Overview' },
+                        customer: { title: 'Customers', desc: 'Manage customers' },
+                        'income-projection': { title: 'Income Projection', desc: 'Forecast' },
+                        payments: { title: 'Process Payment', desc: 'Find a customer and extend subscription' },
+                        'monthly-income': { title: 'Monthly Income', desc: 'Monthly breakdown' },
+                        'projection-vs-actual': { title: 'Proj vs Actual', desc: 'Compare' },
+                        settings: { title: 'Settings', desc: 'Preferences' },
+                    };
+                    if (configs[pageId]) {
+                        if (h2) h2.textContent = configs[pageId].title;
+                        if (p) p.textContent = configs[pageId].desc;
+                    }
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    if (page) navigateTo(page);
+                });
+            });
+
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('Logout?')) alert('Logging out...');
+            });
+
+            avatarBtn.addEventListener('click', function() {
+                alert('User profile');
+            });
+
+            document.getElementById('logoLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateTo('dashboard');
+            });
+
+            // ─── INIT ───
+            // Show payments page by default
+            navigateTo('payments');
+            renderRecent();
+            // Pre-select a default customer? Not required.
+
+            console.log('✅ Payments page ready.');
+        })();
+    </script>
+
+</body>
+</html>
