@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Settings · Plan Editor</title>
+    <title>Prontox · Platform</title>
 
-    <!-- Font Awesome 6 (free) -->
+    <!-- Font Awesome 6 (Free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <style>
@@ -28,6 +28,9 @@
             --accent-dark: #0088CC;
             --accent-light: #E6F6FE;
             --accent-mid: #B3E5FC;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --danger-light: #fee2e2;
 
             /* Status Colors */
             --status-submitted: #8b5cf6;
@@ -42,6 +45,7 @@
             /* Shadows */
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
+            --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.08);
 
             /* Border Radius */
             --radius: 14px;
@@ -49,7 +53,10 @@
             --radius-xs: 8px;
 
             /* Transitions */
-            --transition: 0.3s ease;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Navbar */
+            --nav-height: 68px;
         }
 
         /* --- DARK MODE OVERRIDES --- */
@@ -67,8 +74,12 @@
             --accent-dark: #2563EB;
             --accent-light: #1a3a5a;
             --accent-mid: #2a4a6a;
+            --danger: #f87171;
+            --danger-hover: #ef4444;
+            --danger-light: #4a1a1a;
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
+            --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.6);
             --status-submitted: #a78bfa;
             --status-submitted-bg: #2d1b4e;
             --status-review: #fbbf24;
@@ -79,25 +90,21 @@
             --status-implemented-bg: #0a3a2a;
         }
 
-        /* --- FONTS --- */
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--bg);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            transition: background var(--transition), color var(--transition);
-        }
-
-        /* ─── base reset ─── */
+        /* --- RESET & BASE --- */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background var(--transition), color var(--transition);
         }
 
         button {
@@ -107,60 +114,328 @@
             background: none;
         }
 
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
         input,
         select {
             font-family: inherit;
             outline: none;
         }
 
-        /* ─── settings container ─── */
-        .settings-wrap {
-            width: 100%;
+        /* ============================================================
+           NAVBAR
+           ============================================================ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            height: var(--nav-height);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background var(--transition), border-color var(--transition);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .nav-logo .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: var(--radius-xs);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: background var(--transition);
+        }
+        .nav-logo span {
+            color: var(--accent);
+            transition: color var(--transition);
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 6px;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s;
+        }
+        .hamburger:hover {
+            background: var(--surface-2);
+        }
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2.5px;
+            background: var(--text-primary);
+            border-radius: 4px;
+            transition: all 0.25s ease;
+            transform-origin: center;
+        }
+        .hamburger.open span:nth-child(1) {
+            transform: translateY(7.5px) rotate(45deg);
+        }
+        .hamburger.open span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger.open span:nth-child(3) {
+            transform: translateY(-7.5px) rotate(-45deg);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-right .icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: transparent;
+        }
+        .nav-right .icon-btn:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+        .nav-right .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .nav-right .avatar:hover {
+            border-color: var(--accent);
+        }
+
+        /* ============================================================
+           SIDEBAR (UPDATED with groups)
+           ============================================================ */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background var(--transition), border-color var(--transition);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sidebar);
+            overflow-y: auto;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .sidebar-header .close-sidebar {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar-header .close-sidebar:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* --- NEW: Nav Groups --- */
+        .sidebar-nav .nav-group {
+            margin-bottom: 6px;
+        }
+        .sidebar-nav .nav-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-nav .nav-group-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 8px 16px 4px 16px;
+            user-select: none;
+            transition: color var(--transition);
+        }
+
+        .sidebar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 16px;
+            border-radius: var(--radius-xs);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-nav .nav-item i {
+            width: 20px;
+            font-size: 1rem;
+            color: var(--text-muted);
+            transition: color 0.15s;
+        }
+        .sidebar-nav .nav-item:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+        .sidebar-nav .nav-item:hover i {
+            color: var(--accent);
+        }
+        .sidebar-nav .nav-item.active {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+        .sidebar-nav .nav-item.active i {
+            color: var(--accent);
+        }
+
+        /* Logout specific styling - kept under SYSTEM group */
+        .sidebar-nav .nav-item.logout {
+            color: var(--danger);
+            border-top: none;
+            padding-top: 10px;
+        }
+        .sidebar-nav .nav-item.logout i {
+            color: var(--danger);
+        }
+        .sidebar-nav .nav-item.logout:hover {
+            background: var(--danger-light);
+            color: var(--danger-hover);
+        }
+        .sidebar-nav .nav-item.logout:hover i {
+            color: var(--danger-hover);
+        }
+
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
+        .main-content {
+            flex: 1;
+            padding: 30px 28px;
             max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            transition: padding 0.3s;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+        .page-header h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+            transition: color var(--transition);
+        }
+
+        /* Hide all pages by default, show active */
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+
+        /* ============================================================
+           SETTINGS COMPONENT (UPDATED)
+           ============================================================ */
+
+        /* ─── settings container ─── */
+        .settings-container {
+            width: 100%;
             background: var(--surface);
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
             border: 1px solid var(--border);
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            min-height: 600px;
+            box-shadow: var(--shadow);
             transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
-        }
-
-        /* ─── header ─── */
-        .settings-header {
-            padding: 20px 28px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            transition: border-color var(--transition);
-        }
-        .settings-header h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: -0.01em;
-            transition: color var(--transition);
-        }
-        .settings-header h1 i {
-            color: var(--accent);
-            margin-right: 10px;
-            transition: color var(--transition);
-        }
-        .settings-header .close-btn {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            padding: 6px 12px;
-            border-radius: var(--radius-xs);
-            transition: background 0.2s, color var(--transition);
-        }
-        .settings-header .close-btn:hover {
-            background: var(--surface-2);
-            color: var(--text-primary);
         }
 
         /* ─── body: sidebar + content ─── */
@@ -170,7 +445,7 @@
             min-height: 500px;
         }
 
-        /* ─── sidebar ─── */
+        /* ─── settings sidebar ─── */
         .settings-sidebar {
             width: 200px;
             background: var(--surface-2);
@@ -191,6 +466,10 @@
             transition: all 0.2s;
             width: 100%;
             text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
         }
         .settings-sidebar .nav-item i {
             width: 18px;
@@ -214,7 +493,7 @@
             color: var(--accent);
         }
 
-        /* ─── content area ─── */
+        /* ─── settings content area ─── */
         .settings-content {
             flex: 1;
             padding: 24px 28px 32px;
@@ -224,25 +503,25 @@
             transition: background var(--transition);
         }
 
-        /* ─── page header ─── */
-        .page-header {
+        /* ─── settings page header ─── */
+        .settings-page-header {
             margin-bottom: 24px;
         }
-        .page-header h2 {
+        .settings-page-header h2 {
             font-size: 1.1rem;
             font-weight: 700;
             color: var(--text-primary);
             margin-bottom: 4px;
             transition: color var(--transition);
         }
-        .page-header p {
+        .settings-page-header p {
             font-size: 0.85rem;
             color: var(--text-muted);
             transition: color var(--transition);
         }
 
         /* ─── inner page overlay (plan editor) ─── */
-        .inner-page-overlay {
+        .settings-inner-overlay {
             position: absolute;
             inset: 0;
             background: var(--surface);
@@ -254,7 +533,7 @@
             animation: slideIn 0.25s ease;
             transition: background var(--transition);
         }
-        .inner-page-overlay.open {
+        .settings-inner-overlay.open {
             display: flex;
         }
 
@@ -269,7 +548,7 @@
             }
         }
 
-        .inner-page-header {
+        .settings-inner-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -278,18 +557,18 @@
             border-bottom: 1px solid var(--border);
             transition: border-color var(--transition);
         }
-        .inner-page-header h3 {
+        .settings-inner-header h3 {
             font-size: 1rem;
             font-weight: 700;
             color: var(--text-primary);
             transition: color var(--transition);
         }
-        .inner-page-header h3 i {
+        .settings-inner-header h3 i {
             color: var(--accent);
             margin-right: 10px;
             transition: color var(--transition);
         }
-        .inner-page-header .back-btn {
+        .settings-inner-header .back-btn {
             font-size: 0.8rem;
             font-weight: 600;
             color: var(--text-secondary);
@@ -298,11 +577,11 @@
             border: 1px solid var(--border);
             transition: all 0.2s;
         }
-        .inner-page-header .back-btn:hover {
+        .settings-inner-header .back-btn:hover {
             background: var(--surface-2);
             border-color: var(--text-muted);
         }
-        .inner-page-header .back-btn i {
+        .settings-inner-header .back-btn i {
             margin-right: 6px;
         }
 
@@ -326,9 +605,6 @@
         .plan-list::-webkit-scrollbar-thumb {
             background: var(--border);
             border-radius: 20px;
-        }
-        .plan-list::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
         }
 
         .plan-item {
@@ -377,8 +653,7 @@
             font-size: 0.85rem;
             background: var(--surface);
             color: var(--text-primary);
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(
-                    --transition);
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
         }
         .plan-item .plan-price-wrap input:focus {
             border-color: var(--accent);
@@ -437,8 +712,7 @@
             color: var(--text-primary);
             flex: 1;
             min-width: 140px;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(
-                    --transition);
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
         }
         .add-plan-area input:focus {
             border-color: var(--accent);
@@ -511,9 +785,7 @@
             align-items: center;
             gap: 12px;
         }
-
-        /* ─── toggle switch ─── */
-        .toggle {
+        .general-settings .toggle {
             width: 42px;
             height: 24px;
             background: var(--border);
@@ -523,10 +795,10 @@
             cursor: pointer;
             flex-shrink: 0;
         }
-        .toggle.active {
+        .general-settings .toggle.active {
             background: var(--accent);
         }
-        .toggle::after {
+        .general-settings .toggle::after {
             content: '';
             position: absolute;
             top: 2px;
@@ -538,10 +810,9 @@
             transition: transform 0.3s;
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
         }
-        .toggle.active::after {
+        .general-settings .toggle.active::after {
             transform: translateX(18px);
         }
-
         .general-settings .select-input {
             padding: 6px 12px;
             border: 1px solid var(--border);
@@ -549,8 +820,7 @@
             background: var(--surface);
             color: var(--text-primary);
             font-size: 0.85rem;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(
-                    --transition);
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
         }
         .general-settings .select-input:focus {
             border-color: var(--accent);
@@ -562,7 +832,7 @@
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 12px;
         }
-        .plan-preview-card {
+        .plan-preview-grid .plan-card {
             background: var(--surface-2);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
@@ -570,13 +840,13 @@
             text-align: center;
             transition: background var(--transition), border-color var(--transition);
         }
-        .plan-preview-card .name {
+        .plan-preview-grid .plan-card .name {
             font-weight: 600;
             font-size: 0.9rem;
             color: var(--text-primary);
             transition: color var(--transition);
         }
-        .plan-preview-card .price {
+        .plan-preview-grid .plan-card .price {
             font-size: 0.85rem;
             color: var(--accent);
             font-weight: 600;
@@ -584,7 +854,7 @@
             transition: color var(--transition);
         }
 
-        /* ─── responsive ─── */
+        /* ─── settings responsive ─── */
         @media (max-width: 768px) {
             .settings-body {
                 flex-direction: column;
@@ -614,7 +884,7 @@
                 padding: 18px 16px 24px;
                 min-height: 400px;
             }
-            .inner-page-overlay {
+            .settings-inner-overlay {
                 padding: 18px 16px 24px;
             }
             .plan-item {
@@ -636,23 +906,20 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            .settings-header {
-                padding: 16px 18px;
-            }
-            .settings-header h1 {
-                font-size: 1rem;
-            }
             .plan-preview-grid {
                 grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             }
         }
 
         @media (max-width: 480px) {
-            body {
-                padding: 10px;
+            .main-content {
+                padding: 16px 12px;
             }
-            .settings-wrap {
+            .settings-container {
                 border-radius: var(--radius-sm);
+            }
+            .settings-content {
+                padding: 14px 12px 18px;
             }
             .plan-item .plan-price-wrap input {
                 width: 100%;
@@ -661,161 +928,458 @@
                 grid-template-columns: 1fr 1fr;
             }
         }
+
+        /* ============================================================
+           OTHER PAGE PLACEHOLDER STYLES
+           ============================================================ */
+        .placeholder-page {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .placeholder-page i {
+            font-size: 3rem;
+            color: var(--border);
+            margin-bottom: 16px;
+            display: block;
+        }
+        .placeholder-page h3 {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body>
 
-    <!-- ─── SETTINGS WRAPPER ─── -->
-    <div class="settings-wrap">
-
-        <!-- header -->
-        <div class="settings-header">
-            <h1><i class="fas fa-cog"></i> Settings</h1>
-            <button class="close-btn" id="closeSettingsBtn"><i class="fas fa-times"></i> Close</button>
+    <!-- ─── NAVBAR ─── -->
+    <header class="navbar">
+        <div class="nav-left">
+            <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="#" class="nav-logo" id="logoLink">
+                <div class="logo-icon">P</div>
+                <span>Prontox</span>
+            </a>
         </div>
+        <div class="nav-right">
+            <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <div class="avatar" id="avatarBtn" tabindex="0">JD</div>
+        </div>
+    </header>
 
-        <!-- body -->
-        <div class="settings-body">
+    <!-- ─── SIDEBAR OVERLAY ─── -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-            <!-- sidebar -->
-            <nav class="settings-sidebar">
-                <button class="nav-item active" data-page="general">
-                    <i class="fas fa-sliders-h"></i> General
-                </button>
-                <button class="nav-item" data-page="plans">
-                    <i class="fas fa-cubes"></i> Plans
-                </button>
-            </nav>
-
-            <!-- content -->
-            <div class="settings-content" id="settingsContent">
-
-                <!-- ===================== -->
-                <!-- PAGE: General          -->
-                <!-- ===================== -->
-                <div id="page-general" class="page-content">
-                    <div class="page-header">
-                        <h2>General Settings</h2>
-                        <p>Manage your workspace preferences and defaults.</p>
-                    </div>
-                    <div class="general-settings">
-                        <div class="setting-row">
-                            <div class="setting-label">
-                                Workspace Name
-                                <small>Your workspace display name</small>
-                            </div>
-                            <div class="setting-control">
-                                <input type="text" value="Prontox Inc." style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-xs);font-size:0.85rem;background:var(--surface);color:var(--text-primary);min-width:180px;transition:background var(--transition),color var(--transition),border-color var(--transition);" />
-                            </div>
-                        </div>
-                        <div class="setting-row">
-                            <div class="setting-label">
-                                Dark Mode
-                                <small>Toggle dark theme across the app</small>
-                            </div>
-                            <div class="setting-control">
-                                <div class="toggle" id="darkModeToggle"></div>
-                            </div>
-                        </div>
-                        <div class="setting-row">
-                            <div class="setting-label">
-                                Default Language
-                                <small>Interface language</small>
-                            </div>
-                            <div class="setting-control">
-                                <select class="select-input">
-                                    <option>English (US)</option>
-                                    <option>Spanish</option>
-                                    <option>French</option>
-                                    <option>German</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="setting-row">
-                            <div class="setting-label">
-                                Notifications
-                                <small>Email and in-app notifications</small>
-                            </div>
-                            <div class="setting-control">
-                                <div class="toggle active" id="notifToggle"></div>
-                            </div>
-                        </div>
-                        <div class="setting-row">
-                            <div class="setting-label">
-                                Currency
-                                <small>Default currency for plans and billing</small>
-                            </div>
-                            <div class="setting-control">
-                                <span style="font-weight:600;color:var(--accent);font-size:0.95rem;">₦ Naira</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ===================== -->
-                <!-- PAGE: Plans            -->
-                <!-- ===================== -->
-                <div id="page-plans" class="page-content" style="display:none;">
-                    <div class="page-header">
-                        <h2>Plans &amp; Pricing</h2>
-                        <p>Manage your subscription plans and pricing tiers.</p>
-                    </div>
-
-                    <!-- quick summary + edit button -->
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
-                        <span style="font-size:0.85rem;color:var(--text-secondary);transition:color var(--transition);">
-                            <i class="fas fa-cubes" style="color:var(--accent);margin-right:6px;"></i>
-                            <span id="planCountLabel">9 plans</span> configured
-                        </span>
-                        <button id="openPlanEditorBtn" style="padding:8px 20px;background:var(--accent);color:#fff;border-radius:var(--radius-xs);font-weight:600;font-size:0.85rem;transition:background 0.2s;">
-                            <i class="fas fa-edit"></i> Edit Plans
-                        </button>
-                    </div>
-
-                    <!-- plan preview grid -->
-                    <div class="plan-preview-grid" id="planPreviewGrid">
-                        <!-- populated by JS -->
-                    </div>
-                </div>
-
-                <!-- ========================================================== -->
-                <!-- INNER PAGE: Plan Editor (overlay)                          -->
-                <!-- ========================================================== -->
-                <div class="inner-page-overlay" id="planEditorOverlay">
-                    <div class="inner-page-header">
-                        <h3><i class="fas fa-cubes"></i> Edit Plans</h3>
-                        <button class="back-btn" id="closePlanEditorBtn">
-                            <i class="fas fa-arrow-left"></i> Back to Plans
-                        </button>
-                    </div>
-
-                    <!-- plan list -->
-                    <div class="plan-list" id="planListContainer">
-                        <!-- rendered by JS -->
-                    </div>
-
-                    <!-- add plan -->
-                    <div class="add-plan-area">
-                        <input type="text" id="newPlanName" placeholder="Plan name (e.g. Silver)" />
-                        <input type="text" id="newPlanPrice" placeholder="Price (e.g. ₦5,000/mo)" />
-                        <button class="add-btn" id="addPlanBtn"><i class="fas fa-plus"></i> Add Plan</button>
-                    </div>
-                </div>
-
+    <!-- ─── SIDEBAR (UPDATED STRUCTURE) ─── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight:700;color:var(--text-primary);">Menu</span>
+            <button class="close-sidebar" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <!-- MAIN GROUP -->
+            <div class="nav-group">
+                <div class="nav-group-label">MAIN</div>
+                <a href="#" class="nav-item active" data-page="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="#" class="nav-item" data-page="customer"><i class="fas fa-user-friends"></i> Customers</a>
+                <a href="#" class="nav-item" data-page="income-projection"><i class="fas fa-chart-line"></i> Income Projection</a>
+                <a href="#" class="nav-item" data-page="payments"><i class="fas fa-credit-card"></i> Payments</a>
             </div>
-            <!-- /settings-content -->
-        </div>
-        <!-- /settings-body -->
-    </div>
-    <!-- /settings-wrap -->
 
+            <!-- REPORTS GROUP -->
+            <div class="nav-group">
+                <div class="nav-group-label">REPORTS</div>
+                <a href="#" class="nav-item" data-page="monthly-income"><i class="fas fa-calendar-alt"></i> Monthly Income</a>
+                <a href="#" class="nav-item" data-page="projection-vs-actual"><i class="fas fa-arrows-left-right"></i> Proj vs Actual</a>
+            </div>
+
+            <!-- SYSTEM GROUP -->
+            <div class="nav-group">
+                <div class="nav-group-label">SYSTEM</div>
+                <a href="#" class="nav-item" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+                <a href="#" class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <main class="main-content" id="mainContent">
+
+        <!-- ==========================================================
+             PAGE: Dashboard (default)
+             ========================================================== -->
+        <div id="page-dashboard" class="page-content active">
+            <div class="page-header">
+                <h2>Dashboard</h2>
+                <p>Welcome back! Here's a quick overview of your category performance.</p>
+            </div>
+
+            <!-- Table card -->
+            <div class="settings-container" style="border-radius:var(--radius-sm);">
+                <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;transition:border-color var(--transition);">
+                    <h3 style="font-size:1rem;font-weight:600;color:var(--text-primary);transition:color var(--transition);">
+                        <i class="fas fa-table" style="color:var(--accent);margin-right:8px;"></i> Category Performance
+                    </h3>
+                    <span style="padding:4px 12px;background:var(--accent-light);color:var(--accent-dark);border-radius:999px;font-size:0.75rem;font-weight:600;transition:background var(--transition),color var(--transition);">
+                        <i class="fas fa-calendar-alt"></i> This Month
+                    </span>
+                </div>
+                <div style="overflow-x:auto;padding:4px 4px 0 4px;">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.9rem;min-width:400px;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left;padding:16px 24px;font-weight:600;color:var(--text-secondary);background:var(--surface-2);border-bottom:2px solid var(--border);transition:background var(--transition),color var(--transition),border-color var(--transition);">Category</th>
+                                <th style="text-align:left;padding:16px 24px;font-weight:600;color:var(--text-secondary);background:var(--surface-2);border-bottom:2px solid var(--border);transition:background var(--transition),color var(--transition),border-color var(--transition);">Value (%)</th>
+                                <th style="text-align:left;padding:16px 24px;font-weight:600;color:var(--text-secondary);background:var(--surface-2);border-bottom:2px solid var(--border);transition:background var(--transition),color var(--transition),border-color var(--transition);">Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
+                                    <span style="display:flex;align-items:center;gap:12px;font-weight:500;">
+                                        <span style="width:10px;height:10px;border-radius:999px;background:var(--accent);flex-shrink:0;"></span>
+                                        PRONTO BROADBAND SOLUTIONS
+                                    </span>
+                                </td>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);font-weight:700;transition:border-color var(--transition),color var(--transition);">
+                                    950<span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;margin-left:2px;">%</span>
+                                </td>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
+                                    <div style="width:120px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;display:inline-block;vertical-align:middle;transition:background var(--transition);">
+                                        <div style="height:100%;border-radius:999px;background:var(--accent);width:95%;transition:width 1s ease;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
+                                    <span style="display:flex;align-items:center;gap:12px;font-weight:500;">
+                                        <span style="width:10px;height:10px;border-radius:999px;background:var(--status-approved);flex-shrink:0;"></span>
+                                        BASE COLOR
+                                    </span>
+                                </td>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);font-weight:700;transition:border-color var(--transition),color var(--transition);">
+                                    950<span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;margin-left:2px;">%</span>
+                                </td>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
+                                    <div style="width:120px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;display:inline-block;vertical-align:middle;transition:background var(--transition);">
+                                        <div style="height:100%;border-radius:999px;background:var(--status-approved);width:95%;transition:width 1s ease;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
+                                    <span style="display:flex;align-items:center;gap:12px;font-weight:500;">
+                                        <span style="width:10px;height:10px;border-radius:999px;background:var(--status-review);flex-shrink:0;"></span>
+                                        50% OPACITY
+                                    </span>
+                                </td>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);font-weight:700;transition:border-color var(--transition),color var(--transition);">
+                                    950<span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;margin-left:2px;">%</span>
+                                </td>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
+                                    <div style="width:120px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;display:inline-block;vertical-align:middle;transition:background var(--transition);">
+                                        <div style="height:100%;border-radius:999px;background:var(--status-review);width:95%;transition:width 1s ease;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
+                                    <span style="display:flex;align-items:center;gap:12px;font-weight:500;">
+                                        <span style="width:10px;height:10px;border-radius:999px;background:var(--status-submitted);flex-shrink:0;"></span>
+                                        CODES
+                                    </span>
+                                </td>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);font-weight:700;transition:border-color var(--transition),color var(--transition);">
+                                    950<span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;margin-left:2px;">%</span>
+                                </td>
+                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
+                                    <div style="width:120px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;display:inline-block;vertical-align:middle;transition:background var(--transition);">
+                                        <div style="height:100%;border-radius:999px;background:var(--status-submitted);width:95%;transition:width 1s ease;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: Customer (placeholder)
+             ========================================================== -->
+        <div id="page-customer" class="page-content">
+            <div class="page-header">
+                <h2>Customer Management</h2>
+                <p>View and manage all your customer accounts and interactions.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-user-friends"></i>
+                <h3>Customer List</h3>
+                <p>This page will display your customer data.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: Income Projection (placeholder)
+             ========================================================== -->
+        <div id="page-income-projection" class="page-content">
+            <div class="page-header">
+                <h2>Income Projection</h2>
+                <p>Forecast your future revenue based on current trends.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-chart-line"></i>
+                <h3>Projection Charts</h3>
+                <p>Visualize your income projections here.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: Payments (placeholder)
+             ========================================================== -->
+        <div id="page-payments" class="page-content">
+            <div class="page-header">
+                <h2>Payments</h2>
+                <p>Track all incoming and outgoing payments across your platform.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-credit-card"></i>
+                <h3>Payment Transactions</h3>
+                <p>Monitor your payment history and status.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: Monthly Income (placeholder)
+             ========================================================== -->
+        <div id="page-monthly-income" class="page-content">
+            <div class="page-header">
+                <h2>Monthly Income</h2>
+                <p>Detailed breakdown of your income performance month by month.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-calendar-alt"></i>
+                <h3>Monthly Breakdown</h3>
+                <p>See your income trends per month.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: Projection vs Actual (placeholder)
+             ========================================================== -->
+        <div id="page-projection-vs-actual" class="page-content">
+            <div class="page-header">
+                <h2>Projection vs Actual</h2>
+                <p>Compare your projected income against actual results.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-arrows-left-right"></i>
+                <h3>Comparison View</h3>
+                <p>Analyze discrepancies between projections and actuals.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: SETTINGS (UPDATED)
+             ========================================================== -->
+        <div id="page-settings" class="page-content">
+            <div class="page-header">
+                <h2>Settings</h2>
+                <p>Configure your workspace, manage plans, and adjust preferences.</p>
+            </div>
+
+            <div class="settings-container">
+                <!-- settings body -->
+                <div class="settings-body">
+
+                    <!-- settings sidebar (Team & Integrations removed) -->
+                    <nav class="settings-sidebar">
+                        <button class="nav-item active" data-settings-page="general">
+                            <i class="fas fa-sliders-h"></i> General
+                        </button>
+                        <button class="nav-item" data-settings-page="plans">
+                            <i class="fas fa-cubes"></i> Plans
+                        </button>
+                    </nav>
+
+                    <!-- settings content -->
+                    <div class="settings-content" id="settingsContent">
+
+                        <!-- ===================== -->
+                        <!-- SETTINGS: General -->
+                        <!-- ===================== -->
+                        <div id="settings-page-general" class="settings-page-content">
+                            <div class="settings-page-header">
+                                <h2>General Settings</h2>
+                                <p>Manage your workspace preferences and defaults.</p>
+                            </div>
+                            <div class="general-settings">
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Workspace Name
+                                        <small>Your workspace display name</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <input type="text" value="Prontox Inc." style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-xs);font-size:0.85rem;background:var(--surface);color:var(--text-primary);min-width:180px;transition:background var(--transition),color var(--transition),border-color var(--transition);" />
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Dark Mode
+                                        <small>Toggle dark theme across the app</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <div class="toggle" id="settingsDarkToggle"></div>
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Default Language
+                                        <small>Interface language</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <select class="select-input">
+                                            <option>English (US)</option>
+                                            <option>Spanish</option>
+                                            <option>French</option>
+                                            <option>German</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Notifications
+                                        <small>Email and in-app notifications</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <div class="toggle active" id="notifToggle"></div>
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Currency
+                                        <small>Default currency for plans and billing</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <span style="font-weight:600;color:var(--accent);font-size:0.95rem;">₦ Naira</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ===================== -->
+                        <!-- SETTINGS: Plans (UPDATED with 9 plans & Naira) -->
+                        <!-- ===================== -->
+                        <div id="settings-page-plans" class="settings-page-content" style="display:none;">
+                            <div class="settings-page-header">
+                                <h2>Plans &amp; Pricing</h2>
+                                <p>Manage your subscription plans and pricing tiers.</p>
+                            </div>
+
+                            <!-- quick summary + edit button -->
+                            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+                                <span style="font-size:0.85rem;color:var(--text-secondary);transition:color var(--transition);">
+                                    <i class="fas fa-cubes" style="color:var(--accent);margin-right:6px;"></i>
+                                    <span id="planCountLabel">9 plans</span> configured
+                                </span>
+                                <button id="openPlanEditorBtn" style="padding:8px 20px;background:var(--accent);color:#fff;border-radius:var(--radius-xs);font-weight:600;font-size:0.85rem;transition:background 0.2s;">
+                                    <i class="fas fa-edit"></i> Edit Plans
+                                </button>
+                            </div>
+
+                            <!-- quick plan preview -->
+                            <div class="plan-preview-grid" id="planPreviewGrid">
+                                <!-- populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- ========================================================== -->
+                        <!-- INNER PAGE: Plan Editor (overlay)                          -->
+                        <!-- ========================================================== -->
+                        <div class="settings-inner-overlay" id="planEditorOverlay">
+                            <div class="settings-inner-header">
+                                <h3><i class="fas fa-cubes"></i> Edit Plans</h3>
+                                <button class="back-btn" id="closePlanEditorBtn">
+                                    <i class="fas fa-arrow-left"></i> Back to Plans
+                                </button>
+                            </div>
+
+                            <!-- plan list -->
+                            <div class="plan-list" id="planListContainer">
+                                <!-- rendered by JS -->
+                            </div>
+
+                            <!-- add plan -->
+                            <div class="add-plan-area">
+                                <input type="text" id="newPlanName" placeholder="Plan name (e.g. Silver)" />
+                                <input type="text" id="newPlanPrice" placeholder="Price (e.g. ₦5,000/mo)" />
+                                <button class="add-btn" id="addPlanBtn"><i class="fas fa-plus"></i> Add Plan</button>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- /settings-content -->
+                </div>
+                <!-- /settings-body -->
+            </div>
+            <!-- /settings-container -->
+        </div>
+        <!-- /page-settings -->
+
+    </main>
 
     <!-- ─── JAVASCRIPT ─── -->
     <script>
         (function() {
             'use strict';
 
-            // ─── DATA ───
+            // ─── PAGE CONFIG (for main nav) ───
+            const pageConfig = {
+                dashboard: { title: 'Dashboard', desc: 'Welcome back! Here\'s a quick overview of your category performance.' },
+                customer: { title: 'Customer Management', desc: 'View and manage all your customer accounts and interactions.' },
+                'income-projection': { title: 'Income Projection', desc: 'Forecast your future revenue based on current trends.' },
+                payments: { title: 'Payments', desc: 'Track all incoming and outgoing payments across your platform.' },
+                'monthly-income': { title: 'Monthly Income', desc: 'Detailed breakdown of your income performance month by month.' },
+                'projection-vs-actual': { title: 'Projection vs Actual', desc: 'Compare your projected income against actual results.' },
+                settings: { title: 'Settings', desc: 'Configure your workspace, manage plans, and adjust preferences.' },
+            };
+
+            // ─── DOM REFS (main nav) ───
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+            const navItems = document.querySelectorAll('.sidebar-nav .nav-item:not(.logout)');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const avatarBtn = document.getElementById('avatarBtn');
+
+            // ─── SETTINGS SPECIFIC DOM REFS ───
+            const settingsSidebarItems = document.querySelectorAll('.settings-sidebar .nav-item');
+            const settingsPages = {
+                general: document.getElementById('settings-page-general'),
+                plans: document.getElementById('settings-page-plans'),
+            };
+            const planPreviewGrid = document.getElementById('planPreviewGrid');
+            const planCountLabel = document.getElementById('planCountLabel');
+            const openPlanEditorBtn = document.getElementById('openPlanEditorBtn');
+            const closePlanEditorBtn = document.getElementById('closePlanEditorBtn');
+            const planEditorOverlay = document.getElementById('planEditorOverlay');
+            const planListContainer = document.getElementById('planListContainer');
+            const addPlanBtn = document.getElementById('addPlanBtn');
+            const newPlanName = document.getElementById('newPlanName');
+            const newPlanPrice = document.getElementById('newPlanPrice');
+            const settingsDarkToggle = document.getElementById('settingsDarkToggle');
+            const notifToggle = document.getElementById('notifToggle');
+
+            // ─── PLAN DATA (UPDATED: 9 specified plans, Naira currency) ───
             const defaultPlans = [
                 'Silver',
                 'Gold',
@@ -843,91 +1407,139 @@
             }));
             let nextId = plans.length + 1;
 
-            // ─── DOM refs ───
-            const sidebarNavs = document.querySelectorAll('.settings-sidebar .nav-item');
-            const pages = {
-                general: document.getElementById('page-general'),
-                plans: document.getElementById('page-plans'),
-            };
-            const planPreviewGrid = document.getElementById('planPreviewGrid');
-            const planCountLabel = document.getElementById('planCountLabel');
-            const openPlanEditorBtn = document.getElementById('openPlanEditorBtn');
-            const closePlanEditorBtn = document.getElementById('closePlanEditorBtn');
-            const planEditorOverlay = document.getElementById('planEditorOverlay');
-            const planListContainer = document.getElementById('planListContainer');
-            const addPlanBtn = document.getElementById('addPlanBtn');
-            const newPlanName = document.getElementById('newPlanName');
-            const newPlanPrice = document.getElementById('newPlanPrice');
-            const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-
-            // ─── toggles ───
-            const darkToggle = document.getElementById('darkModeToggle');
-            const notifToggle = document.getElementById('notifToggle');
-
-            // ─── DARK MODE ───
+            // ─── THEME ───
             let darkMode = false;
 
             function applyTheme(isDark) {
                 if (isDark) {
                     document.documentElement.setAttribute('data-theme', 'dark');
-                    darkToggle.classList.add('active');
+                    themeIcon.className = 'fas fa-sun';
+                    if (settingsDarkToggle) settingsDarkToggle.classList.add('active');
                 } else {
                     document.documentElement.removeAttribute('data-theme');
-                    darkToggle.classList.remove('active');
+                    themeIcon.className = 'fas fa-moon';
+                    if (settingsDarkToggle) settingsDarkToggle.classList.remove('active');
                 }
                 darkMode = isDark;
-                // save preference
                 try {
                     localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light');
                 } catch (_) {}
             }
 
-            // load saved theme
             try {
                 const saved = localStorage.getItem('prontox-theme');
-                if (saved === 'dark') {
-                    applyTheme(true);
-                } else if (saved === 'light') {
-                    applyTheme(false);
+                if (saved === 'dark') applyTheme(true);
+                else if (saved === 'light') applyTheme(false);
+                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+                else applyTheme(false);
+            } catch (_) { applyTheme(false); }
+
+            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+            if (settingsDarkToggle) {
+                settingsDarkToggle.addEventListener('click', function() {
+                    applyTheme(!darkMode);
+                });
+            }
+
+            // ─── SIDEBAR TOGGLE ───
+            function openSidebar() {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('open');
+                hamburgerBtn.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+                hamburgerBtn.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            function toggleSidebar() {
+                if (sidebar.classList.contains('open')) {
+                    closeSidebar();
                 } else {
-                    // system preference
-                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                        applyTheme(true);
+                    openSidebar();
+                }
+            }
+
+            hamburgerBtn.addEventListener('click', toggleSidebar);
+            closeSidebarBtn.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            });
+
+            // ─── MAIN NAVIGATION ───
+            function navigateTo(pageId) {
+                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+
+                const target = document.getElementById('page-' + pageId);
+                if (target) target.classList.add('active');
+
+                navItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.page === pageId) item.classList.add('active');
+                });
+
+                const config = pageConfig[pageId];
+                if (config) {
+                    const activePage = document.querySelector('.page-content.active');
+                    if (activePage) {
+                        const header = activePage.querySelector('.page-header');
+                        if (header) {
+                            const h2 = header.querySelector('h2');
+                            const p = header.querySelector('p');
+                            if (h2) h2.textContent = config.title;
+                            if (p) p.textContent = config.desc;
+                        }
                     }
                 }
-            } catch (_) {}
 
-            darkToggle.addEventListener('click', function() {
-                applyTheme(!darkMode);
-            });
+                closeSidebar();
 
-            // ─── NOTIFICATIONS TOGGLE ───
-            notifToggle.addEventListener('click', function() {
-                this.classList.toggle('active');
-            });
+                if (pageId === 'settings') {
+                    renderPlanPreview();
+                    renderPlanList();
+                    showSettingsPage('general');
+                }
 
-            // ─── SIDEBAR NAVIGATION ───
-            sidebarNavs.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    sidebarNavs.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
 
-                    const page = this.dataset.page;
-                    Object.keys(pages).forEach(key => {
-                        pages[key].style.display = key === page ? 'block' : 'none';
-                    });
-
-                    // if plans page, update preview
-                    if (page === 'plans') {
-                        renderPlanPreview();
+            // ─── SETTINGS SUB-NAVIGATION ───
+            function showSettingsPage(pageId) {
+                Object.keys(settingsPages).forEach(key => {
+                    settingsPages[key].style.display = 'none';
+                });
+                if (settingsPages[pageId]) {
+                    settingsPages[pageId].style.display = 'block';
+                }
+                settingsSidebarItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.settingsPage === pageId) {
+                        item.classList.add('active');
                     }
+                });
+                planEditorOverlay.classList.remove('open');
+                if (pageId === 'plans') {
+                    renderPlanPreview();
+                }
+            }
 
-                    // close inner overlay if open
-                    planEditorOverlay.classList.remove('open');
+            settingsSidebarItems.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = this.dataset.settingsPage;
+                    if (page) showSettingsPage(page);
                 });
             });
 
-            // ─── RENDER PLAN PREVIEW (on Plans page) ───
+            // ─── PLAN RENDER FUNCTIONS ───
             function renderPlanPreview() {
                 if (!planPreviewGrid) return;
                 if (plans.length === 0) {
@@ -939,7 +1551,7 @@
                 let html = '';
                 plans.forEach(p => {
                     html += `
-                        <div class="plan-preview-card">
+                        <div class="plan-card">
                             <div class="name">${p.name}</div>
                             <div class="price">${p.price}</div>
                         </div>
@@ -949,7 +1561,6 @@
                 planCountLabel.textContent = `${plans.length} plans`;
             }
 
-            // ─── RENDER PLAN LIST (inside editor overlay) ───
             function renderPlanList() {
                 if (!planListContainer) return;
                 if (plans.length === 0) {
@@ -981,7 +1592,6 @@
                 });
                 planListContainer.innerHTML = html;
 
-                // ── event listeners for save & remove ──
                 document.querySelectorAll('.save-price-btn').forEach(btn => {
                     btn.addEventListener('click', function(e) {
                         e.stopPropagation();
@@ -994,7 +1604,6 @@
                             plan.price = newPrice || plan.price;
                             renderPlanList();
                             renderPlanPreview();
-                            // keep overlay open
                         }
                     });
                 });
@@ -1010,7 +1619,6 @@
                     });
                 });
 
-                // allow Enter key on price inputs to save
                 document.querySelectorAll('.plan-price-input').forEach(inp => {
                     inp.addEventListener('keydown', function(e) {
                         if (e.key === 'Enter') {
@@ -1039,7 +1647,6 @@
                 newPlanPrice.value = '';
                 renderPlanList();
                 renderPlanPreview();
-                // keep overlay open
             }
 
             addPlanBtn.addEventListener('click', addPlan);
@@ -1059,22 +1666,56 @@
             openPlanEditorBtn.addEventListener('click', openPlanEditor);
             closePlanEditorBtn.addEventListener('click', closePlanEditor);
 
-            // ─── CLOSE SETTINGS (demo) ───
-            closeSettingsBtn.addEventListener('click', function() {
-                if (confirm('Close settings? (Demo)')) {
-                    alert('Settings closed.');
+            // ─── NOTIFICATIONS TOGGLE ───
+            if (notifToggle) {
+                notifToggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+            }
+
+            // ─── NAV ITEMS CLICK ───
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    if (page) navigateTo(page);
+                });
+            });
+
+            // ─── LOGOUT ───
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('Are you sure you want to log out?')) {
+                    alert('Logging out... (Demo)');
+                }
+            });
+
+            // ─── AVATAR ───
+            avatarBtn.addEventListener('click', function() {
+                alert('👤 User profile – would open user settings.');
+            });
+
+            // ─── LOGO ───
+            document.getElementById('logoLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateTo('dashboard');
+            });
+
+            // ─── KEYBOARD SHORTCUTS ───
+            document.addEventListener('keydown', function(e) {
+                const pages = ['dashboard', 'customer', 'income-projection', 'payments', 'monthly-income',
+                    'projection-vs-actual', 'settings'
+                ];
+                if (e.ctrlKey && e.key >= '1' && e.key <= '7') {
+                    e.preventDefault();
+                    const idx = parseInt(e.key) - 1;
+                    if (pages[idx]) navigateTo(pages[idx]);
                 }
             });
 
             // ─── INIT ───
-            // show general page by default
-            Object.keys(pages).forEach(key => {
-                pages[key].style.display = key === 'general' ? 'block' : 'none';
-            });
-            renderPlanPreview();
-            renderPlanList();
-
-            console.log('✅ Settings + Plan Editor ready. Currency: ₦ Naira | Dark mode active.');
+            navigateTo('dashboard');
+            console.log('✅ Prontox platform ready (Naira currency, 9 plans, grouped sidebar).');
         })();
     </script>
 
