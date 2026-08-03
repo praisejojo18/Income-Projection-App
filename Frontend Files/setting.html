@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings · Plan Editor</title>
+
+    <!-- Font Awesome 6 (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        /* ============================================================
+           PRONTOX COLOR PALETTE & FONTS
+           ============================================================ */
+
+        /* --- COLORS (Light Mode - default) --- */
+        :root {
+            --bg: #F0F4F8;
+            --surface: #FFFFFF;
+            --surface-2: #F8FAFC;
+            --surface-3: #F1F5F9;
+            --text-primary: #1A2332;
+            --text-secondary: #475569;
+            --text-muted: #94A3B8;
+            --border: #E2E8F0;
+            --accent: #00AFEF;
+            --accent-hover: #0099D3;
+            --accent-dark: #0088CC;
+            --accent-light: #E6F6FE;
+            --accent-mid: #B3E5FC;
+
+            /* Status Colors */
+            --status-submitted: #8b5cf6;
+            --status-submitted-bg: #ede9fe;
+            --status-review: #f59e0b;
+            --status-review-bg: #fef3c7;
+            --status-approved: #3b82f6;
+            --status-approved-bg: #dbeafe;
+            --status-implemented: #10b981;
+            --status-implemented-bg: #d1fae5;
+
+            /* Shadows */
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
+
+            /* Border Radius */
+            --radius: 14px;
+            --radius-sm: 10px;
+            --radius-xs: 8px;
+
+            /* Transitions */
+            --transition: 0.3s ease;
+        }
+
+        /* --- DARK MODE OVERRIDES --- */
+        [data-theme="dark"] {
+            --bg: #0E0F11;
+            --surface: #1A1E21;
+            --surface-2: #24292E;
+            --surface-3: #2D3338;
+            --text-primary: #E7E9EB;
+            --text-secondary: #AAB0B6;
+            --text-muted: #888E99;
+            --border: #353E46;
+            --accent: #60A5FA;
+            --accent-hover: #3B82F6;
+            --accent-dark: #2563EB;
+            --accent-light: #1a3a5a;
+            --accent-mid: #2a4a6a;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
+            --status-submitted: #a78bfa;
+            --status-submitted-bg: #2d1b4e;
+            --status-review: #fbbf24;
+            --status-review-bg: #4d3a0a;
+            --status-approved: #60a5fa;
+            --status-approved-bg: #1a2a4a;
+            --status-implemented: #34d399;
+            --status-implemented-bg: #0a3a2a;
+        }
+
+        /* --- FONTS --- */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        /* ─── base reset ─── */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            background: none;
+        }
+
+        input,
+        select {
+            font-family: inherit;
+            outline: none;
+        }
+
+        /* ─── settings container ─── */
+        .settings-wrap {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        /* ─── header ─── */
+        .settings-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            transition: border-color var(--transition);
+        }
+        .settings-header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+            transition: color var(--transition);
+        }
+        .settings-header h1 i {
+            color: var(--accent);
+            margin-right: 10px;
+            transition: color var(--transition);
+        }
+        .settings-header .close-btn {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            padding: 6px 12px;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s, color var(--transition);
+        }
+        .settings-header .close-btn:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+
+        /* ─── body: sidebar + content ─── */
+        .settings-body {
+            display: flex;
+            flex: 1;
+            min-height: 500px;
+        }
+
+        /* ─── sidebar ─── */
+        .settings-sidebar {
+            width: 200px;
+            background: var(--surface-2);
+            border-right: 1px solid var(--border);
+            padding: 16px 0;
+            flex-shrink: 0;
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .settings-sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+        }
+        .settings-sidebar .nav-item i {
+            width: 18px;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .settings-sidebar .nav-item:hover {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+        }
+        .settings-sidebar .nav-item:hover i {
+            color: var(--accent);
+        }
+        .settings-sidebar .nav-item.active {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+        .settings-sidebar .nav-item.active i {
+            color: var(--accent);
+        }
+
+        /* ─── content area ─── */
+        .settings-content {
+            flex: 1;
+            padding: 24px 28px 32px;
+            overflow-y: auto;
+            background: var(--surface);
+            position: relative;
+            transition: background var(--transition);
+        }
+
+        /* ─── page header ─── */
+        .page-header {
+            margin-bottom: 24px;
+        }
+        .page-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            transition: color var(--transition);
+        }
+        .page-header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: color var(--transition);
+        }
+
+        /* ─── inner page overlay (plan editor) ─── */
+        .inner-page-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--surface);
+            z-index: 10;
+            padding: 24px 28px 32px;
+            display: none;
+            flex-direction: column;
+            border-radius: var(--radius);
+            animation: slideIn 0.25s ease;
+            transition: background var(--transition);
+        }
+        .inner-page-overlay.open {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .inner-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            transition: border-color var(--transition);
+        }
+        .inner-page-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .inner-page-header h3 i {
+            color: var(--accent);
+            margin-right: 10px;
+            transition: color var(--transition);
+        }
+        .inner-page-header .back-btn {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .inner-page-header .back-btn:hover {
+            background: var(--surface-2);
+            border-color: var(--text-muted);
+        }
+        .inner-page-header .back-btn i {
+            margin-right: 6px;
+        }
+
+        /* ─── plan list ─── */
+        .plan-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .plan-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .plan-list::-webkit-scrollbar-track {
+            background: var(--surface-2);
+            border-radius: 20px;
+        }
+        .plan-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 20px;
+        }
+        .plan-list::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        .plan-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--surface-2);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: border-color 0.2s, background var(--transition), border-color var(--transition);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .plan-item:hover {
+            border-color: var(--accent-mid);
+        }
+        .plan-item .plan-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .plan-item .plan-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            min-width: 120px;
+            transition: color var(--transition);
+        }
+        .plan-item .plan-price-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .plan-item .plan-price-wrap label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .plan-item .plan-price-wrap input {
+            width: 110px;
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--text-primary);
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(
+                    --transition);
+        }
+        .plan-item .plan-price-wrap input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .plan-item .plan-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .plan-item .plan-actions button {
+            padding: 4px 10px;
+            border-radius: var(--radius-xs);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .plan-item .plan-actions .save-price-btn {
+            background: var(--accent);
+            color: #fff;
+        }
+        .plan-item .plan-actions .save-price-btn:hover {
+            background: var(--accent-hover);
+        }
+        .plan-item .plan-actions .remove-plan-btn {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .plan-item .plan-actions .remove-plan-btn:hover {
+            background: #fecaca;
+        }
+        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn {
+            background: #4a1a1a;
+            color: #f87171;
+        }
+        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn:hover {
+            background: #5a2a2a;
+        }
+
+        /* ─── add plan ─── */
+        .add-plan-area {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            transition: border-color var(--transition);
+        }
+        .add-plan-area input {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--text-primary);
+            flex: 1;
+            min-width: 140px;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(
+                    --transition);
+        }
+        .add-plan-area input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .add-plan-area .add-btn {
+            padding: 8px 20px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .add-plan-area .add-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* ─── empty state ─── */
+        .empty-plans {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .empty-plans i {
+            font-size: 2.5rem;
+            color: var(--border);
+            margin-bottom: 12px;
+            display: block;
+            transition: color var(--transition);
+        }
+        .empty-plans p {
+            font-size: 0.9rem;
+        }
+
+        /* ─── general settings page ─── */
+        .general-settings {
+            display: block;
+        }
+        .general-settings .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: border-color var(--transition);
+        }
+        .general-settings .setting-row:last-child {
+            border-bottom: none;
+        }
+        .general-settings .setting-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .general-settings .setting-label small {
+            display: block;
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 2px;
+            transition: color var(--transition);
+        }
+        .general-settings .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ─── toggle switch ─── */
+        .toggle {
+            width: 42px;
+            height: 24px;
+            background: var(--border);
+            border-radius: 999px;
+            position: relative;
+            transition: background 0.3s;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .toggle.active {
+            background: var(--accent);
+        }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+        .toggle.active::after {
+            transform: translateX(18px);
+        }
+
+        .general-settings .select-input {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(
+                    --transition);
+        }
+        .general-settings .select-input:focus {
+            border-color: var(--accent);
+        }
+
+        /* ─── plan preview grid ─── */
+        .plan-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .plan-preview-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            text-align: center;
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .plan-preview-card .name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .plan-preview-card .price {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 4px;
+            transition: color var(--transition);
+        }
+
+        /* ─── responsive ─── */
+        @media (max-width: 768px) {
+            .settings-body {
+                flex-direction: column;
+            }
+            .settings-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 8px 0;
+                display: flex;
+                overflow-x: auto;
+                gap: 4px;
+                padding: 8px 16px;
+            }
+            .settings-sidebar .nav-item {
+                border-left: none;
+                border-bottom: 3px solid transparent;
+                padding: 8px 14px;
+                white-space: nowrap;
+                font-size: 0.8rem;
+            }
+            .settings-sidebar .nav-item.active {
+                border-left: none;
+                border-bottom-color: var(--accent);
+            }
+            .settings-content {
+                padding: 18px 16px 24px;
+                min-height: 400px;
+            }
+            .inner-page-overlay {
+                padding: 18px 16px 24px;
+            }
+            .plan-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .plan-item .plan-info {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .plan-item .plan-price-wrap {
+                flex-wrap: wrap;
+            }
+            .plan-item .plan-actions {
+                justify-content: flex-end;
+            }
+            .add-plan-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .settings-header {
+                padding: 16px 18px;
+            }
+            .settings-header h1 {
+                font-size: 1rem;
+            }
+            .plan-preview-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .settings-wrap {
+                border-radius: var(--radius-sm);
+            }
+            .plan-item .plan-price-wrap input {
+                width: 100%;
+            }
+            .plan-preview-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── SETTINGS WRAPPER ─── -->
+    <div class="settings-wrap">
+
+        <!-- header -->
+        <div class="settings-header">
+            <h1><i class="fas fa-cog"></i> Settings</h1>
+            <button class="close-btn" id="closeSettingsBtn"><i class="fas fa-times"></i> Close</button>
+        </div>
+
+        <!-- body -->
+        <div class="settings-body">
+
+            <!-- sidebar -->
+            <nav class="settings-sidebar">
+                <button class="nav-item active" data-page="general">
+                    <i class="fas fa-sliders-h"></i> General
+                </button>
+                <button class="nav-item" data-page="plans">
+                    <i class="fas fa-cubes"></i> Plans
+                </button>
+            </nav>
+
+            <!-- content -->
+            <div class="settings-content" id="settingsContent">
+
+                <!-- ===================== -->
+                <!-- PAGE: General          -->
+                <!-- ===================== -->
+                <div id="page-general" class="page-content">
+                    <div class="page-header">
+                        <h2>General Settings</h2>
+                        <p>Manage your workspace preferences and defaults.</p>
+                    </div>
+                    <div class="general-settings">
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                Workspace Name
+                                <small>Your workspace display name</small>
+                            </div>
+                            <div class="setting-control">
+                                <input type="text" value="Prontox Inc." style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-xs);font-size:0.85rem;background:var(--surface);color:var(--text-primary);min-width:180px;transition:background var(--transition),color var(--transition),border-color var(--transition);" />
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                Dark Mode
+                                <small>Toggle dark theme across the app</small>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle" id="darkModeToggle"></div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                Default Language
+                                <small>Interface language</small>
+                            </div>
+                            <div class="setting-control">
+                                <select class="select-input">
+                                    <option>English (US)</option>
+                                    <option>Spanish</option>
+                                    <option>French</option>
+                                    <option>German</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                Notifications
+                                <small>Email and in-app notifications</small>
+                            </div>
+                            <div class="setting-control">
+                                <div class="toggle active" id="notifToggle"></div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                Currency
+                                <small>Default currency for plans and billing</small>
+                            </div>
+                            <div class="setting-control">
+                                <span style="font-weight:600;color:var(--accent);font-size:0.95rem;">₦ Naira</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===================== -->
+                <!-- PAGE: Plans            -->
+                <!-- ===================== -->
+                <div id="page-plans" class="page-content" style="display:none;">
+                    <div class="page-header">
+                        <h2>Plans &amp; Pricing</h2>
+                        <p>Manage your subscription plans and pricing tiers.</p>
+                    </div>
+
+                    <!-- quick summary + edit button -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+                        <span style="font-size:0.85rem;color:var(--text-secondary);transition:color var(--transition);">
+                            <i class="fas fa-cubes" style="color:var(--accent);margin-right:6px;"></i>
+                            <span id="planCountLabel">9 plans</span> configured
+                        </span>
+                        <button id="openPlanEditorBtn" style="padding:8px 20px;background:var(--accent);color:#fff;border-radius:var(--radius-xs);font-weight:600;font-size:0.85rem;transition:background 0.2s;">
+                            <i class="fas fa-edit"></i> Edit Plans
+                        </button>
+                    </div>
+
+                    <!-- plan preview grid -->
+                    <div class="plan-preview-grid" id="planPreviewGrid">
+                        <!-- populated by JS -->
+                    </div>
+                </div>
+
+                <!-- ========================================================== -->
+                <!-- INNER PAGE: Plan Editor (overlay)                          -->
+                <!-- ========================================================== -->
+                <div class="inner-page-overlay" id="planEditorOverlay">
+                    <div class="inner-page-header">
+                        <h3><i class="fas fa-cubes"></i> Edit Plans</h3>
+                        <button class="back-btn" id="closePlanEditorBtn">
+                            <i class="fas fa-arrow-left"></i> Back to Plans
+                        </button>
+                    </div>
+
+                    <!-- plan list -->
+                    <div class="plan-list" id="planListContainer">
+                        <!-- rendered by JS -->
+                    </div>
+
+                    <!-- add plan -->
+                    <div class="add-plan-area">
+                        <input type="text" id="newPlanName" placeholder="Plan name (e.g. Silver)" />
+                        <input type="text" id="newPlanPrice" placeholder="Price (e.g. ₦5,000/mo)" />
+                        <button class="add-btn" id="addPlanBtn"><i class="fas fa-plus"></i> Add Plan</button>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /settings-content -->
+        </div>
+        <!-- /settings-body -->
+    </div>
+    <!-- /settings-wrap -->
+
+
+    <!-- ─── JAVASCRIPT ─── -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── DATA ───
+            const defaultPlans = [
+                'Silver',
+                'Gold',
+                'Platinum',
+                'Premium',
+                'Premium+',
+                'SME silver',
+                'SME gold',
+                'SME platinum',
+                'SME platinum+'
+            ];
+
+            let plans = defaultPlans.map((name, index) => ({
+                id: index + 1,
+                name: name,
+                price: index === 0 ? '₦5,000/mo' :
+                    index === 1 ? '₦10,000/mo' :
+                    index === 2 ? '₦20,000/mo' :
+                    index === 3 ? '₦35,000/mo' :
+                    index === 4 ? '₦50,000/mo' :
+                    index === 5 ? '₦7,500/mo' :
+                    index === 6 ? '₦15,000/mo' :
+                    index === 7 ? '₦30,000/mo' :
+                    '₦60,000/mo'
+            }));
+            let nextId = plans.length + 1;
+
+            // ─── DOM refs ───
+            const sidebarNavs = document.querySelectorAll('.settings-sidebar .nav-item');
+            const pages = {
+                general: document.getElementById('page-general'),
+                plans: document.getElementById('page-plans'),
+            };
+            const planPreviewGrid = document.getElementById('planPreviewGrid');
+            const planCountLabel = document.getElementById('planCountLabel');
+            const openPlanEditorBtn = document.getElementById('openPlanEditorBtn');
+            const closePlanEditorBtn = document.getElementById('closePlanEditorBtn');
+            const planEditorOverlay = document.getElementById('planEditorOverlay');
+            const planListContainer = document.getElementById('planListContainer');
+            const addPlanBtn = document.getElementById('addPlanBtn');
+            const newPlanName = document.getElementById('newPlanName');
+            const newPlanPrice = document.getElementById('newPlanPrice');
+            const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+
+            // ─── toggles ───
+            const darkToggle = document.getElementById('darkModeToggle');
+            const notifToggle = document.getElementById('notifToggle');
+
+            // ─── DARK MODE ───
+            let darkMode = false;
+
+            function applyTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    darkToggle.classList.add('active');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    darkToggle.classList.remove('active');
+                }
+                darkMode = isDark;
+                // save preference
+                try {
+                    localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light');
+                } catch (_) {}
+            }
+
+            // load saved theme
+            try {
+                const saved = localStorage.getItem('prontox-theme');
+                if (saved === 'dark') {
+                    applyTheme(true);
+                } else if (saved === 'light') {
+                    applyTheme(false);
+                } else {
+                    // system preference
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        applyTheme(true);
+                    }
+                }
+            } catch (_) {}
+
+            darkToggle.addEventListener('click', function() {
+                applyTheme(!darkMode);
+            });
+
+            // ─── NOTIFICATIONS TOGGLE ───
+            notifToggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+            });
+
+            // ─── SIDEBAR NAVIGATION ───
+            sidebarNavs.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    sidebarNavs.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const page = this.dataset.page;
+                    Object.keys(pages).forEach(key => {
+                        pages[key].style.display = key === page ? 'block' : 'none';
+                    });
+
+                    // if plans page, update preview
+                    if (page === 'plans') {
+                        renderPlanPreview();
+                    }
+
+                    // close inner overlay if open
+                    planEditorOverlay.classList.remove('open');
+                });
+            });
+
+            // ─── RENDER PLAN PREVIEW (on Plans page) ───
+            function renderPlanPreview() {
+                if (!planPreviewGrid) return;
+                if (plans.length === 0) {
+                    planPreviewGrid.innerHTML =
+                        `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem;">No plans configured yet.</div>`;
+                    planCountLabel.textContent = '0 plans';
+                    return;
+                }
+                let html = '';
+                plans.forEach(p => {
+                    html += `
+                        <div class="plan-preview-card">
+                            <div class="name">${p.name}</div>
+                            <div class="price">${p.price}</div>
+                        </div>
+                    `;
+                });
+                planPreviewGrid.innerHTML = html;
+                planCountLabel.textContent = `${plans.length} plans`;
+            }
+
+            // ─── RENDER PLAN LIST (inside editor overlay) ───
+            function renderPlanList() {
+                if (!planListContainer) return;
+                if (plans.length === 0) {
+                    planListContainer.innerHTML = `
+                        <div class="empty-plans">
+                            <i class="fas fa-cube"></i>
+                            <p>No plans yet. Add your first plan below.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                let html = '';
+                plans.forEach(p => {
+                    html += `
+                        <div class="plan-item" data-id="${p.id}">
+                            <div class="plan-info">
+                                <span class="plan-name">${p.name}</span>
+                                <div class="plan-price-wrap">
+                                    <label>Price</label>
+                                    <input type="text" class="plan-price-input" value="${p.price}" data-id="${p.id}" />
+                                </div>
+                            </div>
+                            <div class="plan-actions">
+                                <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
+                                <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-trash"></i> Remove</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                planListContainer.innerHTML = html;
+
+                // ── event listeners for save & remove ──
+                document.querySelectorAll('.save-price-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.dataset.id);
+                        const input = document.querySelector(`.plan-price-input[data-id="${id}"]`);
+                        if (!input) return;
+                        const newPrice = input.value.trim();
+                        const plan = plans.find(p => p.id === id);
+                        if (plan) {
+                            plan.price = newPrice || plan.price;
+                            renderPlanList();
+                            renderPlanPreview();
+                            // keep overlay open
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.remove-plan-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.dataset.id);
+                        if (!confirm('Remove this plan?')) return;
+                        plans = plans.filter(p => p.id !== id);
+                        renderPlanList();
+                        renderPlanPreview();
+                    });
+                });
+
+                // allow Enter key on price inputs to save
+                document.querySelectorAll('.plan-price-input').forEach(inp => {
+                    inp.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            const id = parseInt(this.dataset.id);
+                            const btn = document.querySelector(`.save-price-btn[data-id="${id}"]`);
+                            if (btn) btn.click();
+                        }
+                    });
+                });
+            }
+
+            // ─── ADD PLAN ───
+            function addPlan() {
+                const name = newPlanName.value.trim();
+                const price = newPlanPrice.value.trim();
+                if (!name) {
+                    alert('Please enter a plan name.');
+                    return;
+                }
+                if (!price) {
+                    alert('Please enter a price.');
+                    return;
+                }
+                plans.push({ id: nextId++, name, price });
+                newPlanName.value = '';
+                newPlanPrice.value = '';
+                renderPlanList();
+                renderPlanPreview();
+                // keep overlay open
+            }
+
+            addPlanBtn.addEventListener('click', addPlan);
+            newPlanName.addEventListener('keydown', e => { if (e.key === 'Enter') addPlan(); });
+            newPlanPrice.addEventListener('keydown', e => { if (e.key === 'Enter') addPlan(); });
+
+            // ─── OPEN / CLOSE PLAN EDITOR ───
+            function openPlanEditor() {
+                renderPlanList();
+                planEditorOverlay.classList.add('open');
+            }
+
+            function closePlanEditor() {
+                planEditorOverlay.classList.remove('open');
+            }
+
+            openPlanEditorBtn.addEventListener('click', openPlanEditor);
+            closePlanEditorBtn.addEventListener('click', closePlanEditor);
+
+            // ─── CLOSE SETTINGS (demo) ───
+            closeSettingsBtn.addEventListener('click', function() {
+                if (confirm('Close settings? (Demo)')) {
+                    alert('Settings closed.');
+                }
+            });
+
+            // ─── INIT ───
+            // show general page by default
+            Object.keys(pages).forEach(key => {
+                pages[key].style.display = key === 'general' ? 'block' : 'none';
+            });
+            renderPlanPreview();
+            renderPlanList();
+
+            console.log('✅ Settings + Plan Editor ready. Currency: ₦ Naira | Dark mode active.');
+        })();
+    </script>
+
+</body>
+</html>
