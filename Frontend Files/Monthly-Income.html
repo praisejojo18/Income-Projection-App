@@ -8,6 +8,10 @@
     <!-- Font Awesome 6 (Free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
+    <!-- Chart.js for Monthly Income charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+
     <style>
         /* ============================================================
            PRONTOX COLOR PALETTE & FONTS
@@ -1131,7 +1135,7 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.45);
+            background: rgba(0, 0, 0, 0.45);
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -1286,6 +1290,192 @@
         }
 
         /* ============================================================
+           MONTHLY INCOME PAGE SPECIFIC STYLES
+           ============================================================ */
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            padding: 4px 12px 4px 16px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .month-selector label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .month-selector select {
+            border: none;
+            padding: 10px 6px 10px 0;
+            font-size: 14px;
+            font-weight: 500;
+            background: transparent;
+            color: var(--text-primary);
+            outline: none;
+            cursor: pointer;
+            min-width: 140px;
+            transition: color var(--transition), background var(--transition);
+        }
+
+        /* Dark mode override for the month dropdown */
+        [data-theme="dark"] .month-selector select {
+            background-color: #000000;
+            color: #AAB0B6;
+        }
+        [data-theme="dark"] .month-selector select option {
+            background-color: #000000;
+            color: #AAB0B6;
+        }
+        [data-theme="dark"] .month-selector {
+            background-color: #1A1E21;
+            border-color: #353E46;
+        }
+
+        .income-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 32px;
+        }
+        .income-summary-grid .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px 16px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .income-summary-grid .summary-card .label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+        }
+        .income-summary-grid .summary-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 6px 0 2px;
+            transition: color var(--transition);
+        }
+        .income-summary-grid .summary-card .sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .income-summary-grid .summary-card .sub .highlight {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .trend-up {
+            color: #10b981;
+        }
+        .trend-down {
+            color: #ef4444;
+        }
+
+        .income-table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .income-table-wrap .table-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-primary);
+            transition: border-color var(--transition);
+        }
+        .income-table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .income-table-wrap th {
+            text-align: left;
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+            transition: background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .income-table-wrap td {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+            transition: border-color var(--transition);
+        }
+        .income-table-wrap tr:last-child td {
+            border-bottom: none;
+        }
+        .income-table-wrap .total-row td {
+            font-weight: 700;
+            background: var(--surface-2);
+            border-top: 2px solid var(--border);
+        }
+        .text-right {
+            text-align: right;
+        }
+
+        .income-chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 8px;
+        }
+        .income-chart-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 18px 16px 12px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .income-chart-box .chart-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        .income-chart-box canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 260px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state .icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .empty-state h4 {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .empty-state p {
+            font-size: 13px;
+        }
+
+        /* ============================================================
            CUSTOMER PAGE & OTHER COMMON STYLES (unchanged)
            ============================================================ */
 
@@ -1311,9 +1501,16 @@
             transition: background 0.2s, transform 0.15s;
             flex-shrink: 0;
         }
-        .btn-primary:hover { background: var(--accent-hover); }
-        .btn-primary:active { transform: scale(0.97); }
-        .btn-primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+        .btn-primary:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
 
         .btn-secondary {
             display: inline-flex;
@@ -1328,8 +1525,14 @@
             font-size: 0.85rem;
             transition: all 0.2s;
         }
-        .btn-secondary:hover { background: var(--surface-2); border-color: var(--text-muted); }
-        .btn-secondary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .btn-secondary:hover {
+            background: var(--surface-2);
+            border-color: var(--text-muted);
+        }
+        .btn-secondary:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
 
         .btn-danger {
             display: inline-flex;
@@ -1343,10 +1546,20 @@
             font-size: 0.85rem;
             transition: background 0.2s, transform 0.15s;
         }
-        .btn-danger:hover { background: var(--danger-hover); }
-        .btn-danger:active { transform: scale(0.97); }
-        .btn-danger:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
-        .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+        .btn-danger:hover {
+            background: var(--danger-hover);
+        }
+        .btn-danger:active {
+            transform: scale(0.97);
+        }
+        .btn-danger:focus-visible {
+            outline: 2px solid var(--danger);
+            outline-offset: 2px;
+        }
+        .btn-danger:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
         .customer-toolbar {
             display: flex;
@@ -1417,8 +1630,12 @@
             white-space: nowrap;
             transition: background var(--transition), color var(--transition), border-color var(--transition);
         }
-        .customer-table thead th.num-col { width: 56px; }
-        .customer-table thead th.action-col { text-align: right; }
+        .customer-table thead th.num-col {
+            width: 56px;
+        }
+        .customer-table thead th.action-col {
+            text-align: right;
+        }
         .customer-table tbody tr {
             cursor: pointer;
             transition: background 0.18s ease;
@@ -1426,7 +1643,9 @@
         .customer-table tbody tr:hover {
             background: var(--surface-2);
         }
-        .customer-table tbody tr:hover td { color: var(--text-primary); }
+        .customer-table tbody tr:hover td {
+            color: var(--text-primary);
+        }
         .customer-table tbody td {
             padding: 14px 20px;
             border-bottom: 1px solid var(--border);
@@ -1434,7 +1653,9 @@
             transition: border-color var(--transition), color var(--transition);
             vertical-align: middle;
         }
-        .customer-table tbody tr:last-child td { border-bottom: none; }
+        .customer-table tbody tr:last-child td {
+            border-bottom: none;
+        }
         .customer-table .cust-name-cell {
             font-weight: 600;
         }
@@ -1497,7 +1718,9 @@
             transition: all 0.18s;
             margin-left: 8px;
         }
-        .icon-action-btn:first-child { margin-left: 0; }
+        .icon-action-btn:first-child {
+            margin-left: 0;
+        }
         .icon-action-btn:hover {
             background: var(--accent-light);
             color: var(--accent-dark);
@@ -1702,8 +1925,14 @@
             transition: background var(--transition);
         }
         @keyframes modalPop {
-            0% { opacity: 0; transform: scale(0.96) translateY(6px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
+            0% {
+                opacity: 0;
+                transform: scale(0.96) translateY(6px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
         .modal-header {
             display: flex;
@@ -1748,7 +1977,9 @@
         .form-field {
             margin-bottom: 18px;
         }
-        .form-field:last-child { margin-bottom: 0; }
+        .form-field:last-child {
+            margin-bottom: 0;
+        }
         .form-field label {
             display: block;
             font-size: 0.82rem;
@@ -1839,7 +2070,9 @@
             color: var(--text-secondary);
             line-height: 1.5;
         }
-        .confirm-text strong { color: var(--text-primary); }
+        .confirm-text strong {
+            color: var(--text-primary);
+        }
 
         .placeholder-page {
             text-align: center;
@@ -1856,6 +2089,37 @@
             font-size: 1.2rem;
             color: var(--text-secondary);
             margin-bottom: 8px;
+        }
+
+        /* responsive for monthly income */
+        @media (max-width: 900px) {
+            .income-summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .income-chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .income-summary-grid {
+                grid-template-columns: 1fr;
+            }
+            .income-summary-grid .summary-card .value {
+                font-size: 24px;
+            }
+            .month-selector {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .income-table-wrap {
+                border-radius: 6px;
+            }
+            .income-table-wrap th,
+            .income-table-wrap td {
+                padding: 10px 14px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -2132,7 +2396,7 @@
         </div>
 
         <!-- ==========================================================
-             PAGE: PAYMENTS (INTEGRATED & MODIFIED)
+             PAGE: PAYMENTS
              ========================================================== -->
         <div id="page-payments" class="page-content">
             <div class="page-header customer-page-header">
@@ -2145,7 +2409,6 @@
                 </button>
             </div>
 
-            <!-- Summary Cards -->
             <div class="payments-summary">
                 <div class="summary-card">
                     <span>Total Received</span>
@@ -2165,7 +2428,6 @@
                 </div>
             </div>
 
-            <!-- Filters -->
             <div class="filter-box">
                 <div class="filters">
                     <input type="text" id="search" class="input" placeholder="Search customer or reference..." oninput="filterPayments()">
@@ -2196,7 +2458,6 @@
                 </div>
             </div>
 
-            <!-- Table -->
             <div class="table-box">
                 <div class="table-header">
                     <h3>Payment Transactions</h3>
@@ -2222,17 +2483,78 @@
         </div>
 
         <!-- ==========================================================
-             PAGE: Monthly Income (placeholder)
+             PAGE: MONTHLY INCOME (FULLY INTEGRATED - Daily Table Removed)
              ========================================================== -->
         <div id="page-monthly-income" class="page-content">
-            <div class="page-header">
-                <h2>Monthly Income</h2>
-                <p>Detailed breakdown of your income performance month by month.</p>
+            <div class="page-header customer-page-header">
+                <div>
+                    <h2>Monthly Income</h2>
+                    <p>View and analyze income received for a specific month.</p>
+                </div>
+                <div class="month-selector">
+                    <label for="monthSelect">Month</label>
+                    <select id="monthSelect"></select>
+                </div>
             </div>
-            <div class="placeholder-page">
-                <i class="fas fa-calendar-alt"></i>
-                <h3>Monthly Breakdown</h3>
-                <p>See your income trends per month.</p>
+
+            <!-- Summary Cards -->
+            <div class="income-summary-grid" id="incomeSummaryCards">
+                <div class="summary-card">
+                    <div class="label">Total Income</div>
+                    <div class="value" id="totalIncome">₦0</div>
+                    <div class="sub" id="totalIncomeMonth">—</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Paying Customers</div>
+                    <div class="value" id="payingCustomers">0</div>
+                    <div class="sub">Unique customers who paid</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Average Payment</div>
+                    <div class="value" id="avgPayment">₦0</div>
+                    <div class="sub">Per transaction</div>
+                </div>
+                <div class="summary-card">
+                    <div class="label">Vs Previous Month</div>
+                    <div class="value" id="vsPrevious">—</div>
+                    <div class="sub" id="vsPreviousDetail">—</div>
+                </div>
+            </div>
+
+            <!-- Service Plan Income Table -->
+            <div class="income-table-wrap">
+                <div class="table-header">Income by Service Plan</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Service Plan</th>
+                            <th class="text-right">Paying Customers</th>
+                            <th class="text-right">Amount per Plan</th>
+                            <th class="text-right">Total Received</th>
+                        </tr>
+                    </thead>
+                    <tbody id="planTableBody"></tbody>
+                    <tfoot id="planTableFooter" style="display:none;">
+                        <tr class="total-row">
+                            <td>TOTAL</td>
+                            <td class="text-right" id="totalPayingCustomers">0</td>
+                            <td class="text-right">—</td>
+                            <td class="text-right" id="totalPlanRevenue">₦0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- Charts -->
+            <div class="income-chart-grid">
+                <div class="income-chart-box">
+                    <div class="chart-title">Revenue by Service Plan</div>
+                    <canvas id="planChart"></canvas>
+                </div>
+                <div class="income-chart-box">
+                    <div class="chart-title">Monthly Revenue Trend</div>
+                    <canvas id="trendChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -2410,7 +2732,7 @@
                 customer: { title: 'Customers', desc: 'View and manage all your customer accounts and interactions.' },
                 'income-projection': { title: 'Income Projection', desc: 'Forecast your future revenue based on current trends.' },
                 payments: { title: 'Payments', desc: 'Record and monitor customer payments.' },
-                'monthly-income': { title: 'Monthly Income', desc: 'Detailed breakdown of your income performance month by month.' },
+                'monthly-income': { title: 'Monthly Income', desc: 'View and analyze income received for a specific month.' },
                 'projection-vs-actual': { title: 'Projection vs Actual', desc: 'Compare your projected income against actual results.' },
                 settings: { title: 'Settings', desc: 'Configure your workspace, manage plans, and adjust preferences.' },
             };
@@ -2565,10 +2887,22 @@
                 }
 
                 if (pageId === 'payments') {
-                    // Re-render payments when switching to the page
                     if (typeof renderPayments === 'function') {
                         renderPayments(payments);
                         updateSummary();
+                    }
+                }
+
+                if (pageId === 'monthly-income') {
+                    if (window.MonthlyIncomeModule && typeof window.MonthlyIncomeModule.onPageShow === 'function') {
+                        window.MonthlyIncomeModule.onPageShow();
+                    } else {
+                        setTimeout(() => {
+                            if (window.MonthlyIncomeModule && typeof window.MonthlyIncomeModule.onPageShow ===
+                                'function') {
+                                window.MonthlyIncomeModule.onPageShow();
+                            }
+                        }, 50);
                     }
                 }
 
@@ -2598,13 +2932,15 @@
             function renderPlanPreview() {
                 if (!planPreviewGrid) return;
                 if (plans.length === 0) {
-                    planPreviewGrid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem;">No plans configured yet.</div>`;
+                    planPreviewGrid.innerHTML =
+                        `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem;">No plans configured yet.</div>`;
                     planCountLabel.textContent = '0 plans';
                     return;
                 }
                 let html = '';
                 plans.forEach(p => {
-                    html += `<div class="plan-card"><div class="name">${p.name}</div><div class="price">${p.price}</div></div>`;
+                    html +=
+                        `<div class="plan-card"><div class="name">${p.name}</div><div class="price">${p.price}</div></div>`;
                 });
                 planPreviewGrid.innerHTML = html;
                 planCountLabel.textContent = `${plans.length} plans`;
@@ -2613,26 +2949,27 @@
             function renderPlanList() {
                 if (!planListContainer) return;
                 if (plans.length === 0) {
-                    planListContainer.innerHTML = `<div class="empty-plans"><i class="fas fa-cube"></i><p>No plans yet. Add your first plan below.</p></div>`;
+                    planListContainer.innerHTML =
+                        `<div class="empty-plans"><i class="fas fa-cube"></i><p>No plans yet. Add your first plan below.</p></div>`;
                     return;
                 }
                 let html = '';
                 plans.forEach(p => {
                     html += `
-                        <div class="plan-item" data-id="${p.id}">
-                            <div class="plan-info">
-                                <span class="plan-name">${p.name}</span>
-                                <div class="plan-price-wrap">
-                                    <label>Price</label>
-                                    <input type="text" class="plan-price-input" value="${p.price}" data-id="${p.id}" />
+                            <div class="plan-item" data-id="${p.id}">
+                                <div class="plan-info">
+                                    <span class="plan-name">${p.name}</span>
+                                    <div class="plan-price-wrap">
+                                        <label>Price</label>
+                                        <input type="text" class="plan-price-input" value="${p.price}" data-id="${p.id}" />
+                                    </div>
+                                </div>
+                                <div class="plan-actions">
+                                    <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
+                                    <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-trash"></i> Remove</button>
                                 </div>
                             </div>
-                            <div class="plan-actions">
-                                <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
-                                <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-trash"></i> Remove</button>
-                            </div>
-                        </div>
-                    `;
+                        `;
                 });
                 planListContainer.innerHTML = html;
 
@@ -2738,14 +3075,11 @@
 
             // ─── INIT ───
             navigateTo('dashboard');
-
-            console.log('✅ Prontox platform ready with integrated Payments page.');
+            console.log('✅ Prontox platform ready.');
 
             // ============================================================
-            // PAYMENTS MODULE (self-contained)
+            // PAYMENTS MODULE
             // ============================================================
-            // We expose the functions globally so inline onclick works.
-            // All payment logic is inside this IIFE but we keep references global.
             let payments = [
                 { id: 1, date: "2026-08-11", customer: "John Doe", plan: "Gold", amount: 50000, method: "Bank Transfer",
                     reference: "TRX001" },
@@ -2785,21 +3119,21 @@
                 data.forEach(payment => {
                     const row = document.createElement("tr");
                     row.innerHTML = `
-                        <td>${formatDate(payment.date)}</td>
-                        <td>
-                            <span class="customer-name">${payment.customer}</span>
-                            <span class="customer-id">Customer #${payment.id}</span>
-                        </td>
-                        <td><span class="plan-tag">${payment.plan}</span></td>
-                        <td><span class="amount">${currency(payment.amount)}</span></td>
-                        <td>${payment.method}</td>
-                        <td><span class="reference">${payment.reference}</span></td>
-                        <td>
-                            <button class="view-btn" onclick="viewPayment(${payment.id})">
-                                View
-                            </button>
-                        </td>
-                    `;
+                            <td>${formatDate(payment.date)}</td>
+                            <td>
+                                <span class="customer-name">${payment.customer}</span>
+                                <span class="customer-id">Customer #${payment.id}</span>
+                            </td>
+                            <td><span class="plan-tag">${payment.plan}</span></td>
+                            <td><span class="amount">${currency(payment.amount)}</span></td>
+                            <td>${payment.method}</td>
+                            <td><span class="reference">${payment.reference}</span></td>
+                            <td>
+                                <button class="view-btn" onclick="viewPayment(${payment.id})">
+                                    View
+                                </button>
+                            </td>
+                        `;
                     table.appendChild(row);
                 });
             }
@@ -2842,19 +3176,15 @@
                 renderPayments(payments);
             }
 
-            // Make filter functions global for inline onchange
             window.filterPayments = filterPayments;
             window.clearFilters = clearFilters;
 
-            // ─── MODAL (Record Payment) ───
             function openPaymentModal() {
                 document.getElementById("paymentModal").classList.add("active");
                 document.getElementById("paymentDate").value = "2026-08-11";
-                // Populate customer datalist from existing payments
                 const datalist = document.getElementById("customerList");
                 const customers = [...new Set(payments.map(p => p.customer))];
                 datalist.innerHTML = customers.map(c => `<option value="${c}">`).join('');
-                // Clear fields
                 document.getElementById("customer").value = "";
                 document.getElementById("plan").value = "";
                 document.getElementById("amount").value = "";
@@ -2899,7 +3229,6 @@
 
             window.recordPayment = recordPayment;
 
-            // ─── VIEW PAYMENT (uses generic modal) ───
             function viewPayment(id) {
                 const payment = payments.find(p => p.id === id);
                 if (!payment) return;
@@ -2908,24 +3237,24 @@
                 const modalBox = document.getElementById('modalBox');
 
                 modalBox.innerHTML = `
-                    <div class="modal-header">
-                        <h3><i class="fas fa-receipt"></i> Payment Details</h3>
-                        <button type="button" class="modal-close-btn" id="modalCloseBtn"><i class="fas fa-times"></i></button>
-                    </div>
-                    <div class="modal-body">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.9rem;">
-                            <div><strong>Customer</strong><br>${payment.customer}</div>
-                            <div><strong>Plan</strong><br>${payment.plan}</div>
-                            <div><strong>Amount</strong><br>${currency(payment.amount)}</div>
-                            <div><strong>Date</strong><br>${formatDate(payment.date)}</div>
-                            <div><strong>Method</strong><br>${payment.method}</div>
-                            <div><strong>Reference</strong><br>${payment.reference}</div>
+                        <div class="modal-header">
+                            <h3><i class="fas fa-receipt"></i> Payment Details</h3>
+                            <button type="button" class="modal-close-btn" id="modalCloseBtn"><i class="fas fa-times"></i></button>
                         </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="secondary-btn" id="modalCloseFooterBtn">Close</button>
-                    </div>
-                `;
+                        <div class="modal-body">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.9rem;">
+                                <div><strong>Customer</strong><br>${payment.customer}</div>
+                                <div><strong>Plan</strong><br>${payment.plan}</div>
+                                <div><strong>Amount</strong><br>${currency(payment.amount)}</div>
+                                <div><strong>Date</strong><br>${formatDate(payment.date)}</div>
+                                <div><strong>Method</strong><br>${payment.method}</div>
+                                <div><strong>Reference</strong><br>${payment.reference}</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="secondary-btn" id="modalCloseFooterBtn">Close</button>
+                        </div>
+                    `;
 
                 modalOverlay.classList.add('open');
 
@@ -2947,14 +3276,380 @@
 
             window.viewPayment = viewPayment;
 
-            // ─── INIT PAYMENTS ───
             renderPayments(payments);
             updateSummary();
+
+            // ============================================================
+            // MONTHLY INCOME MODULE (Daily Table Removed)
+            // ============================================================
+            (function() {
+                const PLAN_NAMES = [
+                    'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
+                    'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
+                ];
+
+                // Generate a rich mock dataset for Jan–Aug 2026
+                function generateMockPayments() {
+                    const customers = [
+                        { name: 'Adaeze Okonkwo', basePlan: 'Gold' },
+                        { name: 'Chinedu Williams', basePlan: 'Silver' },
+                        { name: 'Fatima Bello', basePlan: 'Platinum' },
+                        { name: 'Emeka Nwosu', basePlan: 'Premium' },
+                        { name: 'Ngozi Adeyemi', basePlan: 'SME Gold' },
+                        { name: 'Tunde Balogun', basePlan: 'Premium+' },
+                        { name: 'Blessing Eze', basePlan: 'SME Platinum' },
+                        { name: 'Ibrahim Suleiman', basePlan: 'Silver' },
+                        { name: 'Chiamaka Obi', basePlan: 'Gold' },
+                        { name: 'Segun Afolabi', basePlan: 'SME Silver' },
+                        { name: 'Amaka Chukwu', basePlan: 'Platinum' },
+                        { name: 'David Okafor', basePlan: 'Premium' },
+                        { name: 'Halima Yusuf', basePlan: 'SME Platinum+' },
+                        { name: 'Peter Ogunleye', basePlan: 'Gold' },
+                        { name: 'Grace Okafor', basePlan: 'Silver' },
+                        { name: 'Ifeanyi Nwachukwu', basePlan: 'Premium+' },
+                        { name: 'Oluwaseun Adebayo', basePlan: 'SME Gold' },
+                        { name: 'Zainab Mohammed', basePlan: 'Platinum' },
+                        { name: 'Chukwudi Eze', basePlan: 'Premium' },
+                        { name: 'Folake Adeyemi', basePlan: 'SME Platinum' },
+                    ];
+
+                    const planPrices = {
+                        'Silver': 30000,
+                        'Gold': 40000,
+                        'Platinum': 60000,
+                        'Premium': 80000,
+                        'Premium+': 100000,
+                        'SME Silver': 50000,
+                        'SME Gold': 70000,
+                        'SME Platinum': 100000,
+                        'SME Platinum+': 150000
+                    };
+
+                    const months = [
+                        { year: 2026, month: 1, days: 31 },
+                        { year: 2026, month: 2, days: 28 },
+                        { year: 2026, month: 3, days: 31 },
+                        { year: 2026, month: 4, days: 30 },
+                        { year: 2026, month: 5, days: 31 },
+                        { year: 2026, month: 6, days: 30 },
+                        { year: 2026, month: 7, days: 31 },
+                        { year: 2026, month: 8, days: 31 },
+                    ];
+
+                    const payments = [];
+                    let id = 1;
+
+                    months.forEach(m => {
+                        const numPayments = 20 + Math.floor(Math.random() * 25);
+                        for (let i = 0; i < numPayments; i++) {
+                            const cust = customers[Math.floor(Math.random() * customers.length)];
+                            const plan = cust.basePlan;
+                            const amount = planPrices[plan] || 40000;
+                            const day = 1 + Math.floor(Math.random() * m.days);
+                            const date =
+                                `${m.year}-${String(m.month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                            const methods = ['Bank Transfer', 'Cash', 'POS'];
+                            const method = methods[Math.floor(Math.random() * methods.length)];
+                            const ref = `TRX${String(id).padStart(5,'0')}`;
+                            payments.push({
+                                id: id++,
+                                customerId: customers.indexOf(cust) + 101,
+                                customerName: cust.name,
+                                servicePlan: plan,
+                                amount: amount,
+                                paymentDate: date,
+                                paymentMethod: method,
+                                reference: ref
+                            });
+                        }
+                    });
+                    payments.sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
+                    return payments;
+                }
+
+                const mockPayments = generateMockPayments();
+
+                function formatCurrencyMI(amount) {
+                    return new Intl.NumberFormat('en-NG', {
+                        style: 'currency',
+                        currency: 'NGN',
+                        maximumFractionDigits: 0
+                    }).format(amount);
+                }
+
+                function getMonthYearLabel(year, month) {
+                    const d = new Date(year, month - 1, 1);
+                    return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                }
+
+                function filterPaymentsByMonth(payments, year, month) {
+                    const key = `${year}-${String(month).padStart(2,'0')}`;
+                    return payments.filter(p => p.paymentDate.startsWith(key));
+                }
+
+                function getPreviousMonth(year, month) {
+                    if (month === 1) return { year: year - 1, month: 12 };
+                    return { year, month: month - 1 };
+                }
+
+                function calculateMonthlyIncome(payments) {
+                    return payments.reduce((sum, p) => sum + p.amount, 0);
+                }
+
+                function calculateUniqueCustomers(payments) {
+                    const ids = new Set(payments.map(p => p.customerId));
+                    return ids.size;
+                }
+
+                function calculateTransactionCount(payments) {
+                    return payments.length;
+                }
+
+                function calculateAveragePayment(payments) {
+                    const count = payments.length;
+                    if (count === 0) return 0;
+                    return calculateMonthlyIncome(payments) / count;
+                }
+
+                function calculatePlanRevenue(payments) {
+                    const map = {};
+                    payments.forEach(p => {
+                        if (!map[p.servicePlan]) map[p.servicePlan] = { count: 0, total: 0, customers: new Set() };
+                        map[p.servicePlan].total += p.amount;
+                        map[p.servicePlan].count += 1;
+                        map[p.servicePlan].customers.add(p.customerId);
+                    });
+                    PLAN_NAMES.forEach(plan => {
+                        if (!map[plan]) map[plan] = { count: 0, total: 0, customers: new Set() };
+                    });
+                    return map;
+                }
+
+                function getMonthlyTrend(payments, selectedYear, selectedMonth) {
+                    const trend = [];
+                    let y = selectedYear;
+                    let m = selectedMonth;
+                    for (let i = 0; i < 6; i++) {
+                        const monthPayments = filterPaymentsByMonth(payments, y, m);
+                        const income = calculateMonthlyIncome(monthPayments);
+                        trend.push({
+                            year: y,
+                            month: m,
+                            income: income,
+                            label: getMonthYearLabel(y, m)
+                        });
+                        const prev = getPreviousMonth(y, m);
+                        y = prev.year;
+                        m = prev.month;
+                    }
+                    return trend.reverse();
+                }
+
+                let planChartInstance = null;
+                let trendChartInstance = null;
+
+                function renderMonthlyIncome(year, month) {
+                    const monthPayments = filterPaymentsByMonth(mockPayments, year, month);
+                    const totalIncome = calculateMonthlyIncome(monthPayments);
+                    const uniqueCustomers = calculateUniqueCustomers(monthPayments);
+                    const txCount = calculateTransactionCount(monthPayments);
+                    const avgPayment = calculateAveragePayment(monthPayments);
+
+                    document.getElementById('totalIncome').textContent = formatCurrencyMI(totalIncome);
+                    document.getElementById('totalIncomeMonth').textContent = getMonthYearLabel(year, month);
+                    document.getElementById('payingCustomers').textContent = uniqueCustomers;
+                    document.getElementById('avgPayment').textContent = formatCurrencyMI(avgPayment);
+
+                    const prev = getPreviousMonth(year, month);
+                    const prevPayments = filterPaymentsByMonth(mockPayments, prev.year, prev.month);
+                    const prevIncome = calculateMonthlyIncome(prevPayments);
+                    const vsElement = document.getElementById('vsPrevious');
+                    const vsDetail = document.getElementById('vsPreviousDetail');
+                    if (prevPayments.length === 0) {
+                        vsElement.textContent = '—';
+                        vsDetail.textContent = 'No previous data';
+                    } else {
+                        const diff = totalIncome - prevIncome;
+                        const pct = (diff / prevIncome) * 100;
+                        const sign = pct >= 0 ? '+' : '';
+                        const cls = pct >= 0 ? 'trend-up' : 'trend-down';
+                        vsElement.innerHTML = `<span class="${cls}">${sign}${pct.toFixed(1)}%</span>`;
+                        vsDetail.textContent = `${formatCurrencyMI(prevIncome)} → ${formatCurrencyMI(totalIncome)}`;
+                    }
+
+                    // Plan table
+                    const planData = calculatePlanRevenue(monthPayments);
+                    const tbody = document.getElementById('planTableBody');
+                    let html = '';
+                    let totalPaying = 0;
+                    let totalRevenue = 0;
+                    PLAN_NAMES.forEach(plan => {
+                        const data = planData[plan] || { count: 0, total: 0, customers: new Set() };
+                        const paying = data.customers.size;
+                        const amount = data.count > 0 ? data.total / data.count : 0;
+                        totalPaying += paying;
+                        totalRevenue += data.total;
+                        html += `<tr>
+                                    <td>${plan}</td>
+                                    <td class="text-right">${paying}</td>
+                                    <td class="text-right">${data.count > 0 ? formatCurrencyMI(amount) : '—'}</td>
+                                    <td class="text-right">${formatCurrencyMI(data.total)}</td>
+                                </tr>`;
+                    });
+                    tbody.innerHTML = html;
+
+                    const footer = document.getElementById('planTableFooter');
+                    if (monthPayments.length > 0) {
+                        footer.style.display = 'table-footer-group';
+                        document.getElementById('totalPayingCustomers').textContent = totalPaying;
+                        document.getElementById('totalPlanRevenue').textContent = formatCurrencyMI(totalRevenue);
+                    } else {
+                        footer.style.display = 'none';
+                    }
+
+                    // Charts
+                    const planLabels = PLAN_NAMES;
+                    const planValues = planLabels.map(plan => planData[plan] ? planData[plan].total : 0);
+
+                    const ctxPlan = document.getElementById('planChart').getContext('2d');
+                    if (planChartInstance) planChartInstance.destroy();
+                    planChartInstance = new Chart(ctxPlan, {
+                        type: 'bar',
+                        data: {
+                            labels: planLabels,
+                            datasets: [{
+                                label: 'Revenue (₦)',
+                                data: planValues,
+                                backgroundColor: getComputedStyle(document.documentElement)
+                                    .getPropertyValue('--accent').trim() || '#3b82f6',
+                                borderRadius: 4,
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return formatCurrencyMI(context.parsed.x);
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: getComputedStyle(document.documentElement)
+                                            .getPropertyValue('--border').trim() || '#e5e7eb' },
+                                    ticks: {
+                                        callback: function(value) {
+                                            if (value >= 1000000) return (value / 1000000) + 'M';
+                                            if (value >= 1000) return (value / 1000) + 'k';
+                                            return value;
+                                        }
+                                    }
+                                },
+                                y: {
+                                    grid: { display: false }
+                                }
+                            }
+                        }
+                    });
+
+                    const trend = getMonthlyTrend(mockPayments, year, month);
+                    const trendLabels = trend.map(t => t.label);
+                    const trendValues = trend.map(t => t.income);
+
+                    const ctxTrend = document.getElementById('trendChart').getContext('2d');
+                    if (trendChartInstance) trendChartInstance.destroy();
+                    trendChartInstance = new Chart(ctxTrend, {
+                        type: 'line',
+                        data: {
+                            labels: trendLabels,
+                            datasets: [{
+                                label: 'Monthly Income',
+                                data: trendValues,
+                                borderColor: getComputedStyle(document.documentElement)
+                                    .getPropertyValue('--accent').trim() || '#3b82f6',
+                                backgroundColor: 'rgba(59,130,246,0.1)',
+                                fill: true,
+                                tension: 0.2,
+                                pointRadius: 4,
+                                pointBackgroundColor: getComputedStyle(document.documentElement)
+                                    .getPropertyValue('--accent').trim() || '#3b82f6',
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return formatCurrencyMI(context.parsed.y);
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    grid: { color: getComputedStyle(document.documentElement)
+                                            .getPropertyValue('--border').trim() || '#e5e7eb' },
+                                    ticks: {
+                                        callback: function(value) {
+                                            if (value >= 1000000) return (value / 1000000) + 'M';
+                                            if (value >= 1000) return (value / 1000) + 'k';
+                                            return value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                function populateMonthSelector() {
+                    const select = document.getElementById('monthSelect');
+                    const months = [];
+                    for (let m = 1; m <= 8; m++) {
+                        months.push({ year: 2026, month: m });
+                    }
+                    select.innerHTML = '';
+                    months.forEach(({ year, month }) => {
+                        const option = document.createElement('option');
+                        option.value = `${year}-${String(month).padStart(2,'0')}`;
+                        option.textContent = getMonthYearLabel(year, month);
+                        select.appendChild(option);
+                    });
+                    select.value = '2026-08';
+                }
+
+                document.getElementById('monthSelect').addEventListener('change', function() {
+                    const [year, month] = this.value.split('-').map(Number);
+                    renderMonthlyIncome(year, month);
+                });
+
+                window.MonthlyIncomeModule = {
+                    onPageShow: function() {
+                        const sel = document.getElementById('monthSelect');
+                        const [year, month] = sel.value.split('-').map(Number);
+                        renderMonthlyIncome(year, month);
+                    }
+                };
+
+                populateMonthSelector();
+                const initial = document.getElementById('monthSelect').value.split('-').map(Number);
+                renderMonthlyIncome(initial[0], initial[1]);
+
+            })();
 
         })();
     </script>
 
-    <!-- ─── CUSTOMER MODULE (unchanged from before) ─── -->
+    <!-- ─── CUSTOMER MODULE (unchanged) ─── -->
     <script>
         (function() {
             'use strict';
@@ -3443,7 +4138,6 @@
                 });
             }
 
-            // Event wiring
             addCustomerBtn.addEventListener('click', openAddCustomerModal);
             var searchDebounceTimer = null;
             customerSearchInput.addEventListener('input', function() {
@@ -3497,7 +4191,6 @@
             profileChangePlanBtn.addEventListener('click', function() { if (state.currentProfileId) openChangePlanModal(
                     state.currentProfileId); });
 
-            // Seed data
             function seedInitialData() {
                 var alreadySeeded = false;
                 try { alreadySeeded = localStorage.getItem(SEEDED_FLAG_KEY) === 'true'; } catch (e) {}

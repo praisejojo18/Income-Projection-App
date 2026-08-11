@@ -2218,18 +2218,22 @@
                 }
             });
 
-            // ─── MAIN NAVIGATION ───
+            // ─── MAIN NAVIGATION (FIXED) ───
             function navigateTo(pageId) {
+                // Hide all pages
                 document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
 
+                // Show target
                 const target = document.getElementById('page-' + pageId);
                 if (target) target.classList.add('active');
 
+                // Update nav items
                 navItems.forEach(item => {
                     item.classList.remove('active');
                     if (item.dataset.page === pageId) item.classList.add('active');
                 });
 
+                // Update page header (if present)
                 const config = pageConfig[pageId];
                 if (config) {
                     const activePage = document.querySelector('.page-content.active');
@@ -2246,14 +2250,25 @@
 
                 closeSidebar();
 
+                // --- Special handling for Settings ---
                 if (pageId === 'settings') {
                     renderPlanPreview();
                     renderPlanList();
                     showSettingsPage('general');
                 }
 
-                if (pageId === 'customer' && window.CustomerModule) {
-                    window.CustomerModule.onPageShow();
+                // --- Special handling for Customers ---
+                if (pageId === 'customer') {
+                    if (window.CustomerModule && typeof window.CustomerModule.onPageShow === 'function') {
+                        window.CustomerModule.onPageShow();
+                    } else {
+                        // Fallback: try again after a short delay (if module not yet defined)
+                        setTimeout(() => {
+                            if (window.CustomerModule && typeof window.CustomerModule.onPageShow === 'function') {
+                                window.CustomerModule.onPageShow();
+                            }
+                        }, 50);
+                    }
                 }
 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2420,12 +2435,14 @@
                 });
             }
 
-            // ─── NAV ITEMS CLICK ───
+            // ─── NAV ITEMS CLICK (FIXED) ───
             navItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     const page = this.dataset.page;
-                    if (page) navigateTo(page);
+                    if (page) {
+                        navigateTo(page);
+                    }
                 });
             });
 
@@ -2442,7 +2459,7 @@
                 alert('👤 User profile – would open user settings.');
             });
 
-            // ─── LOGO ───
+            // ─── LOGO (FIXED) ───
             document.getElementById('logoLink').addEventListener('click', function(e) {
                 e.preventDefault();
                 navigateTo('dashboard');
