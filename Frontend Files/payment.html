@@ -32,16 +32,6 @@
             --danger-hover: #dc2626;
             --danger-light: #fee2e2;
 
-            /* Status Colors */
-            --status-submitted: #8b5cf6;
-            --status-submitted-bg: #ede9fe;
-            --status-review: #f59e0b;
-            --status-review-bg: #fef3c7;
-            --status-approved: #3b82f6;
-            --status-approved-bg: #dbeafe;
-            --status-implemented: #10b981;
-            --status-implemented-bg: #d1fae5;
-
             /* Shadows */
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
@@ -80,14 +70,6 @@
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
             --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.6);
-            --status-submitted: #a78bfa;
-            --status-submitted-bg: #2d1b4e;
-            --status-review: #fbbf24;
-            --status-review-bg: #4d3a0a;
-            --status-approved: #60a5fa;
-            --status-approved-bg: #1a2a4a;
-            --status-implemented: #34d399;
-            --status-implemented-bg: #0a3a2a;
         }
 
         /* --- RESET & BASE --- */
@@ -391,7 +373,7 @@
         .main-content {
             flex: 1;
             padding: 30px 28px;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             width: 100%;
             transition: padding 0.3s;
@@ -422,7 +404,399 @@
         }
 
         /* ============================================================
+<<<<<<< HEAD
            SETTINGS COMPONENT (UPDATED)
+=======
+           DASHBOARD STYLES
+           ============================================================ */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .topbar .page-title h1 {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+            color: var(--text-primary);
+        }
+        .topbar .page-title p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        .topbar .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .topbar .actions .btn {
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 9px 18px;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .topbar .actions .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .topbar .actions .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        .topbar .actions .btn-outline-secondary {
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            background: transparent;
+        }
+        .topbar .actions .btn-outline-secondary:hover {
+            background: var(--surface-2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px 22px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+        }
+        .stat-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+        .stat-card .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 6px;
+            letter-spacing: -0.4px;
+            color: var(--text-primary);
+        }
+        .stat-card .sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .stat-card .icon {
+            float: right;
+            font-size: 28px;
+            color: var(--accent);
+            opacity: 0.6;
+        }
+
+        .panel {
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 22px 24px 26px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+        }
+        .panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .panel .panel-header:hover h3 {
+            color: var(--accent);
+        }
+        .panel .panel-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: color 0.2s;
+        }
+        .panel .panel-header .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+        .panel .panel-header .toggle-icon {
+            font-size: 16px;
+            color: var(--text-muted);
+            transition: transform 0.3s;
+        }
+        .panel .panel-header .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        .panel .panel-body {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .panel .panel-body.collapsed {
+            max-height: 0 !important;
+            padding-top: 0;
+            opacity: 0;
+            margin: 0;
+        }
+        .panel .panel-body.expanded {
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        table th {
+            text-align: left;
+            padding: 12px 10px 12px 0;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        table td {
+            padding: 12px 10px 12px 0;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            color: var(--text-primary);
+        }
+        table tr:last-child td {
+            border-bottom: none;
+        }
+        table tr:hover td {
+            background: var(--surface-2);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-badge.active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        .status-badge.expired {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .status-badge.paid {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        .status-badge.unpaid {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        [data-theme="dark"] .status-badge.active {
+            background: #1a3a2a;
+            color: #4ade80;
+        }
+        [data-theme="dark"] .status-badge.expired {
+            background: #3a1a1a;
+            color: #f87171;
+        }
+        [data-theme="dark"] .status-badge.paid {
+            background: #1a2a4a;
+            color: #60a5fa;
+        }
+        [data-theme="dark"] .status-badge.unpaid {
+            background: #3a2a0a;
+            color: #fbbf24;
+        }
+
+        .plan-tag {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--surface-2);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .plan-tag.silver {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+        .plan-tag.gold {
+            background: #fde68a;
+            color: #92400e;
+        }
+        .plan-tag.platinum {
+            background: #c4b5fd;
+            color: #5b21b6;
+        }
+        .plan-tag.premium {
+            background: #93c5fd;
+            color: #1e40af;
+        }
+        .plan-tag.premium-plus {
+            background: #f9a8d4;
+            color: #9d174d;
+        }
+        .plan-tag.sme-silver {
+            background: #d1d5db;
+            color: #374151;
+        }
+        .plan-tag.sme-gold {
+            background: #fcd34d;
+            color: #78350f;
+        }
+        .plan-tag.sme-platinum {
+            background: #a78bfa;
+            color: #4c1d95;
+        }
+        .plan-tag.sme-premium-plus {
+            background: #f472b6;
+            color: #831843;
+        }
+        [data-theme="dark"] .plan-tag.silver {
+            background: #374151;
+            color: #d1d5db;
+        }
+        [data-theme="dark"] .plan-tag.gold {
+            background: #78350f;
+            color: #fbbf24;
+        }
+        [data-theme="dark"] .plan-tag.platinum {
+            background: #4c1d95;
+            color: #a78bfa;
+        }
+        [data-theme="dark"] .plan-tag.premium {
+            background: #1e3a5f;
+            color: #60a5fa;
+        }
+        [data-theme="dark"] .plan-tag.premium-plus {
+            background: #5b1a3a;
+            color: #f472b6;
+        }
+        [data-theme="dark"] .plan-tag.sme-silver {
+            background: #374151;
+            color: #9ca3af;
+        }
+        [data-theme="dark"] .plan-tag.sme-gold {
+            background: #78350f;
+            color: #fcd34d;
+        }
+        [data-theme="dark"] .plan-tag.sme-platinum {
+            background: #4c1d95;
+            color: #a78bfa;
+        }
+        [data-theme="dark"] .plan-tag.sme-premium-plus {
+            background: #5b1a3a;
+            color: #f472b6;
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        .text-primary-custom {
+            color: var(--accent) !important;
+        }
+        .text-red {
+            color: #dc2626 !important;
+            font-weight: 600;
+        }
+        .text-yellow {
+            color: #d97706 !important;
+            font-weight: 600;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .filter-bar select,
+        .filter-bar input {
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: 0.12s ease;
+        }
+        .filter-bar select:focus,
+        .filter-bar input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .filter-bar .btn-filter {
+            padding: 8px 18px;
+            border-radius: 10px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.12s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-bar .btn-filter:hover {
+            background: var(--accent-hover);
+        }
+
+        .progress-bar-custom {
+            height: 6px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            min-width: 60px;
+        }
+        .progress-bar-custom .fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        .fw-600 {
+            font-weight: 600;
+        }
+        .fs-small {
+            font-size: 13px;
+        }
+
+        /* ============================================================
+           PAYMENT PAGE STYLES
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
            ============================================================ */
 
         /* ─── settings container ─── */
@@ -493,8 +867,17 @@
             color: var(--accent);
         }
 
+<<<<<<< HEAD
         /* ─── settings content area ─── */
         .settings-content {
+=======
+        .search-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-area input {
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
             flex: 1;
             padding: 24px 28px 32px;
             overflow-y: auto;
@@ -1306,6 +1689,38 @@
             color: #fff;
             border-radius: var(--radius-xs);
             font-weight: 600;
+<<<<<<< HEAD
+=======
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .search-area .search-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .customer-info {
+            background: var(--surface-2);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .customer-info .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .customer-info .row:last-child {
+            border-bottom: none;
+        }
+        .customer-info .label {
+            font-weight: 500;
+            color: var(--text-secondary);
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
             font-size: 0.85rem;
             white-space: nowrap;
             transition: background 0.2s, transform 0.15s;
@@ -1315,8 +1730,13 @@
         .btn-primary:active { transform: scale(0.97); }
         .btn-primary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+<<<<<<< HEAD
         .btn-secondary {
             display: inline-flex;
+=======
+        .payment-form .form-row {
+            display: flex;
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
             align-items: center;
             gap: 8px;
             padding: 9px 18px;
@@ -1392,7 +1812,26 @@
             min-width: 150px;
         }
 
+<<<<<<< HEAD
         .customer-table-card {
+=======
+        .payment-form .confirm-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s;
+        }
+        .payment-form .confirm-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
             border-radius: var(--radius-sm);
         }
         .customer-table-scroll {
@@ -1570,6 +2009,7 @@
             margin-bottom: 14px;
             display: block;
         }
+<<<<<<< HEAD
         .customer-empty-state h3 {
             font-size: 1.05rem;
             color: var(--text-secondary);
@@ -1856,6 +2296,1135 @@
             font-size: 1.2rem;
             color: var(--text-secondary);
             margin-bottom: 8px;
+=======
+
+        /* ============================================================
+           INCOME PROJECTION STYLES
+           ============================================================ */
+        .add-projection-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .add-projection-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .add-projection-card .card-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .add-projection-card .card-header h3 i {
+            color: var(--accent);
+        }
+        .add-projection-card .card-header .toggle-form-btn {
+            padding: 6px 16px;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            font-size: 0.85rem;
+            background: var(--accent);
+            color: #fff;
+            transition: background 0.2s;
+        }
+        .add-projection-card .card-header .toggle-form-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .projection-form {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            transition: border-color var(--transition);
+        }
+        .projection-form.open {
+            display: grid;
+        }
+
+        .projection-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .projection-form .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .projection-form .form-group input,
+        .projection-form .form-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .projection-form .form-group input:focus,
+        .projection-form .form-group select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .projection-form .form-group .input-hint {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .projection-form .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .projection-form .form-actions .save-btn {
+            padding: 10px 28px;
+            background: var(--success);
+            color: #fff;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .projection-form .form-actions .save-btn:hover {
+            background: #059669;
+        }
+        .projection-form .form-actions .cancel-btn {
+            padding: 10px 20px;
+            background: var(--surface-2);
+            color: var(--text-secondary);
+            border-radius: var(--radius-xs);
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .projection-form .form-actions .cancel-btn:hover {
+            background: var(--border);
+        }
+
+        .view-projection-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .view-projection-section .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .view-projection-section .section-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .view-projection-section .section-header h3 i {
+            color: var(--accent);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--surface-2);
+            padding: 4px;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+        }
+        .filter-tabs .filter-btn {
+            padding: 6px 16px;
+            border-radius: var(--radius-xs);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .filter-tabs .filter-btn:hover {
+            color: var(--text-primary);
+            background: var(--surface-3);
+        }
+        .filter-tabs .filter-btn.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .projection-table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: border-color var(--transition);
+        }
+        .projection-table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 500px;
+        }
+        .projection-table-wrap th {
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--surface-2);
+            border-bottom: 2px solid var(--border);
+            transition: background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .projection-table-wrap td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+            transition: border-color var(--transition), color var(--transition);
+        }
+        .projection-table-wrap tr:last-child td {
+            border-bottom: none;
+        }
+        .projection-table-wrap .total-row td {
+            font-weight: 700;
+            background: var(--accent-light);
+            color: var(--text-primary);
+            border-top: 2px solid var(--border);
+        }
+
+        .no-projection {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .no-projection i {
+            font-size: 2.5rem;
+            color: var(--border);
+            margin-bottom: 12px;
+            display: block;
+        }
+        .no-projection p {
+            font-size: 0.95rem;
+        }
+
+        .projection-count {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-left: 8px;
+            font-weight: 400;
+        }
+
+        /* ============================================================
+           PROJ VS ACTUAL STYLES
+           ============================================================ */
+        .pa-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .pa-summary-grid .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+        .pa-summary-grid .card .label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .pa-summary-grid .card .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 4px;
+            transition: color var(--transition);
+        }
+        .pa-summary-grid .card .sub {
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+        .pa-summary-grid .card .sub.positive {
+            color: var(--success);
+        }
+        .pa-summary-grid .card .sub.negative {
+            color: var(--danger);
+        }
+        .pa-summary-grid .card .sub.neutral {
+            color: var(--text-muted);
+        }
+
+        .pa-filter-area {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .pa-filter-area select {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .pa-filter-area select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        .pa-chart-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            gap: 6px;
+            height: 280px;
+            padding: 0 4px 0 4px;
+            border-bottom: 2px solid var(--border);
+            transition: border-color var(--transition);
+            margin-bottom: 16px;
+        }
+
+        .pa-chart-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .pa-chart-bars {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            height: 220px;
+            flex-shrink: 0;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .pa-bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+            gap: 3px;
+            flex: 1;
+            max-width: 44px;
+            min-width: 24px;
+        }
+
+        .pa-bar-group .bar-value {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            transition: color var(--transition);
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .pa-bar-group .bar {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            min-height: 3px;
+            transition: height 0.5s ease, background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .pa-bar-group .bar.projection {
+            background: var(--accent);
+            opacity: 0.85;
+        }
+        .pa-bar-group .bar.actual {
+            background: var(--success);
+            opacity: 0.85;
+        }
+
+        .pa-chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            margin-top: 8px;
+        }
+        .pa-chart-legend span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: color var(--transition);
+        }
+        .pa-chart-legend .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        .pa-chart-legend .dot.projection {
+            background: var(--accent);
+        }
+        .pa-chart-legend .dot.actual {
+            background: var(--success);
+        }
+
+        .pa-period-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-top: 8px;
+            text-align: center;
+            transition: color var(--transition);
+            letter-spacing: 0.02em;
+        }
+
+        .pa-table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: border-color var(--transition);
+            margin-top: 16px;
+        }
+        .pa-table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 500px;
+        }
+        .pa-table-wrap th {
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--surface-2);
+            border-bottom: 2px solid var(--border);
+            transition: background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .pa-table-wrap td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+            transition: border-color var(--transition), color var(--transition);
+        }
+        .pa-table-wrap tr:last-child td {
+            border-bottom: none;
+        }
+        .pa-table-wrap .variance-badge {
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .pa-table-wrap .variance-badge.positive {
+            background: var(--success-light);
+            color: var(--success);
+        }
+        .pa-table-wrap .variance-badge.negative {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        .pa-table-wrap .variance-badge.neutral {
+            background: var(--surface-3);
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+           SETTINGS STYLES
+           ============================================================ */
+        .settings-container {
+            width: 100%;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .settings-body {
+            display: flex;
+            flex: 1;
+            min-height: 500px;
+        }
+
+        .settings-sidebar {
+            width: 200px;
+            background: var(--surface-2);
+            border-right: 1px solid var(--border);
+            padding: 16px 0;
+            flex-shrink: 0;
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .settings-sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .settings-sidebar .nav-item i {
+            width: 18px;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .settings-sidebar .nav-item:hover {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+        }
+        .settings-sidebar .nav-item:hover i {
+            color: var(--accent);
+        }
+        .settings-sidebar .nav-item.active {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+        .settings-sidebar .nav-item.active i {
+            color: var(--accent);
+        }
+
+        .settings-content {
+            flex: 1;
+            padding: 24px 28px 32px;
+            overflow-y: auto;
+            background: var(--surface);
+            position: relative;
+            transition: background var(--transition);
+        }
+
+        .settings-page-header {
+            margin-bottom: 24px;
+        }
+        .settings-page-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            transition: color var(--transition);
+        }
+        .settings-page-header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: color var(--transition);
+        }
+
+        .settings-page-content {
+            display: none;
+        }
+        .settings-page-content.active {
+            display: block;
+        }
+
+        .general-settings .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: border-color var(--transition);
+        }
+        .general-settings .setting-row:last-child {
+            border-bottom: none;
+        }
+        .general-settings .setting-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .general-settings .setting-label small {
+            display: block;
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 2px;
+            transition: color var(--transition);
+        }
+        .general-settings .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .general-settings .toggle {
+            width: 42px;
+            height: 24px;
+            background: var(--border);
+            border-radius: 999px;
+            position: relative;
+            transition: background 0.3s;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .general-settings .toggle.active {
+            background: var(--accent);
+        }
+        .general-settings .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+        .general-settings .toggle.active::after {
+            transform: translateX(18px);
+        }
+        .general-settings .select-input {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .general-settings .select-input:focus {
+            border-color: var(--accent);
+        }
+
+        .plan-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .plan-preview-grid .plan-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            text-align: center;
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .plan-preview-grid .plan-card .name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .plan-preview-grid .plan-card .price {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 4px;
+            transition: color var(--transition);
+        }
+
+        .plan-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .settings-inner-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--surface);
+            z-index: 10;
+            padding: 24px 28px 32px;
+            display: none;
+            flex-direction: column;
+            border-radius: var(--radius);
+            animation: slideIn 0.25s ease;
+            transition: background var(--transition);
+        }
+        .settings-inner-overlay.open {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .settings-inner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            transition: border-color var(--transition);
+        }
+        .settings-inner-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .settings-inner-header h3 i {
+            color: var(--accent);
+            margin-right: 10px;
+            transition: color var(--transition);
+        }
+        .settings-inner-header .back-btn {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .settings-inner-header .back-btn:hover {
+            background: var(--surface-2);
+            border-color: var(--text-muted);
+        }
+        .settings-inner-header .back-btn i {
+            margin-right: 6px;
+        }
+
+        .plan-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .plan-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .plan-list::-webkit-scrollbar-track {
+            background: var(--surface-2);
+            border-radius: 20px;
+        }
+        .plan-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 20px;
+        }
+
+        .plan-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--surface-2);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: border-color 0.2s, background var(--transition), border-color var(--transition);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .plan-item:hover {
+            border-color: var(--accent-mid);
+        }
+        .plan-item .plan-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .plan-item .plan-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            min-width: 120px;
+            transition: color var(--transition);
+        }
+        .plan-item .plan-price-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .plan-item .plan-price-wrap label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .plan-item .plan-price-wrap input {
+            width: 110px;
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--text-primary);
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .plan-item .plan-price-wrap input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .plan-item .plan-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .plan-item .plan-actions button {
+            padding: 4px 10px;
+            border-radius: var(--radius-xs);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .plan-item .plan-actions .save-price-btn {
+            background: var(--accent);
+            color: #fff;
+        }
+        .plan-item .plan-actions .save-price-btn:hover {
+            background: var(--accent-hover);
+        }
+        .plan-item .plan-actions .remove-plan-btn {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .plan-item .plan-actions .remove-plan-btn:hover {
+            background: #fecaca;
+        }
+        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn {
+            background: #4a1a1a;
+            color: #f87171;
+        }
+        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn:hover {
+            background: #5a2a2a;
+        }
+
+        .add-plan-area {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            transition: border-color var(--transition);
+        }
+        .add-plan-area input {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--text-primary);
+            flex: 1;
+            min-width: 140px;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .add-plan-area input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .add-plan-area .add-btn {
+            padding: 8px 20px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .add-plan-area .add-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .empty-plans {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .empty-plans i {
+            font-size: 2.5rem;
+            color: var(--border);
+            margin-bottom: 12px;
+            display: block;
+            transition: color var(--transition);
+        }
+        .empty-plans p {
+            font-size: 0.9rem;
+        }
+
+        /* ============================================================
+           PLACEHOLDER PAGES
+           ============================================================ */
+        .placeholder-page {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .placeholder-page i {
+            font-size: 3rem;
+            color: var(--border);
+            margin-bottom: 16px;
+            display: block;
+        }
+        .placeholder-page h3 {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 16px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+            .payment-grid {
+                grid-template-columns: 1fr;
+            }
+            .payment-form .form-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .payment-form .form-row input {
+                width: 100%;
+            }
+            .payment-form .form-row .amount-display {
+                text-align: center;
+            }
+            .search-area {
+                flex-direction: column;
+            }
+            .search-area .search-btn {
+                width: 100%;
+            }
+            .customer-info .row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            .projection-form {
+                grid-template-columns: 1fr;
+            }
+            .projection-form .form-actions {
+                flex-direction: column;
+            }
+            .projection-form .form-actions button {
+                width: 100%;
+                justify-content: center;
+            }
+            .view-projection-section .section-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-tabs {
+                justify-content: stretch;
+            }
+            .filter-tabs .filter-btn {
+                flex: 1;
+                text-align: center;
+            }
+            .add-projection-card .card-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .pa-chart-container {
+                height: 200px;
+            }
+            .pa-chart-bars {
+                height: 160px;
+                gap: 6px;
+            }
+            .pa-bar-group {
+                max-width: 34px;
+                min-width: 18px;
+            }
+            .pa-bar-group .bar-value {
+                font-size: 0.5rem;
+            }
+            .pa-period-label {
+                font-size: 0.55rem;
+                margin-top: 6px;
+            }
+            .pa-summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .settings-body {
+                flex-direction: column;
+            }
+            .settings-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 8px 0;
+                display: flex;
+                overflow-x: auto;
+                gap: 4px;
+                padding: 8px 16px;
+            }
+            .settings-sidebar .nav-item {
+                border-left: none;
+                border-bottom: 3px solid transparent;
+                padding: 8px 14px;
+                white-space: nowrap;
+                font-size: 0.8rem;
+            }
+            .settings-sidebar .nav-item.active {
+                border-left: none;
+                border-bottom-color: var(--accent);
+            }
+            .settings-content {
+                padding: 18px 16px 24px;
+                min-height: 400px;
+            }
+            .settings-inner-overlay {
+                padding: 18px 16px 24px;
+            }
+            .plan-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .plan-item .plan-info {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .plan-item .plan-price-wrap {
+                flex-wrap: wrap;
+            }
+            .plan-item .plan-actions {
+                justify-content: flex-end;
+            }
+            .add-plan-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .plan-preview-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+            .pa-filter-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .stat-card {
+                padding: 14px 16px;
+            }
+            .stat-card .value {
+                font-size: 22px;
+            }
+            .panel {
+                padding: 16px 14px 20px;
+            }
+            .topbar .actions .btn {
+                padding: 7px 14px;
+                font-size: 12px;
+            }
+            .payment-card {
+                padding: 16px;
+            }
+            .table-wrap table {
+                font-size: 0.75rem;
+                min-width: 480px;
+            }
+            .table-wrap th,
+            .table-wrap td {
+                padding: 8px 10px;
+            }
+            .projection-table-wrap table {
+                font-size: 0.75rem;
+                min-width: 400px;
+            }
+            .projection-table-wrap th,
+            .projection-table-wrap td {
+                padding: 8px 10px;
+            }
+            .pa-chart-container {
+                height: 160px;
+            }
+            .pa-chart-bars {
+                height: 130px;
+                gap: 4px;
+            }
+            .pa-bar-group {
+                max-width: 28px;
+                min-width: 14px;
+            }
+            .pa-bar-group .bar-value {
+                font-size: 0.45rem;
+            }
+            .pa-period-label {
+                font-size: 0.5rem;
+            }
+            .pa-summary-grid {
+                grid-template-columns: 1fr;
+            }
+            .pa-table-wrap table {
+                font-size: 0.75rem;
+                min-width: 400px;
+            }
+            .settings-content {
+                padding: 14px 12px 18px;
+            }
+            .plan-item .plan-price-wrap input {
+                width: 100%;
+            }
+            .plan-preview-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
         }
     </style>
 </head>
@@ -1921,7 +3490,244 @@
     <main class="main-content" id="mainContent">
 
         <!-- ==========================================================
+<<<<<<< HEAD
              PAGE: Dashboard
+=======
+             PAGE: DASHBOARD (FULLY BUILT)
+             ========================================================== -->
+        <div id="page-dashboard" class="page-content">
+            <div class="topbar">
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                    <p>Overview of your billing &amp; customer activity</p>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="newCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button>
+                    <button class="btn btn-outline-secondary" id="refreshBtn"><i class="fas fa-sync-alt"></i></button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="icon"><i class="fas fa-users"></i></div>
+                    <div class="label">Total Customers</div>
+                    <div class="value" id="statTotal">0</div>
+                    <div class="sub">active: <span id="statActiveCount">0</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon"><i class="fas fa-wallet"></i></div>
+                    <div class="label">Monthly Projection</div>
+                    <div class="value" id="statProjection">₦0</div>
+                    <div class="sub" id="statProjSub">for current month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="label">Received (this month)</div>
+                    <div class="value" id="statReceived">₦0</div>
+                    <div class="sub" id="statReceivedDiff">+0% vs projection</div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon"><i class="fas fa-tachometer-alt"></i></div>
+                    <div class="label">Avg. Payment Speed</div>
+                    <div class="value" id="statAvgSpeed">0d</div>
+                    <div class="sub">avg days to pay</div>
+                </div>
+            </div>
+
+            <!-- Plan Summary Card -->
+            <div class="panel" id="planSummaryPanel">
+                <div class="panel-header" onclick="togglePanel('planSummaryPanel')">
+                    <h3><i class="fas fa-table me-2 text-primary-custom"></i> Plan Summary — Total, Paid &amp; Unpaid</h3>
+                    <div>
+                        <span class="subtitle">auto-updates on payment</span>
+                        <i class="fas fa-chevron-down toggle-icon" id="planSummaryIcon"></i>
+                    </div>
+                </div>
+                <div class="panel-body expanded" id="planSummaryBody">
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Service Plan</th>
+                                    <th>Total</th>
+                                    <th>Paid</th>
+                                    <th>Unpaid</th>
+                                    <th>Payment Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="planSummaryTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Projection Card -->
+            <div class="panel" id="projectionPanel">
+                <div class="panel-header" onclick="togglePanel('projectionPanel')">
+                    <h3><i class="fas fa-wallet me-2 text-primary-custom"></i> Total Projection</h3>
+                    <div>
+                        <i class="fas fa-chevron-down toggle-icon" id="projectionIcon"></i>
+                    </div>
+                </div>
+                <div class="panel-body expanded" id="projectionBody">
+                    <div class="filter-bar">
+                        <select id="projectionFilter" class="form-select" style="width:auto;min-width:140px;">
+                            <option value="daily">Daily (3 days)</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly" selected>Monthly</option>
+                        </select>
+                        <button class="btn-filter" id="applyProjectionFilter"><i class="fas fa-filter"></i> Apply</button>
+                    </div>
+                    <div id="totalProjectionDisplay" style="font-size:24px;font-weight:700;color:var(--accent);padding:12px 0;">
+                        ₦0
+                    </div>
+                    <div class="text-muted" id="projectionPeriodLabel">Projected for current period</div>
+                </div>
+            </div>
+
+            <!-- Plan Distribution Card -->
+            <div class="panel" id="distributionPanel">
+                <div class="panel-header" onclick="togglePanel('distributionPanel')">
+                    <h3><i class="fas fa-chart-pie me-2 text-primary-custom"></i> Plan Distribution</h3>
+                    <div>
+                        <span class="subtitle" id="distributionSubtitle">distributed by plan</span>
+                        <i class="fas fa-chevron-down toggle-icon" id="distributionIcon"></i>
+                    </div>
+                </div>
+                <div class="panel-body expanded" id="distributionBody">
+                    <div id="planDistributionList" style="display:flex; flex-direction:column; gap:8px; padding:6px 0;"></div>
+                </div>
+            </div>
+
+            <!-- Expiring Soon -->
+            <div class="panel" id="expiringSoonPanel">
+                <div class="panel-header" onclick="togglePanel('expiringSoonPanel')">
+                    <h3><i class="fas fa-clock me-2 text-warning"></i> Expiring Soon</h3>
+                    <div>
+                        <span class="subtitle">next 5 days</span>
+                        <i class="fas fa-chevron-down toggle-icon" id="expiringSoonIcon"></i>
+                    </div>
+                </div>
+                <div class="panel-body expanded" id="expiringSoonBody">
+                    <div id="expiringSoonList" style="font-size:14px; min-height:40px;">Loading…</div>
+                </div>
+            </div>
+
+            <!-- Today's Expirations -->
+            <div class="panel" id="todayExpiredPanel">
+                <div class="panel-header" onclick="togglePanel('todayExpiredPanel')">
+                    <h3><i class="fas fa-calendar-times me-2 text-danger"></i> Today's Expirations</h3>
+                    <div>
+                        <span class="subtitle"><span id="todayDate"></span></span>
+                        <i class="fas fa-chevron-down toggle-icon" id="todayExpiredIcon"></i>
+                    </div>
+                </div>
+                <div class="panel-body expanded" id="todayExpiredBody">
+                    <div id="todayExpiredList" style="font-size:14px; min-height:40px;">Loading…</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: CUSTOMERS (placeholder)
+             ========================================================== -->
+        <div id="page-customer" class="page-content">
+            <div class="page-header">
+                <h2>Customers</h2>
+                <p>Manage your customers.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-user-friends"></i>
+                <h3>Customer List</h3>
+                <p>Customer data will appear here.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: INCOME PROJECTION (FULLY BUILT)
+             ========================================================== -->
+        <div id="page-income-projection" class="page-content">
+            <div class="page-header">
+                <h2>Income Projection</h2>
+                <p>Create and view projected income for each plan across different timeframes.</p>
+            </div>
+
+            <div class="add-projection-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-plus-circle"></i> Create New Projection</h3>
+                    <button class="toggle-form-btn" id="toggleFormBtn"><i class="fas fa-chevron-down"></i> Open Form</button>
+                </div>
+
+                <div class="projection-form" id="projectionForm">
+                    <div class="form-group">
+                        <label for="projDate">Date</label>
+                        <input type="date" id="projDate" />
+                    </div>
+                    <div class="form-group">
+                        <label for="projPlan">Plan</label>
+                        <select id="projPlan"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="proj3Days">3-Day Projection (₦)</label>
+                        <input type="number" id="proj3Days" placeholder="e.g. 150000" min="0" step="1000" />
+                        <span class="input-hint">Expected revenue in the next 3 days</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="proj1Week">1-Week Projection (₦)</label>
+                        <input type="number" id="proj1Week" placeholder="e.g. 350000" min="0" step="1000" />
+                        <span class="input-hint">Expected revenue in the next week</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="proj1Month">1-Month Projection (₦)</label>
+                        <input type="number" id="proj1Month" placeholder="e.g. 1500000" min="0" step="1000" />
+                        <span class="input-hint">Expected revenue in the next month</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="proj1Year">1-Year Projection (₦)</label>
+                        <input type="number" id="proj1Year" placeholder="e.g. 18000000" min="0" step="1000" />
+                        <span class="input-hint">Expected revenue in the next year</span>
+                    </div>
+                    <div class="form-actions">
+                        <button class="cancel-btn" id="cancelFormBtn">Cancel</button>
+                        <button class="save-btn" id="saveProjectionBtn"><i class="fas fa-save"></i> Save Projection</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-projection-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-filter"></i> Stored Projections <span class="projection-count" id="projectionCount">(0 entries)</span></h3>
+                    <div class="filter-tabs" id="filterTabs">
+                        <button class="filter-btn active" data-filter="daily">Daily (3-day)</button>
+                        <button class="filter-btn" data-filter="weekly">Weekly</button>
+                        <button class="filter-btn" data-filter="monthly">Monthly</button>
+                        <button class="filter-btn" data-filter="annually">Annually</button>
+                    </div>
+                </div>
+
+                <div class="projection-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Plan</th>
+                                <th id="projectionHeader">Projected Amount (₦)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectionTableBody"></tbody>
+                    </table>
+                    <div id="noProjection" class="no-projection" style="display:none;">
+                        <i class="fas fa-chart-simple"></i>
+                        <p>No projections found. Create your first projection above!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: PAYMENTS (FULLY BUILT)
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
              ========================================================== -->
         <div id="page-dashboard" class="page-content active">
             <div class="page-header">
@@ -2117,6 +3923,7 @@
         </div>
 
         <!-- ==========================================================
+<<<<<<< HEAD
              PAGE: Income Projection (placeholder)
              ========================================================== -->
         <div id="page-income-projection" class="page-content">
@@ -2223,42 +4030,131 @@
 
         <!-- ==========================================================
              PAGE: Monthly Income (placeholder)
+=======
+             PAGE: MONTHLY INCOME (placeholder)
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
              ========================================================== -->
         <div id="page-monthly-income" class="page-content">
             <div class="page-header">
                 <h2>Monthly Income</h2>
+<<<<<<< HEAD
                 <p>Detailed breakdown of your income performance month by month.</p>
             </div>
             <div class="placeholder-page">
                 <i class="fas fa-calendar-alt"></i>
                 <h3>Monthly Breakdown</h3>
                 <p>See your income trends per month.</p>
+=======
+                <p>Monthly breakdown.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-calendar-alt"></i>
+                <h3>Monthly Income</h3>
+                <p>Monthly data will appear here.</p>
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
             </div>
         </div>
 
         <!-- ==========================================================
+<<<<<<< HEAD
              PAGE: Projection vs Actual (placeholder)
+=======
+             PAGE: PROJECTION VS ACTUAL (FULLY BUILT & CONNECTED)
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
              ========================================================== -->
         <div id="page-projection-vs-actual" class="page-content">
             <div class="page-header">
                 <h2>Projection vs Actual</h2>
+<<<<<<< HEAD
                 <p>Compare your projected income against actual results.</p>
             </div>
             <div class="placeholder-page">
                 <i class="fas fa-arrows-left-right"></i>
                 <h3>Comparison View</h3>
                 <p>Analyze discrepancies between projections and actuals.</p>
+=======
+                <p>Compare your projected income against actual results across all plans.</p>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="pa-summary-grid" id="paSummaryGrid">
+                <div class="card">
+                    <div class="label">Total Projected</div>
+                    <div class="value" id="paTotalProjected">₦0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Total Actual</div>
+                    <div class="value" id="paTotalActual">₦0</div>
+                </div>
+                <div class="card">
+                    <div class="label">Variance</div>
+                    <div class="value" id="paTotalVariance">₦0</div>
+                    <div class="sub" id="paVarianceSub">—</div>
+                </div>
+                <div class="card">
+                    <div class="label">Accuracy</div>
+                    <div class="value" id="paAccuracy">0%</div>
+                </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="pa-filter-area">
+                <label style="font-weight:500;color:var(--text-secondary);font-size:0.85rem;">Timeframe:</label>
+                <select id="paTimeframeFilter">
+                    <option value="daily">Daily (3-day)</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="annually">Annually</option>
+                </select>
+                <label style="font-weight:500;color:var(--text-secondary);font-size:0.85rem;margin-left:8px;">Plan:</label>
+                <select id="paPlanFilter">
+                    <option value="all">All Plans</option>
+                </select>
+            </div>
+
+            <!-- Chart -->
+            <div class="pa-chart-container" id="paChartContainer"></div>
+            <div class="pa-chart-legend">
+                <span><span class="dot projection"></span> Projection</span>
+                <span><span class="dot actual"></span> Actual</span>
+            </div>
+
+            <!-- Table -->
+            <div class="pa-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Plan</th>
+                            <th>Projection (₦)</th>
+                            <th>Actual (₦)</th>
+                            <th>Variance (₦)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paTableBody"></tbody>
+                </table>
+            </div>
+            <div id="paNoData" class="no-projection" style="display:none;">
+                <i class="fas fa-chart-simple"></i>
+                <p>No projection data available. Create projections in the Income Projection page first.</p>
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
             </div>
         </div>
 
         <!-- ==========================================================
+<<<<<<< HEAD
              PAGE: Settings
+=======
+             PAGE: SETTINGS (connected to all)
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
              ========================================================== -->
         <div id="page-settings" class="page-content">
             <div class="page-header">
                 <h2>Settings</h2>
                 <p>Configure your workspace, manage plans, and adjust preferences.</p>
             </div>
+<<<<<<< HEAD
             <div class="settings-container">
                 <div class="settings-body">
                     <nav class="settings-sidebar">
@@ -2267,18 +4163,44 @@
                     </nav>
                     <div class="settings-content" id="settingsContent">
                         <div id="settings-page-general" class="settings-page-content">
+=======
+
+            <div class="settings-container">
+                <div class="settings-body">
+
+                    <nav class="settings-sidebar">
+                        <button class="nav-item active" data-settings-page="general">
+                            <i class="fas fa-sliders-h"></i> General
+                        </button>
+                        <button class="nav-item" data-settings-page="plans">
+                            <i class="fas fa-cubes"></i> Plans
+                        </button>
+                    </nav>
+
+                    <div class="settings-content" id="settingsContent">
+
+                        <div id="settings-page-general" class="settings-page-content active">
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
                             <div class="settings-page-header">
                                 <h2>General Settings</h2>
                                 <p>Manage your workspace preferences and defaults.</p>
                             </div>
                             <div class="general-settings">
                                 <div class="setting-row">
+<<<<<<< HEAD
                                     <div class="setting-label">Workspace Name<small>Your workspace display name</small></div>
+=======
+                                    <div class="setting-label">
+                                        Workspace Name
+                                        <small>Your workspace display name</small>
+                                    </div>
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
                                     <div class="setting-control">
                                         <input type="text" value="Prontox Inc." style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-xs);font-size:0.85rem;background:var(--surface);color:var(--text-primary);min-width:180px;transition:background var(--transition),color var(--transition),border-color var(--transition);" />
                                     </div>
                                 </div>
                                 <div class="setting-row">
+<<<<<<< HEAD
                                     <div class="setting-label">Dark Mode<small>Toggle dark theme across the app</small></div>
                                     <div class="setting-control"><div class="toggle" id="settingsDarkToggle"></div></div>
                                 </div>
@@ -2299,19 +4221,74 @@
                             </div>
                         </div>
                         <div id="settings-page-plans" class="settings-page-content" style="display:none;">
+=======
+                                    <div class="setting-label">
+                                        Dark Mode
+                                        <small>Toggle dark theme across the app</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <div class="toggle" id="settingsDarkToggle"></div>
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Default Language
+                                        <small>Interface language</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <select class="select-input">
+                                            <option>English (US)</option>
+                                            <option>Spanish</option>
+                                            <option>French</option>
+                                            <option>German</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Notifications
+                                        <small>Email and in-app notifications</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <div class="toggle active" id="notifToggle"></div>
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Currency
+                                        <small>Default currency for plans and billing</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <span style="font-weight:600;color:var(--accent);font-size:0.95rem;">₦ Naira</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="settings-page-plans" class="settings-page-content">
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
                             <div class="settings-page-header">
                                 <h2>Plans &amp; Pricing</h2>
                                 <p>Manage your subscription plans and pricing tiers.</p>
                             </div>
+<<<<<<< HEAD
                             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
                                 <span style="font-size:0.85rem;color:var(--text-secondary);transition:color var(--transition);">
                                     <i class="fas fa-cubes" style="color:var(--accent);margin-right:6px;"></i>
                                     <span id="planCountLabel">9 plans</span> configured
+=======
+
+                            <div class="plan-settings-header">
+                                <span style="font-size:0.85rem;color:var(--text-secondary);transition:color var(--transition);">
+                                    <i class="fas fa-cubes" style="color:var(--accent);margin-right:6px;"></i>
+                                    <span id="settingsPlanCountLabel">9 plans</span> configured
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
                                 </span>
                                 <button id="openPlanEditorBtn" style="padding:8px 20px;background:var(--accent);color:#fff;border-radius:var(--radius-xs);font-weight:600;font-size:0.85rem;transition:background 0.2s;">
                                     <i class="fas fa-edit"></i> Edit Plans
                                 </button>
                             </div>
+<<<<<<< HEAD
                             <div class="plan-preview-grid" id="planPreviewGrid"></div>
                         </div>
                         <div class="settings-inner-overlay" id="planEditorOverlay">
@@ -2320,12 +4297,32 @@
                                 <button class="back-btn" id="closePlanEditorBtn"><i class="fas fa-arrow-left"></i> Back to Plans</button>
                             </div>
                             <div class="plan-list" id="planListContainer"></div>
+=======
+
+                            <div class="plan-preview-grid" id="settingsPlanPreviewGrid"></div>
+                        </div>
+
+                        <div class="settings-inner-overlay" id="planEditorOverlay">
+                            <div class="settings-inner-header">
+                                <h3><i class="fas fa-cubes"></i> Edit Plans</h3>
+                                <button class="back-btn" id="closePlanEditorBtn">
+                                    <i class="fas fa-arrow-left"></i> Back to Plans
+                                </button>
+                            </div>
+
+                            <div class="plan-list" id="planListContainer"></div>
+
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
                             <div class="add-plan-area">
                                 <input type="text" id="newPlanName" placeholder="Plan name (e.g. Silver)" />
                                 <input type="text" id="newPlanPrice" placeholder="Price (e.g. ₦5,000/mo)" />
                                 <button class="add-btn" id="addPlanBtn"><i class="fas fa-plus"></i> Add Plan</button>
                             </div>
                         </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
                     </div>
                 </div>
             </div>
@@ -2404,6 +4401,7 @@
         (function() {
             'use strict';
 
+<<<<<<< HEAD
             // ─── PAGE CONFIG ───
             const pageConfig = {
                 dashboard: { title: 'Dashboard', desc: 'Welcome back! Here\'s a quick overview of your category performance.' },
@@ -2414,8 +4412,208 @@
                 'projection-vs-actual': { title: 'Projection vs Actual', desc: 'Compare your projected income against actual results.' },
                 settings: { title: 'Settings', desc: 'Configure your workspace, manage plans, and adjust preferences.' },
             };
+=======
+            // ─── SHARED PLAN DATA ───
+            const DEFAULT_PLANS = [
+                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
+                'SME silver', 'SME gold', 'SME platinum', 'SME platinum+'
+            ];
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
+
+            const PLAN_PRICES = {
+                'Silver': '₦5,000/mo',
+                'Gold': '₦10,000/mo',
+                'Platinum': '₦20,000/mo',
+                'Premium': '₦35,000/mo',
+                'Premium+': '₦50,000/mo',
+                'SME silver': '₦7,500/mo',
+                'SME gold': '₦15,000/mo',
+                'SME platinum': '₦30,000/mo',
+                'SME platinum+': '₦60,000/mo'
+            };
+
+            const PLAN_STORAGE_KEY = 'prontoxPlans';
+            const PROJ_STORAGE_KEY = 'incomeProjections';
+            const ACTUAL_STORAGE_KEY = 'actualRevenueData';
+
+            let planList = [];
+            let projections = [];
+            let actualData = [];
+            let nextId = 1;
+            let currentFilter = 'daily';
+            let currentProjectionFilter = 'monthly';
+
+            // ─── PAYMENT DATA ───
+            let paymentCustomers = [];
+            let recentPayments = [];
+
+            // ─── LOAD / SAVE PLANS ───
+            function loadPlans() {
+                try {
+                    const stored = localStorage.getItem(PLAN_STORAGE_KEY);
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            planList = parsed;
+                            return;
+                        }
+                    }
+                } catch (_) {}
+                planList = DEFAULT_PLANS.map((name, index) => ({
+                    id: index + 1,
+                    name: name,
+                    price: PLAN_PRICES[name] || '₦0/mo'
+                }));
+                savePlans();
+            }
+
+            function savePlans() {
+                localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(planList));
+                populatePlanDropdown();
+                renderSettingsPlanPreview();
+                updatePaPlanFilter();
+                renderProjectionTable();
+                renderProjectionVsActual();
+            }
+
+            function getPlanNames() {
+                return planList.map(p => p.name);
+            }
+
+            function getPlanPrice(name) {
+                const plan = planList.find(p => p.name === name);
+                return plan ? plan.price : '₦0/mo';
+            }
+
+            // ─── LOAD / SAVE PROJECTIONS ───
+            function loadProjections() {
+                try {
+                    const data = localStorage.getItem(PROJ_STORAGE_KEY);
+                    if (data) {
+                        projections = JSON.parse(data);
+                        let maxId = 0;
+                        projections.forEach(p => { if (p.id > maxId) maxId = p.id; });
+                        nextId = maxId + 1;
+                        return;
+                    }
+                } catch (_) {}
+                const today = new Date().toISOString().split('T')[0];
+                const samplePlans = getPlanNames();
+                if (samplePlans.length === 0) return;
+                projections = samplePlans.map((name, idx) => ({
+                    id: idx + 1,
+                    date: today,
+                    plan: name,
+                    projection3Days: (idx + 1) * 50000,
+                    projection1Week: (idx + 1) * 120000,
+                    projection1Month: (idx + 1) * 500000,
+                    projection1Year: (idx + 1) * 6000000
+                }));
+                nextId = projections.length + 1;
+                saveProjections();
+            }
+
+            function saveProjections() {
+                localStorage.setItem(PROJ_STORAGE_KEY, JSON.stringify(projections));
+                renderProjectionTable();
+                renderProjectionVsActual();
+            }
+
+            // ─── LOAD / SAVE ACTUAL DATA ───
+            function loadActualData() {
+                try {
+                    const data = localStorage.getItem(ACTUAL_STORAGE_KEY);
+                    if (data) {
+                        actualData = JSON.parse(data);
+                        return;
+                    }
+                } catch (_) {}
+                const today = new Date().toISOString().split('T')[0];
+                const samplePlans = getPlanNames();
+                if (samplePlans.length === 0) return;
+                actualData = samplePlans.map((name, idx) => {
+                    const base = (idx + 1) * 500000;
+                    const variation = Math.floor(Math.random() * 200000) - 100000;
+                    return {
+                        plan: name,
+                        date: today,
+                        actual3Days: base * 0.3 + variation * 0.5,
+                        actual1Week: base * 0.7 + variation * 0.6,
+                        actual1Month: base + variation * 0.7,
+                        actual1Year: base * 12 + variation * 0.8
+                    };
+                });
+                saveActualData();
+            }
+
+            function saveActualData() {
+                localStorage.setItem(ACTUAL_STORAGE_KEY, JSON.stringify(actualData));
+                renderProjectionVsActual();
+            }
+
+            // ─── GENERATE PAYMENT CUSTOMERS ───
+            function generatePaymentCustomers() {
+                const FIRST_NAMES = ['James', 'Maria', 'Alex', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'Daniel',
+                    'Lisa',
+                    'Robert', 'Emma', 'William', 'Olivia', 'Joseph', 'Sophia', 'Thomas', 'Mia', 'Charles', 'Charlotte'
+                ];
+                const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis',
+                    'Rodriguez',
+                    'Martinez', 'Hernandez', 'Lopez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson',
+                    'Martin',
+                    'Lee'
+                ];
+                const planNames = getPlanNames();
+
+                for (let i = 0; i < 12; i++) {
+                    const firstName = FIRST_NAMES[i % FIRST_NAMES.length];
+                    const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
+                    const plan = planNames[Math.floor(Math.random() * planNames.length)];
+                    const price = parseInt(getPlanPrice(plan).replace(/[₦,]/g, '')) || 0;
+                    const expDays = Math.floor(Math.random() * 60) - 10;
+                    const expiry = new Date();
+                    expiry.setDate(expiry.getDate() + expDays);
+                    const expiryStr = expiry.toISOString().slice(0, 10);
+                    const status = expDays < 0 ? 'expired' : (Math.random() > 0.1 ? 'active' : 'inactive');
+                    paymentCustomers.push({
+                        id: i + 1,
+                        name: firstName + ' ' + lastName,
+                        plan: plan,
+                        status: status,
+                        price: price,
+                        expiry: expiryStr
+                    });
+                }
+            }
+
+            // ─── GENERATE RECENT PAYMENTS ───
+            function generateRecentPayments() {
+                const customers = paymentCustomers;
+                const now = new Date();
+                for (let i = 0; i < 7; i++) {
+                    const cust = customers[i % customers.length];
+                    const months = Math.floor(Math.random() * 3) + 1;
+                    const amount = cust.price * months;
+                    const newExpiry = new Date(cust.expiry);
+                    newExpiry.setMonth(newExpiry.getMonth() + months);
+                    const payDate = new Date(now);
+                    payDate.setDate(payDate.getDate() - Math.floor(Math.random() * 30) - 1);
+                    recentPayments.push({
+                        customer: cust.name,
+                        plan: cust.plan,
+                        amount: amount,
+                        newExpiry: newExpiry.toISOString().slice(0, 10),
+                        date: payDate.toISOString().slice(0, 10)
+                    });
+                }
+                recentPayments.sort((a, b) => b.date.localeCompare(a.date));
+            }
 
             // ─── DOM REFS ───
+<<<<<<< HEAD
+=======
+            // Nav
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             const hamburgerBtn = document.getElementById('hamburgerBtn');
@@ -2425,6 +4623,7 @@
             const themeToggle = document.getElementById('themeToggle');
             const themeIcon = document.getElementById('themeIcon');
             const avatarBtn = document.getElementById('avatarBtn');
+<<<<<<< HEAD
 
             // ─── SETTINGS REFS ───
             const settingsSidebarItems = document.querySelectorAll('.settings-sidebar .nav-item');
@@ -2476,11 +4675,1220 @@
                     document.documentElement.removeAttribute('data-theme');
                     themeIcon.className = 'fas fa-moon';
                     if (settingsDarkToggle) settingsDarkToggle.classList.remove('active');
+=======
+
+            // Dashboard
+            const statTotal = document.getElementById('statTotal');
+            const statActiveCount = document.getElementById('statActiveCount');
+            const statProjection = document.getElementById('statProjection');
+            const statReceived = document.getElementById('statReceived');
+            const statReceivedDiff = document.getElementById('statReceivedDiff');
+            const statAvgSpeed = document.getElementById('statAvgSpeed');
+            const planSummaryTableBody = document.getElementById('planSummaryTableBody');
+            const totalProjectionDisplay = document.getElementById('totalProjectionDisplay');
+            const projectionPeriodLabel = document.getElementById('projectionPeriodLabel');
+            const projectionFilter = document.getElementById('projectionFilter');
+            const applyProjectionFilter = document.getElementById('applyProjectionFilter');
+            const planDistributionList = document.getElementById('planDistributionList');
+            const distributionSubtitle = document.getElementById('distributionSubtitle');
+            const expiringSoonList = document.getElementById('expiringSoonList');
+            const todayExpiredList = document.getElementById('todayExpiredList');
+            const todayDate = document.getElementById('todayDate');
+
+            // Payment
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const displayName = document.getElementById('displayName');
+            const displayPlan = document.getElementById('displayPlan');
+            const displayStatus = document.getElementById('displayStatus');
+            const displayExpiry = document.getElementById('displayExpiry');
+            const monthsInput = document.getElementById('monthsInput');
+            const amountDisplay = document.getElementById('amountDisplay');
+            const confirmBtn = document.getElementById('confirmPaymentBtn');
+            const recentBody = document.getElementById('recentPaymentsBody');
+            const noRecent = document.getElementById('noRecent');
+
+            // Projection
+            const projDate = document.getElementById('projDate');
+            const projPlan = document.getElementById('projPlan');
+            const proj3Days = document.getElementById('proj3Days');
+            const proj1Week = document.getElementById('proj1Week');
+            const proj1Month = document.getElementById('proj1Month');
+            const proj1Year = document.getElementById('proj1Year');
+            const toggleFormBtn = document.getElementById('toggleFormBtn');
+            const cancelFormBtn = document.getElementById('cancelFormBtn');
+            const saveBtn = document.getElementById('saveProjectionBtn');
+            const projectionForm = document.getElementById('projectionForm');
+            const tableBody = document.getElementById('projectionTableBody');
+            const noProjection = document.getElementById('noProjection');
+            const projectionCount = document.getElementById('projectionCount');
+            const projectionHeader = document.getElementById('projectionHeader');
+            const filterTabs = document.getElementById('filterTabs');
+
+            // Proj vs Actual
+            const paTotalProjected = document.getElementById('paTotalProjected');
+            const paTotalActual = document.getElementById('paTotalActual');
+            const paTotalVariance = document.getElementById('paTotalVariance');
+            const paVarianceSub = document.getElementById('paVarianceSub');
+            const paAccuracy = document.getElementById('paAccuracy');
+            const paTimeframeFilter = document.getElementById('paTimeframeFilter');
+            const paPlanFilter = document.getElementById('paPlanFilter');
+            const paChartContainer = document.getElementById('paChartContainer');
+            const paTableBody = document.getElementById('paTableBody');
+            const paNoData = document.getElementById('paNoData');
+
+            // Settings
+            const settingsSidebarItems = document.querySelectorAll('.settings-sidebar .nav-item');
+            const settingsPages = {
+                general: document.getElementById('settings-page-general'),
+                plans: document.getElementById('settings-page-plans'),
+            };
+            const settingsPlanPreviewGrid = document.getElementById('settingsPlanPreviewGrid');
+            const settingsPlanCountLabel = document.getElementById('settingsPlanCountLabel');
+            const openPlanEditorBtn = document.getElementById('openPlanEditorBtn');
+            const closePlanEditorBtn = document.getElementById('closePlanEditorBtn');
+            const planEditorOverlay = document.getElementById('planEditorOverlay');
+            const planListContainer = document.getElementById('planListContainer');
+            const addPlanBtn = document.getElementById('addPlanBtn');
+            const newPlanName = document.getElementById('newPlanName');
+            const newPlanPrice = document.getElementById('newPlanPrice');
+            const settingsDarkToggle = document.getElementById('settingsDarkToggle');
+            const notifToggle = document.getElementById('notifToggle');
+
+            // ─── THEME ───
+            let darkMode = false;
+
+            function applyTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeIcon.className = 'fas fa-sun';
+                    if (settingsDarkToggle) settingsDarkToggle.classList.add('active');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeIcon.className = 'fas fa-moon';
+                    if (settingsDarkToggle) settingsDarkToggle.classList.remove('active');
                 }
                 darkMode = isDark;
                 try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
             }
 
+            try {
+                const saved = localStorage.getItem('prontox-theme');
+                if (saved === 'dark') applyTheme(true);
+                else if (saved === 'light') applyTheme(false);
+                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+                else applyTheme(false);
+            } catch (_) { applyTheme(false); }
+
+            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+            if (settingsDarkToggle) {
+                settingsDarkToggle.addEventListener('click', function() {
+                    applyTheme(!darkMode);
+                });
+            }
+
+            // ─── SIDEBAR TOGGLE ───
+            function openSidebar() {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('open');
+                hamburgerBtn.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+                hamburgerBtn.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            hamburgerBtn.addEventListener('click', function() {
+                if (sidebar.classList.contains('open')) closeSidebar();
+                else openSidebar();
+            });
+            closeSidebarBtn.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            });
+
+            // ─── NAVIGATION ───
+            function navigateTo(pageId) {
+                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+                const target = document.getElementById('page-' + pageId);
+                if (target) target.classList.add('active');
+
+                navItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.page === pageId) item.classList.add('active');
+                });
+
+                closeSidebar();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                if (pageId === 'settings') {
+                    renderSettingsPlanPreview();
+                    renderPlanList();
+                    showSettingsPage('general');
+                }
+                if (pageId === 'projection-vs-actual') {
+                    renderProjectionVsActual();
+                }
+                if (pageId === 'income-projection') {
+                    renderProjectionTable();
+                }
+                if (pageId === 'dashboard') {
+                    renderDashboard();
+                }
+                if (pageId === 'payments') {
+                    renderRecent();
+                }
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    if (page) navigateTo(page);
+                });
+            });
+
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('Logout?')) alert('Logging out...');
+            });
+
+            avatarBtn.addEventListener('click', function() {
+                alert('User profile');
+            });
+
+            document.getElementById('logoLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateTo('dashboard');
+            });
+
+            // ─── SETTINGS SUB-NAVIGATION ───
+            function showSettingsPage(pageId) {
+                Object.keys(settingsPages).forEach(key => {
+                    settingsPages[key].classList.remove('active');
+                });
+                if (settingsPages[pageId]) {
+                    settingsPages[pageId].classList.add('active');
+                }
+                settingsSidebarItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.settingsPage === pageId) {
+                        item.classList.add('active');
+                    }
+                });
+                planEditorOverlay.classList.remove('open');
+                if (pageId === 'plans') {
+                    renderSettingsPlanPreview();
+                }
+            }
+
+            settingsSidebarItems.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = this.dataset.settingsPage;
+                    if (page) showSettingsPage(page);
+                });
+            });
+
+            // ─── POPULATE PLAN DROPDOWN ───
+            function populatePlanDropdown() {
+                if (!projPlan) return;
+                const currentVal = projPlan.value;
+                const names = getPlanNames();
+                projPlan.innerHTML = names.map(name =>
+                    `<option value="${name}">${name}</option>`
+                ).join('');
+                if (names.includes(currentVal)) {
+                    projPlan.value = currentVal;
+                } else if (names.length > 0) {
+                    projPlan.value = names[0];
+                }
+            }
+
+            // ─── UPDATE PA PLAN FILTER ───
+            function updatePaPlanFilter() {
+                if (!paPlanFilter) return;
+                const currentVal = paPlanFilter.value;
+                const names = getPlanNames();
+                paPlanFilter.innerHTML = `<option value="all">All Plans</option>` +
+                    names.map(name => `<option value="${name}">${name}</option>`).join('');
+                if (names.includes(currentVal)) {
+                    paPlanFilter.value = currentVal;
+                }
+            }
+
+            // ─── DASHBOARD DATA HELPERS ───
+            function getActiveCustomers() {
+                return window._mockCustomers || [];
+            }
+
+            function getProjectionByPeriod(period) {
+                const active = getActiveCustomers();
+                let total = 0;
+                const planTotals = {};
+
+                active.forEach(c => {
+                    const price = parseInt(getPlanPrice(c.plan).replace(/[₦,]/g, '')) || 0;
+                    let multiplier = 1;
+                    if (period === 'daily') multiplier = 1 / 30;
+                    else if (period === 'weekly') multiplier = 1 / 4;
+                    else multiplier = 1;
+
+                    const amount = price * multiplier;
+                    total += amount;
+                    if (!planTotals[c.plan]) planTotals[c.plan] = 0;
+                    planTotals[c.plan] += amount;
+                });
+
+                return { total, planTotals };
+            }
+
+            function getReceivedForMonth(year, month) {
+                const proj = getProjectionByPeriod('monthly');
+                return proj.total * (0.7 + Math.random() * 0.4);
+            }
+
+            function getPlanSummary() {
+                const planNames = getPlanNames();
+                const result = {};
+                const customers = getActiveCustomers();
+                planNames.forEach(p => {
+                    const total = customers.filter(c => c.plan === p).length;
+                    const paid = Math.floor(total * (0.5 + Math.random() * 0.4));
+                    const unpaid = total - paid;
+                    const rate = total > 0 ? (paid / total * 100) : 0;
+                    result[p] = { total, paid, unpaid, rate };
+                });
+                return result;
+            }
+
+            // ─── GENERATE MOCK CUSTOMERS ───
+            function generateMockCustomers() {
+                const FIRST_NAMES = ['James', 'Maria', 'Alex', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'Daniel',
+                    'Lisa',
+                    'Robert', 'Emma', 'William', 'Olivia', 'Joseph', 'Sophia', 'Thomas', 'Mia', 'Charles', 'Charlotte'
+                ];
+                const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis',
+                    'Rodriguez',
+                    'Martinez', 'Hernandez', 'Lopez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson',
+                    'Martin',
+                    'Lee'
+                ];
+                const planNames = getPlanNames();
+                const customers = [];
+
+                for (let i = 0; i < 40; i++) {
+                    const firstName = FIRST_NAMES[i % FIRST_NAMES.length];
+                    const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
+                    const plan = planNames[Math.floor(Math.random() * planNames.length)];
+                    const price = parseInt(getPlanPrice(plan).replace(/[₦,]/g, '')) || 0;
+                    const expDays = Math.floor(Math.random() * 60) - 15;
+                    const expiry = new Date();
+                    expiry.setDate(expiry.getDate() + expDays);
+                    const expiryStr = expiry.toISOString().slice(0, 10);
+                    const status = expDays < 0 ? 'expired' : (Math.random() > 0.08 ? 'active' : 'inactive');
+                    const finalStatus = (expDays < 0) ? 'expired' : status;
+                    const joinDate = new Date();
+                    joinDate.setDate(joinDate.getDate() - Math.floor(Math.random() * 120) - 10);
+                    customers.push({
+                        id: 'CUST-' + String(1001 + i),
+                        name: firstName + ' ' + lastName,
+                        plan: plan,
+                        status: finalStatus,
+                        expiry: expiryStr,
+                        joinDate: joinDate.toISOString().slice(0, 10),
+                        amount: price,
+                        paidHistory: []
+                    });
+                }
+
+                for (let i = 0; i < 6; i++) {
+                    const idx = i % customers.length;
+                    const d = new Date();
+                    d.setDate(d.getDate() + (i + 1));
+                    customers[idx].expiry = d.toISOString().slice(0, 10);
+                    customers[idx].status = 'active';
+                }
+                const today = new Date().toISOString().slice(0, 10);
+                for (let i = 0; i < 3; i++) {
+                    const idx = 12 + i;
+                    if (idx < customers.length) {
+                        customers[idx].expiry = today;
+                        customers[idx].status = 'expired';
+                    }
+                }
+
+                window._mockCustomers = customers;
+                return customers;
+            }
+
+            // ─── DASHBOARD RENDER FUNCTIONS ───
+            function renderDashboard() {
+                const customers = generateMockCustomers();
+                const total = customers.length;
+                const active = customers.filter(c => c.status === 'active').length;
+                const proj = getProjectionByPeriod('monthly');
+                const received = getReceivedForMonth(new Date().getFullYear(), new Date().getMonth());
+                const diff = proj.total > 0 ? ((received - proj.total) / proj.total * 100) : 0;
+
+                statTotal.textContent = total;
+                statActiveCount.textContent = active;
+                statProjection.textContent = '₦' + proj.total.toLocaleString();
+                statReceived.textContent = '₦' + received.toLocaleString();
+                statReceivedDiff.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(1) + '% vs projection';
+
+                let speeds = [];
+                getPlanNames().forEach(p => {
+                    const relevant = customers.filter(c => c.plan === p && c.paidHistory.length > 0);
+                    if (relevant.length > 0) {
+                        speeds.push(relevant.length * 0.5);
+                    }
+                });
+                const avgSpeed = speeds.length > 0 ? speeds.reduce((a, b) => a + b, 0) / speeds.length : 0;
+                statAvgSpeed.textContent = avgSpeed > 0 ? Math.round(avgSpeed) + 'd' : '—';
+
+                renderPlanSummaryTable();
+                renderProjection();
+                renderExpiringSoon();
+                renderTodayExpired();
+            }
+
+            function renderPlanSummaryTable() {
+                const summary = getPlanSummary();
+                let html = '';
+                const planNames = getPlanNames();
+                planNames.forEach(p => {
+                    const s = summary[p];
+                    if (!s) return;
+                    const rate = s.rate || 0;
+                    const color = rate >= 80 ? '#22c55e' : (rate >= 50 ? '#f59e0b' : '#ef4444');
+                    html += `<tr>
+                                <td><span class="plan-tag ${p.toLowerCase().replace(/[+ ]/g, '-')}">${p}</span></td>
+                                <td><strong>${s.total}</strong></td>
+                                <td><span class="status-badge paid">${s.paid}</span></td>
+                                <td><span class="status-badge unpaid">${s.unpaid}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress-bar-custom" style="flex:1;min-width:60px;">
+                                            <div class="fill" style="width:${rate}%;background:${color};"></div>
+                                        </div>
+                                        <span class="fs-small fw-600">${rate.toFixed(0)}%</span>
+                                    </div>
+                                </td>
+                            </tr>`;
+                });
+                if (!html) html =
+                    `<tr><td colspan="5" class="text-center text-muted py-4">No plans available.</td></tr>`;
+                planSummaryTableBody.innerHTML = html;
+            }
+
+            function renderProjection() {
+                const period = projectionFilter.value;
+                currentProjectionFilter = period;
+                const data = getProjectionByPeriod(period);
+
+                totalProjectionDisplay.textContent = '₦' + data.total.toLocaleString();
+
+                const labels = {
+                    daily: 'Projected for next 3 days (daily)',
+                    weekly: 'Projected for next 7 days (weekly)',
+                    monthly: 'Projected for current month (monthly)'
+                };
+                projectionPeriodLabel.textContent = labels[period] || 'Projected for current period';
+
+                renderPlanDistribution(data.planTotals, period);
+            }
+
+            function renderPlanDistribution(planTotals, period) {
+                const sorted = Object.entries(planTotals).sort((a, b) => b[1] - a[1]);
+
+                if (sorted.length === 0) {
+                    planDistributionList.innerHTML = '<span class="text-muted">No active customers.</span>';
+                    return;
+                }
+
+                const total = sorted.reduce((sum, [_, val]) => sum + val, 0);
+                const periodLabels = {
+                    daily: 'per day',
+                    weekly: 'per week',
+                    monthly: 'per month'
+                };
+                distributionSubtitle.textContent = `distributed by plan (${periodLabels[period] || 'per month'})`;
+
+                let html = '';
+                sorted.forEach(([plan, amount]) => {
+                    const count = window._mockCustomers ? window._mockCustomers.filter(c => c.plan === plan && c
+                        .status === 'active').length : 0;
+                    const pct = total > 0 ? (amount / total * 100) : 0;
+
+                    html += `
+                        <div class="d-flex align-items-center gap-3" style="padding:6px 0;border-bottom:1px solid var(--border);">
+                            <span class="plan-tag ${plan.toLowerCase().replace(/[+ ]/g, '-')}" style="min-width:120px;">${plan}</span>
+                            <span class="fw-600" style="min-width:80px;">₦${amount.toLocaleString()}</span>
+                            <span class="text-muted fs-small" style="min-width:60px;">${count} customers</span>
+                            <div style="flex:1;min-width:80px;">
+                                <div class="progress-bar-custom">
+                                    <div class="fill" style="width:${pct}%;background:var(--accent);"></div>
+                                </div>
+                            </div>
+                            <span class="fs-small fw-600" style="min-width:50px;">${pct.toFixed(0)}%</span>
+                        </div>
+                    `;
+                });
+
+                html += `
+                    <div class="d-flex align-items-center gap-3" style="padding:10px 0;border-top:2px solid var(--accent);margin-top:4px;font-weight:700;">
+                        <span style="min-width:120px;color:var(--accent);">TOTAL</span>
+                        <span style="min-width:80px;color:var(--accent);">₦${total.toLocaleString()}</span>
+                        <span class="text-muted fs-small" style="min-width:60px;">${window._mockCustomers ? window._mockCustomers.filter(c => c.status === 'active').length : 0} active</span>
+                        <div style="flex:1;"></div>
+                        <span style="min-width:50px;color:var(--accent);">100%</span>
+                    </div>
+                `;
+
+                planDistributionList.innerHTML = html;
+            }
+
+            function renderExpiringSoon() {
+                const customers = window._mockCustomers || [];
+                const soon = customers.filter(c => {
+                    const d = daysUntil(c.expiry);
+                    return d >= 0 && d <= 5 && c.status === 'active';
+                }).sort((a, b) => daysUntil(a.expiry) - daysUntil(b.expiry));
+
+                if (soon.length === 0) {
+                    expiringSoonList.innerHTML = '<span class="text-muted">No customers expiring in the next 5 days.</span>';
+                    return;
+                }
+
+                expiringSoonList.innerHTML = soon.map(c =>
+                    `<div class="d-flex justify-content-between py-2 border-bottom" style="border-color:var(--border);">
+                        <span><strong>${c.name}</strong> — ${c.plan}</span>
+                        <span class="${daysUntil(c.expiry) <= 2 ? 'text-red' : 'text-yellow'}">${formatDate(c.expiry)} (${daysUntil(c.expiry)} days)</span>
+                    </div>`
+                ).join('');
+            }
+
+            function renderTodayExpired() {
+                const today = new Date().toISOString().slice(0, 10);
+                todayDate.textContent = formatDate(today);
+
+                const customers = window._mockCustomers || [];
+                const expired = customers.filter(c => c.expiry === today);
+
+                if (expired.length === 0) {
+                    todayExpiredList.innerHTML = '<span class="text-muted">No expirations today.</span>';
+                    return;
+                }
+
+                todayExpiredList.innerHTML = expired.map(c =>
+                    `<div class="d-flex justify-content-between py-2 border-bottom" style="border-color:var(--border);">
+                        <span><strong>${c.name}</strong> — ${c.plan}</span>
+                        <span class="text-red">Expired today</span>
+                    </div>`
+                ).join('');
+            }
+
+            // ─── PAYMENT HELPERS ───
+            function formatCurrency(amount) {
+                return '₦' + amount.toLocaleString();
+            }
+
+            function formatDate(dateStr) {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+
+            function addMonths(dateStr, months) {
+                const d = new Date(dateStr);
+                d.setMonth(d.getMonth() + months);
+                return d.toISOString().split('T')[0];
+            }
+
+            // ─── RENDER RECENT PAYMENTS ───
+            function renderRecent() {
+                if (recentPayments.length === 0) {
+                    recentBody.innerHTML = '';
+                    noRecent.style.display = 'block';
+                    return;
+                }
+                noRecent.style.display = 'none';
+                let html = '';
+                recentPayments.forEach(p => {
+                    html += `
+                        <tr>
+                            <td>${p.customer}</td>
+                            <td>${p.plan}</td>
+                            <td>${formatCurrency(p.amount)}</td>
+                            <td>${formatDate(p.newExpiry)}</td>
+                            <td>${formatDate(p.date)}</td>
+                        </tr>
+                    `;
+                });
+                recentBody.innerHTML = html;
+            }
+
+            // ─── UPDATE PAYMENT FORM ───
+            function updatePaymentForm() {
+                if (!selectedCustomer) {
+                    displayName.textContent = '—';
+                    displayPlan.textContent = '—';
+                    displayStatus.textContent = '—';
+                    displayExpiry.textContent = '—';
+                    amountDisplay.textContent = '₦0';
+                    return;
+                }
+                displayName.textContent = selectedCustomer.name;
+                displayPlan.textContent = selectedCustomer.plan;
+                const statusBadge = selectedCustomer.status === 'active' ?
+                    '<span class="badge">Active</span>' :
+                    '<span class="badge inactive">Inactive</span>';
+                displayStatus.innerHTML = statusBadge;
+                displayExpiry.textContent = formatDate(selectedCustomer.expiry);
+                updateAmount();
+            }
+
+            // ─── UPDATE AMOUNT ───
+            function updateAmount() {
+                if (!selectedCustomer) {
+                    amountDisplay.textContent = '₦0';
+                    return;
+                }
+                const months = parseInt(monthsInput.value) || 1;
+                const total = selectedCustomer.price * months;
+                amountDisplay.textContent = formatCurrency(total);
+            }
+
+            // ─── SEARCH CUSTOMER ───
+            function searchCustomer(query) {
+                if (!query.trim()) {
+                    selectedCustomer = null;
+                    updatePaymentForm();
+                    return;
+                }
+                const lower = query.toLowerCase().trim();
+                const found = paymentCustomers.find(c =>
+                    c.name.toLowerCase().includes(lower) ||
+                    c.id.toString() === lower
+                );
+                if (found) {
+                    selectedCustomer = found;
+                } else {
+                    selectedCustomer = null;
+                    alert('Customer not found. Please try again.');
+                }
+                updatePaymentForm();
+            }
+
+            // ─── CONFIRM PAYMENT ───
+            let selectedCustomer = null;
+
+            function confirmPayment() {
+                if (!selectedCustomer) {
+                    alert('Please search and select a customer first.');
+                    return;
+                }
+                const months = parseInt(monthsInput.value) || 1;
+                if (months < 1) {
+                    alert('Months must be at least 1.');
+                    return;
+                }
+                const amount = selectedCustomer.price * months;
+                const newExpiry = addMonths(selectedCustomer.expiry, months);
+
+                const today = new Date().toISOString().split('T')[0];
+                recentPayments.unshift({
+                    customer: selectedCustomer.name,
+                    plan: selectedCustomer.plan,
+                    amount: amount,
+                    newExpiry: newExpiry,
+                    date: today
+                });
+
+                selectedCustomer.expiry = newExpiry;
+
+                renderRecent();
+                updatePaymentForm();
+
+                alert(`✅ Payment confirmed for ${selectedCustomer.name}.\nNew expiry: ${formatDate(newExpiry)}`);
+            }
+
+            // ─── PROJECTION FORM ───
+            function resetForm() {
+                const names = getPlanNames();
+                projDate.value = new Date().toISOString().split('T')[0];
+                projPlan.value = names[0] || 'Silver';
+                proj3Days.value = '';
+                proj1Week.value = '';
+                proj1Month.value = '';
+                proj1Year.value = '';
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Projection';
+            }
+
+            toggleFormBtn.addEventListener('click', function() {
+                if (projectionForm.classList.contains('open')) {
+                    projectionForm.classList.remove('open');
+                    toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
+                } else {
+                    projectionForm.classList.add('open');
+                    toggleFormBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Close Form';
+                    resetForm();
+                }
+            });
+
+            cancelFormBtn.addEventListener('click', function() {
+                projectionForm.classList.remove('open');
+                toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
+            });
+
+            // ─── SAVE PROJECTION ───
+            function handleSaveProjection() {
+                const date = projDate.value;
+                const plan = projPlan.value;
+                const p3d = parseInt(proj3Days.value) || 0;
+                const p1w = parseInt(proj1Week.value) || 0;
+                const p1m = parseInt(proj1Month.value) || 0;
+                const p1y = parseInt(proj1Year.value) || 0;
+
+                if (!date) {
+                    alert('Please select a date.');
+                    return;
+                }
+
+                if (p3d === 0 && p1w === 0 && p1m === 0 && p1y === 0) {
+                    alert('Please enter at least one projection value.');
+                    return;
+                }
+
+                const existing = projections.find(p => p.date === date && p.plan === plan);
+                if (existing) {
+                    if (!confirm(`A projection for ${plan} on ${date} already exists. Overwrite?`)) {
+                        return;
+                    }
+                    existing.projection3Days = p3d;
+                    existing.projection1Week = p1w;
+                    existing.projection1Month = p1m;
+                    existing.projection1Year = p1y;
+                } else {
+                    projections.push({
+                        id: nextId++,
+                        date: date,
+                        plan: plan,
+                        projection3Days: p3d,
+                        projection1Week: p1w,
+                        projection1Month: p1m,
+                        projection1Year: p1y,
+                    });
+                }
+
+                const actualEntry = actualData.find(a => a.date === date && a.plan === plan);
+                if (!actualEntry) {
+                    actualData.push({
+                        plan: plan,
+                        date: date,
+                        actual3Days: 0,
+                        actual1Week: 0,
+                        actual1Month: 0,
+                        actual1Year: 0
+                    });
+                    saveActualData();
+                }
+
+                saveProjections();
+                projectionForm.classList.remove('open');
+                toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
+                alert('✅ Projection saved successfully!');
+            }
+
+            saveBtn.addEventListener('click', handleSaveProjection);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && projectionForm.classList.contains('open')) {
+                    const active = document.activeElement;
+                    if (active && (active.tagName === 'INPUT' || active.tagName === 'SELECT')) {
+                        handleSaveProjection();
+                    }
+                }
+            });
+
+            // ─── RENDER PROJECTION TABLE ───
+            function renderProjectionTable() {
+                if (!tableBody) return;
+
+                const filterMap = {
+                    daily: { key: 'projection3Days', label: '3-Day Projection (₦)' },
+                    weekly: { key: 'projection1Week', label: '1-Week Projection (₦)' },
+                    monthly: { key: 'projection1Month', label: '1-Month Projection (₦)' },
+                    annually: { key: 'projection1Year', label: '1-Year Projection (₦)' },
+                };
+                const current = filterMap[currentFilter];
+                if (!current) return;
+
+                projectionHeader.textContent = current.label;
+
+                const grouped = {};
+                projections.forEach(p => {
+                    if (!grouped[p.date]) grouped[p.date] = [];
+                    grouped[p.date].push(p);
+                });
+
+                const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+                if (sortedDates.length === 0) {
+                    tableBody.innerHTML = '';
+                    noProjection.style.display = 'block';
+                    projectionCount.textContent = '(0 entries)';
+                    return;
+                }
+
+                noProjection.style.display = 'none';
+                projectionCount.textContent = `(${projections.length} entries)`;
+
+                let html = '';
+                sortedDates.forEach(date => {
+                    const items = grouped[date];
+                    items.sort((a, b) => a.plan.localeCompare(b.plan));
+
+                    let total = 0;
+                    items.forEach(item => {
+                        total += item[current.key] || 0;
+                    });
+
+                    items.forEach(item => {
+                        const amount = item[current.key] || 0;
+                        html += `
+                            <tr>
+                                <td>${date}</td>
+                                <td>${item.plan}</td>
+                                <td>₦${amount.toLocaleString()}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `
+                        <tr class="total-row">
+                            <td colspan="2" style="text-align:right; font-weight:700;">Total (${date})</td>
+                            <td style="font-weight:700;">₦${total.toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+
+                tableBody.innerHTML = html;
+            }
+
+            // ─── FILTER TABS ───
+            filterTabs.addEventListener('click', function(e) {
+                const btn = e.target.closest('.filter-btn');
+                if (!btn) return;
+                const filter = btn.dataset.filter;
+                if (!filter) return;
+
+                filterTabs.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = filter;
+                renderProjectionTable();
+            });
+
+            // ─── RENDER PROJECTION VS ACTUAL ───
+            function renderProjectionVsActual() {
+                if (!paTableBody) return;
+
+                const timeframe = paTimeframeFilter.value;
+                const planFilter = paPlanFilter.value;
+
+                const filterMap = {
+                    daily: { key: 'projection3Days', actualKey: 'actual3Days', label: '3-Day' },
+                    weekly: { key: 'projection1Week', actualKey: 'actual1Week', label: 'Weekly' },
+                    monthly: { key: 'projection1Month', actualKey: 'actual1Month', label: 'Monthly' },
+                    annually: { key: 'projection1Year', actualKey: 'actual1Year', label: 'Annually' },
+                };
+                const current = filterMap[timeframe];
+                if (!current) return;
+
+                let filteredProjections = [...projections];
+                if (planFilter !== 'all') {
+                    filteredProjections = filteredProjections.filter(p => p.plan === planFilter);
+                }
+
+                if (filteredProjections.length === 0) {
+                    paTableBody.innerHTML = '';
+                    paNoData.style.display = 'block';
+                    paChartContainer.innerHTML = '';
+                    paTotalProjected.textContent = '₦0';
+                    paTotalActual.textContent = '₦0';
+                    paTotalVariance.textContent = '₦0';
+                    paVarianceSub.textContent = '—';
+                    paAccuracy.textContent = '0%';
+                    return;
+                }
+
+                paNoData.style.display = 'none';
+
+                const grouped = {};
+                filteredProjections.forEach(p => {
+                    if (!grouped[p.date]) grouped[p.date] = [];
+                    grouped[p.date].push(p);
+                });
+
+                const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
+
+                let totalProjected = 0;
+                let totalActual = 0;
+
+                let tableHtml = '';
+                const chartData = [];
+
+                sortedDates.forEach(date => {
+                    const items = grouped[date];
+                    items.sort((a, b) => a.plan.localeCompare(b.plan));
+
+                    let dateProjected = 0;
+                    let dateActual = 0;
+
+                    items.forEach(item => {
+                        const projVal = item[current.key] || 0;
+                        const actualEntry = actualData.find(a => a.date === date && a.plan === item.plan);
+                        const actualVal = actualEntry ? (actualEntry[current.actualKey] || 0) : 0;
+
+                        dateProjected += projVal;
+                        dateActual += actualVal;
+                        totalProjected += projVal;
+                        totalActual += actualVal;
+
+                        const variance = actualVal - projVal;
+                        const pct = projVal > 0 ? ((variance / projVal) * 100).toFixed(1) : 0;
+                        let statusClass, statusText;
+                        if (variance > 0) {
+                            statusClass = 'positive';
+                            statusText = '✅ +' + pct + '%';
+                        } else if (variance < 0) {
+                            statusClass = 'negative';
+                            statusText = '⚠️ ' + pct + '%';
+                        } else {
+                            statusClass = 'neutral';
+                            statusText = '➖ 0%';
+                        }
+
+                        tableHtml += `
+                            <tr>
+                                <td>${date}</td>
+                                <td>${item.plan}</td>
+                                <td>₦${projVal.toLocaleString()}</td>
+                                <td>₦${actualVal.toLocaleString()}</td>
+                                <td>${(variance >= 0 ? '+' : '') + variance.toLocaleString()}</td>
+                                <td><span class="variance-badge ${statusClass}">${statusText}</span></td>
+                            </tr>
+                        `;
+                    });
+
+                    const dateVariance = dateActual - dateProjected;
+                    const datePct = dateProjected > 0 ? ((dateVariance / dateProjected) * 100).toFixed(1) : 0;
+                    let dateStatusClass = 'neutral';
+                    if (dateVariance > 0) dateStatusClass = 'positive';
+                    else if (dateVariance < 0) dateStatusClass = 'negative';
+
+                    tableHtml += `
+                        <tr class="total-row">
+                            <td colspan="2" style="text-align:right; font-weight:700;">Total (${date})</td>
+                            <td style="font-weight:700;">₦${dateProjected.toLocaleString()}</td>
+                            <td style="font-weight:700;">₦${dateActual.toLocaleString()}</td>
+                            <td style="font-weight:700;">${(dateVariance >= 0 ? '+' : '') + dateVariance.toLocaleString()}</td>
+                            <td><span class="variance-badge ${dateStatusClass}">${dateVariance > 0 ? '✅ +' : dateVariance < 0 ? '⚠️ ' : '➖ '}${datePct}%</span></td>
+                        </tr>
+                    `;
+
+                    chartData.push({
+                        period: date,
+                        projection: dateProjected,
+                        actual: dateActual
+                    });
+                });
+
+                paTableBody.innerHTML = tableHtml;
+
+                paTotalProjected.textContent = '₦' + totalProjected.toLocaleString();
+                paTotalActual.textContent = '₦' + totalActual.toLocaleString();
+                const variance = totalActual - totalProjected;
+                paTotalVariance.textContent = (variance >= 0 ? '+' : '') + '₦' + variance.toLocaleString();
+
+                let statusText, statusClass;
+                if (variance > 0) {
+                    statusText = '✅ Over performing';
+                    statusClass = 'positive';
+                } else if (variance < 0) {
+                    statusText = '⚠️ Under performing';
+                    statusClass = 'negative';
+                } else {
+                    statusText = '➖ On target';
+                    statusClass = 'neutral';
+                }
+                paVarianceSub.textContent = statusText;
+                paVarianceSub.className = 'sub ' + statusClass;
+
+                const accuracy = totalProjected > 0 ? Math.round((totalActual / totalProjected) * 100) : 0;
+                paAccuracy.textContent = accuracy + '%';
+
+                renderPaChart(chartData);
+            }
+
+            // ─── RENDER PA CHART ───
+            function renderPaChart(data) {
+                if (!paChartContainer) return;
+                if (data.length === 0) {
+                    paChartContainer.innerHTML =
+                        '<div style="text-align:center;color:var(--text-muted);padding:40px 0;">No data to display</div>';
+                    return;
+                }
+
+                const maxVal = Math.max(...data.flatMap(d => [d.projection, d.actual]), 1);
+
+                let html = '';
+                data.forEach(item => {
+                    const projPct = Math.max((item.projection / maxVal) * 100, 3);
+                    const actPct = Math.max((item.actual / maxVal) * 100, 3);
+
+                    html += `
+                        <div class="pa-chart-column">
+                            <div class="pa-chart-bars">
+                                <div class="pa-bar-group">
+                                    <div class="bar-value">₦${(item.projection/1000).toFixed(0)}K</div>
+                                    <div class="bar projection" style="height: ${projPct}%;"></div>
+                                </div>
+                                <div class="pa-bar-group">
+                                    <div class="bar-value">₦${(item.actual/1000).toFixed(0)}K</div>
+                                    <div class="bar actual" style="height: ${actPct}%;"></div>
+                                </div>
+                            </div>
+                            <div class="pa-period-label">${item.period}</div>
+                        </div>
+                    `;
+                });
+
+                paChartContainer.innerHTML = html;
+            }
+
+            // ─── SETTINGS PLAN RENDER ───
+            function renderSettingsPlanPreview() {
+                if (!settingsPlanPreviewGrid) return;
+                if (planList.length === 0) {
+                    settingsPlanPreviewGrid.innerHTML =
+                        `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);">No plans configured.</div>`;
+                    settingsPlanCountLabel.textContent = '0 plans';
+                    return;
+                }
+                let html = '';
+                planList.forEach(p => {
+                    html += `
+                        <div class="plan-card">
+                            <div class="name">${p.name}</div>
+                            <div class="price">${p.price}</div>
+                        </div>
+                    `;
+                });
+                settingsPlanPreviewGrid.innerHTML = html;
+                settingsPlanCountLabel.textContent = `${planList.length} plans`;
+            }
+
+            // ─── PLAN LIST (editor) ───
+            function renderPlanList() {
+                if (!planListContainer) return;
+                if (planList.length === 0) {
+                    planListContainer.innerHTML = `
+                        <div class="empty-plans">
+                            <i class="fas fa-cube"></i>
+                            <p>No plans yet. Add your first plan below.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                let html = '';
+                planList.forEach(p => {
+                    html += `
+                        <div class="plan-item" data-id="${p.id}">
+                            <div class="plan-info">
+                                <span class="plan-name">${p.name}</span>
+                                <div class="plan-price-wrap">
+                                    <label>Price</label>
+                                    <input type="text" class="plan-price-input" value="${p.price}" data-id="${p.id}" />
+                                </div>
+                            </div>
+                            <div class="plan-actions">
+                                <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
+                                <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-trash"></i> Remove</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                planListContainer.innerHTML = html;
+
+                document.querySelectorAll('.save-price-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.dataset.id);
+                        const input = document.querySelector(`.plan-price-input[data-id="${id}"]`);
+                        if (!input) return;
+                        const newPrice = input.value.trim();
+                        const plan = planList.find(p => p.id === id);
+                        if (plan) {
+                            plan.price = newPrice || plan.price;
+                            savePlans();
+                            renderPlanList();
+                            renderSettingsPlanPreview();
+                            populatePlanDropdown();
+                            updatePaPlanFilter();
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.remove-plan-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.dataset.id);
+                        if (!confirm('Remove this plan?')) return;
+                        const planName = planList.find(p => p.id === id)?.name;
+                        if (planName) {
+                            projections = projections.filter(p => p.plan !== planName);
+                            saveProjections();
+                            actualData = actualData.filter(a => a.plan !== planName);
+                            saveActualData();
+                        }
+                        planList = planList.filter(p => p.id !== id);
+                        savePlans();
+                        renderPlanList();
+                        renderSettingsPlanPreview();
+                        populatePlanDropdown();
+                        updatePaPlanFilter();
+                        renderProjectionTable();
+                        renderProjectionVsActual();
+                    });
+                });
+
+                document.querySelectorAll('.plan-price-input').forEach(inp => {
+                    inp.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            const id = parseInt(this.dataset.id);
+                            const btn = document.querySelector(`.save-price-btn[data-id="${id}"]`);
+                            if (btn) btn.click();
+                        }
+                    });
+                });
+            }
+
+            // ─── ADD PLAN ───
+            function handleAddPlan() {
+                const name = newPlanName.value.trim();
+                const price = newPlanPrice.value.trim();
+                if (!name) {
+                    alert('Please enter a plan name.');
+                    return;
+                }
+                if (!price) {
+                    alert('Please enter a price.');
+                    return;
+                }
+                if (planList.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                    alert('A plan with this name already exists.');
+                    return;
+                }
+                const maxId = planList.reduce((max, p) => p.id > max ? p.id : max, 0);
+                planList.push({ id: maxId + 1, name, price });
+                savePlans();
+                newPlanName.value = '';
+                newPlanPrice.value = '';
+                renderPlanList();
+                renderSettingsPlanPreview();
+                populatePlanDropdown();
+                updatePaPlanFilter();
+            }
+
+            addPlanBtn.addEventListener('click', handleAddPlan);
+            newPlanName.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
+            newPlanPrice.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
+
+            // ─── OPEN / CLOSE PLAN EDITOR ───
+            openPlanEditorBtn.addEventListener('click', function() {
+                renderPlanList();
+                planEditorOverlay.classList.add('open');
+            });
+
+            closePlanEditorBtn.addEventListener('click', function() {
+                planEditorOverlay.classList.remove('open');
+            });
+
+            // ─── PAYMENT EVENT LISTENERS ───
+            searchBtn.addEventListener('click', function() {
+                searchCustomer(searchInput.value);
+            });
+
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchCustomer(searchInput.value);
+                }
+            });
+
+            monthsInput.addEventListener('input', updateAmount);
+
+            confirmBtn.addEventListener('click', confirmPayment);
+
+            // ─── PA FILTERS ───
+            paTimeframeFilter.addEventListener('change', renderProjectionVsActual);
+            paPlanFilter.addEventListener('change', renderProjectionVsActual);
+
+            // ─── PROJECTION FILTER ───
+            applyProjectionFilter.addEventListener('click', function() {
+                renderProjection();
+            });
+
+            projectionFilter.addEventListener('change', function() {
+                renderProjection();
+            });
+
+            // ─── NOTIFICATIONS TOGGLE ───
+            if (notifToggle) {
+                notifToggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+            }
+
+            // ─── PANEL TOGGLE ───
+            window.togglePanel = function(panelId) {
+                const panel = document.getElementById(panelId);
+                if (!panel) return;
+                const body = panel.querySelector('.panel-body');
+                const icon = panel.querySelector('.toggle-icon');
+                if (!body || !icon) return;
+
+                if (body.classList.contains('expanded')) {
+                    body.classList.remove('expanded');
+                    body.classList.add('collapsed');
+                    icon.classList.add('collapsed');
+                } else {
+                    body.classList.remove('collapsed');
+                    body.classList.add('expanded');
+                    icon.classList.remove('collapsed');
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
+                }
+            };
+
+            // ─── DATE HELPERS ───
+            function daysUntil(dateStr) {
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                const d = new Date(dateStr);
+                d.setHours(0, 0, 0, 0);
+                return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+            }
+
+<<<<<<< HEAD
             try {
                 const saved = localStorage.getItem('prontox-theme');
                 if (saved === 'dark') applyTheme(true);
@@ -3547,6 +6955,44 @@
             };
 
             renderCustomerList();
+=======
+            // ─── KEYBOARD SHORTCUTS ───
+            document.addEventListener('keydown', function(e) {
+                const pages = ['dashboard', 'customer', 'income-projection', 'payments', 'monthly-income',
+                    'projection-vs-actual', 'settings'
+                ];
+                if (e.ctrlKey && e.key >= '1' && e.key <= '7') {
+                    e.preventDefault();
+                    const idx = parseInt(e.key) - 1;
+                    if (pages[idx]) navigateTo(pages[idx]);
+                }
+                if (e.key === 'Escape' && planEditorOverlay.classList.contains('open')) {
+                    planEditorOverlay.classList.remove('open');
+                }
+            });
+
+            // ─── INIT ───
+            loadPlans();
+            loadProjections();
+            loadActualData();
+            populatePlanDropdown();
+            updatePaPlanFilter();
+            resetForm();
+            generateMockCustomers();
+            generatePaymentCustomers();
+            generateRecentPayments();
+            renderDashboard();
+            renderProjectionTable();
+            renderSettingsPlanPreview();
+            renderProjectionVsActual();
+            renderRecent();
+
+            // Ensure payments page is active
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-payments').classList.add('active');
+
+            console.log('✅ Prontox platform ready - all pages connected with interactive dashboard and payments!');
+>>>>>>> e65422e32dabf7363cd48ca9fea46c8ea76e4e36
         })();
     </script>
 
