@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prontox · Platform</title>
+
+    <!-- Font Awesome 6 (Free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        /* ============================================================
+           PRONTOX COLOR PALETTE & FONTS
+           ============================================================ */
+
+        /* --- COLORS (Light Mode - default) --- */
+        :root {
+            --bg: #F0F4F8;
+            --surface: #FFFFFF;
+            --surface-2: #F8FAFC;
+            --surface-3: #F1F5F9;
+            --text-primary: #1A2332;
+            --text-secondary: #475569;
+            --text-muted: #94A3B8;
+            --border: #E2E8F0;
+            --accent: #00AFEF;
+            --accent-hover: #0099D3;
+            --accent-dark: #0088CC;
+            --accent-light: #E6F6FE;
+            --accent-mid: #B3E5FC;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --danger-light: #fee2e2;
+            --success: #10b981;
+            --success-light: #d1fae5;
+
+            /* Shadows */
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
+            --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.08);
+
+            /* Border Radius */
+            --radius: 14px;
+            --radius-sm: 10px;
+            --radius-xs: 8px;
+
+            /* Transitions */
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Navbar */
+            --nav-height: 68px;
+        }
+
+        /* --- DARK MODE OVERRIDES --- */
+        [data-theme="dark"] {
+            --bg: #0E0F11;
+            --surface: #1A1E21;
+            --surface-2: #24292E;
+            --surface-3: #2D3338;
+            --text-primary: #E7E9EB;
+            --text-secondary: #AAB0B6;
+            --text-muted: #888E99;
+            --border: #353E46;
+            --accent: #60A5FA;
+            --accent-hover: #3B82F6;
+            --accent-dark: #2563EB;
+            --accent-light: #1a3a5a;
+            --accent-mid: #2a4a6a;
+            --danger: #f87171;
+            --danger-hover: #ef4444;
+            --danger-light: #4a1a1a;
+            --success: #34d399;
+            --success-light: #0a3a2a;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
+            --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.6);
+        }
+
+        /* --- RESET & BASE --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            background: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        input,
+        select {
+            font-family: inherit;
+            outline: none;
+        }
+
+        /* ============================================================
+           NAVBAR
+           ============================================================ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            height: var(--nav-height);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background var(--transition), border-color var(--transition);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .nav-logo .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: var(--radius-xs);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            transition: background var(--transition);
+        }
+        .nav-logo span {
+            color: var(--accent);
+            transition: color var(--transition);
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 6px;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s;
+        }
+        .hamburger:hover {
+            background: var(--surface-2);
+        }
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2.5px;
+            background: var(--text-primary);
+            border-radius: 4px;
+            transition: all 0.25s ease;
+            transform-origin: center;
+        }
+        .hamburger.open span:nth-child(1) {
+            transform: translateY(7.5px) rotate(45deg);
+        }
+        .hamburger.open span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger.open span:nth-child(3) {
+            transform: translateY(-7.5px) rotate(-45deg);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-right .icon-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: transparent;
+        }
+        .nav-right .icon-btn:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+        .nav-right .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .nav-right .avatar:hover {
+            border-color: var(--accent);
+        }
+
+        /* ============================================================
+           SIDEBAR (grouped)
+           ============================================================ */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background var(--transition), border-color var(--transition);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sidebar);
+            overflow-y: auto;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .sidebar-header .close-sidebar {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            border-radius: var(--radius-xs);
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar-header .close-sidebar:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .sidebar-nav .nav-group {
+            margin-bottom: 6px;
+        }
+        .sidebar-nav .nav-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-nav .nav-group-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 8px 16px 4px 16px;
+            user-select: none;
+            transition: color var(--transition);
+        }
+
+        .sidebar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 16px;
+            border-radius: var(--radius-xs);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-nav .nav-item i {
+            width: 20px;
+            font-size: 1rem;
+            color: var(--text-muted);
+            transition: color 0.15s;
+        }
+        .sidebar-nav .nav-item:hover {
+            background: var(--surface-2);
+            color: var(--text-primary);
+        }
+        .sidebar-nav .nav-item:hover i {
+            color: var(--accent);
+        }
+        .sidebar-nav .nav-item.active {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+        .sidebar-nav .nav-item.active i {
+            color: var(--accent);
+        }
+
+        .sidebar-nav .nav-item.logout {
+            color: var(--danger);
+            padding-top: 10px;
+        }
+        .sidebar-nav .nav-item.logout i {
+            color: var(--danger);
+        }
+        .sidebar-nav .nav-item.logout:hover {
+            background: var(--danger-light);
+            color: var(--danger-hover);
+        }
+        .sidebar-nav .nav-item.logout:hover i {
+            color: var(--danger-hover);
+        }
+
+        /* ============================================================
+           MAIN CONTENT
+           ============================================================ */
+        .main-content {
+            flex: 1;
+            padding: 30px 28px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            transition: padding 0.3s;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+        .page-header h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+            transition: color var(--transition);
+        }
+
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+
+        /* ============================================================
+           INCOME PROJECTION STYLES
+           ============================================================ */
+        .add-projection-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .add-projection-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .add-projection-card .card-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .add-projection-card .card-header h3 i {
+            color: var(--accent);
+        }
+        .add-projection-card .card-header .toggle-form-btn {
+            padding: 6px 16px;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            font-size: 0.85rem;
+            background: var(--accent);
+            color: #fff;
+            transition: background 0.2s;
+        }
+        .add-projection-card .card-header .toggle-form-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .projection-form {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            transition: border-color var(--transition);
+        }
+        .projection-form.open {
+            display: grid;
+        }
+
+        .projection-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .projection-form .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .projection-form .form-group input,
+        .projection-form .form-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .projection-form .form-group input:focus,
+        .projection-form .form-group select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .projection-form .form-group .input-hint {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .projection-form .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .projection-form .form-actions .save-btn {
+            padding: 10px 28px;
+            background: var(--success);
+            color: #fff;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        .projection-form .form-actions .save-btn:hover {
+            background: #059669;
+        }
+        .projection-form .form-actions .cancel-btn {
+            padding: 10px 20px;
+            background: var(--surface-2);
+            color: var(--text-secondary);
+            border-radius: var(--radius-xs);
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .projection-form .form-actions .cancel-btn:hover {
+            background: var(--border);
+        }
+
+        /* --- View Projections --- */
+        .view-projection-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .view-projection-section .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .view-projection-section .section-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .view-projection-section .section-header h3 i {
+            color: var(--accent);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--surface-2);
+            padding: 4px;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+        }
+        .filter-tabs .filter-btn {
+            padding: 6px 16px;
+            border-radius: var(--radius-xs);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .filter-tabs .filter-btn:hover {
+            color: var(--text-primary);
+            background: var(--surface-3);
+        }
+        .filter-tabs .filter-btn.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .projection-table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: border-color var(--transition);
+        }
+        .projection-table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 500px;
+        }
+        .projection-table-wrap th {
+            text-align: left;
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--surface-2);
+            border-bottom: 2px solid var(--border);
+            transition: background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .projection-table-wrap td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+            transition: border-color var(--transition), color var(--transition);
+        }
+        .projection-table-wrap tr:last-child td {
+            border-bottom: none;
+        }
+        .projection-table-wrap .total-row td {
+            font-weight: 700;
+            background: var(--accent-light);
+            color: var(--text-primary);
+            border-top: 2px solid var(--border);
+        }
+
+        .no-projection {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .no-projection i {
+            font-size: 2.5rem;
+            color: var(--border);
+            margin-bottom: 12px;
+            display: block;
+        }
+        .no-projection p {
+            font-size: 0.95rem;
+        }
+
+        .projection-count {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-left: 8px;
+            font-weight: 400;
+        }
+
+        /* ============================================================
+           SETTINGS STYLES
+           ============================================================ */
+        .settings-container {
+            width: 100%;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .settings-body {
+            display: flex;
+            flex: 1;
+            min-height: 500px;
+        }
+
+        .settings-sidebar {
+            width: 200px;
+            background: var(--surface-2);
+            border-right: 1px solid var(--border);
+            padding: 16px 0;
+            flex-shrink: 0;
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .settings-sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .settings-sidebar .nav-item i {
+            width: 18px;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+        .settings-sidebar .nav-item:hover {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+        }
+        .settings-sidebar .nav-item:hover i {
+            color: var(--accent);
+        }
+        .settings-sidebar .nav-item.active {
+            background: var(--accent-light);
+            color: var(--accent-dark);
+            border-left-color: var(--accent);
+            font-weight: 600;
+        }
+        .settings-sidebar .nav-item.active i {
+            color: var(--accent);
+        }
+
+        .settings-content {
+            flex: 1;
+            padding: 24px 28px 32px;
+            overflow-y: auto;
+            background: var(--surface);
+            position: relative;
+            transition: background var(--transition);
+        }
+
+        .settings-page-header {
+            margin-bottom: 24px;
+        }
+        .settings-page-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            transition: color var(--transition);
+        }
+        .settings-page-header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: color var(--transition);
+        }
+
+        .settings-page-content {
+            display: none;
+        }
+        .settings-page-content.active {
+            display: block;
+        }
+
+        /* General settings */
+        .general-settings .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+            transition: border-color var(--transition);
+        }
+        .general-settings .setting-row:last-child {
+            border-bottom: none;
+        }
+        .general-settings .setting-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .general-settings .setting-label small {
+            display: block;
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 2px;
+            transition: color var(--transition);
+        }
+        .general-settings .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .general-settings .toggle {
+            width: 42px;
+            height: 24px;
+            background: var(--border);
+            border-radius: 999px;
+            position: relative;
+            transition: background 0.3s;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .general-settings .toggle.active {
+            background: var(--accent);
+        }
+        .general-settings .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+        .general-settings .toggle.active::after {
+            transform: translateX(18px);
+        }
+        .general-settings .select-input {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .general-settings .select-input:focus {
+            border-color: var(--accent);
+        }
+
+        /* Plan settings */
+        .plan-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .plan-preview-grid .plan-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            text-align: center;
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .plan-preview-grid .plan-card .name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .plan-preview-grid .plan-card .price {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 4px;
+            transition: color var(--transition);
+        }
+
+        .plan-settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        /* Plan Editor Overlay */
+        .settings-inner-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--surface);
+            z-index: 10;
+            padding: 24px 28px 32px;
+            display: none;
+            flex-direction: column;
+            border-radius: var(--radius);
+            animation: slideIn 0.25s ease;
+            transition: background var(--transition);
+        }
+        .settings-inner-overlay.open {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            0% {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .settings-inner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            transition: border-color var(--transition);
+        }
+        .settings-inner-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: color var(--transition);
+        }
+        .settings-inner-header h3 i {
+            color: var(--accent);
+            margin-right: 10px;
+            transition: color var(--transition);
+        }
+        .settings-inner-header .back-btn {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        .settings-inner-header .back-btn:hover {
+            background: var(--surface-2);
+            border-color: var(--text-muted);
+        }
+        .settings-inner-header .back-btn i {
+            margin-right: 6px;
+        }
+
+        .plan-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .plan-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .plan-list::-webkit-scrollbar-track {
+            background: var(--surface-2);
+            border-radius: 20px;
+        }
+        .plan-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 20px;
+        }
+
+        .plan-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--surface-2);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            transition: border-color 0.2s, background var(--transition), border-color var(--transition);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .plan-item:hover {
+            border-color: var(--accent-mid);
+        }
+        .plan-item .plan-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .plan-item .plan-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            min-width: 120px;
+            transition: color var(--transition);
+        }
+        .plan-item .plan-price-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .plan-item .plan-price-wrap label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .plan-item .plan-price-wrap input {
+            width: 110px;
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--text-primary);
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .plan-item .plan-price-wrap input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .plan-item .plan-actions {
+            display: flex;
+            gap: 6px;
+        }
+        .plan-item .plan-actions button {
+            padding: 4px 10px;
+            border-radius: var(--radius-xs);
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .plan-item .plan-actions .save-price-btn {
+            background: var(--accent);
+            color: #fff;
+        }
+        .plan-item .plan-actions .save-price-btn:hover {
+            background: var(--accent-hover);
+        }
+        .plan-item .plan-actions .remove-plan-btn {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .plan-item .plan-actions .remove-plan-btn:hover {
+            background: #fecaca;
+        }
+        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn {
+            background: #4a1a1a;
+            color: #f87171;
+        }
+        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn:hover {
+            background: #5a2a2a;
+        }
+
+        .add-plan-area {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            transition: border-color var(--transition);
+        }
+        .add-plan-area input {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--text-primary);
+            flex: 1;
+            min-width: 140px;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .add-plan-area input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+        .add-plan-area .add-btn {
+            padding: 8px 20px;
+            background: var(--accent);
+            color: #fff;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .add-plan-area .add-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .empty-plans {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .empty-plans i {
+            font-size: 2.5rem;
+            color: var(--border);
+            margin-bottom: 12px;
+            display: block;
+            transition: color var(--transition);
+        }
+        .empty-plans p {
+            font-size: 0.9rem;
+        }
+
+        /* ============================================================
+           OTHER PAGE PLACEHOLDERS
+           ============================================================ */
+        .placeholder-page {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .placeholder-page i {
+            font-size: 3rem;
+            color: var(--border);
+            margin-bottom: 16px;
+            display: block;
+        }
+        .placeholder-page h3 {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 16px;
+            }
+            .projection-form {
+                grid-template-columns: 1fr;
+            }
+            .projection-form .form-actions {
+                flex-direction: column;
+            }
+            .projection-form .form-actions button {
+                width: 100%;
+                justify-content: center;
+            }
+            .view-projection-section .section-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filter-tabs {
+                justify-content: stretch;
+            }
+            .filter-tabs .filter-btn {
+                flex: 1;
+                text-align: center;
+            }
+            .add-projection-card .card-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .settings-body {
+                flex-direction: column;
+            }
+            .settings-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding: 8px 0;
+                display: flex;
+                overflow-x: auto;
+                gap: 4px;
+                padding: 8px 16px;
+            }
+            .settings-sidebar .nav-item {
+                border-left: none;
+                border-bottom: 3px solid transparent;
+                padding: 8px 14px;
+                white-space: nowrap;
+                font-size: 0.8rem;
+            }
+            .settings-sidebar .nav-item.active {
+                border-left: none;
+                border-bottom-color: var(--accent);
+            }
+            .settings-content {
+                padding: 18px 16px 24px;
+                min-height: 400px;
+            }
+            .settings-inner-overlay {
+                padding: 18px 16px 24px;
+            }
+            .plan-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .plan-item .plan-info {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .plan-item .plan-price-wrap {
+                flex-wrap: wrap;
+            }
+            .plan-item .plan-actions {
+                justify-content: flex-end;
+            }
+            .add-plan-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .plan-preview-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .projection-table-wrap table {
+                font-size: 0.75rem;
+                min-width: 400px;
+            }
+            .projection-table-wrap th,
+            .projection-table-wrap td {
+                padding: 8px 10px;
+            }
+            .settings-content {
+                padding: 14px 12px 18px;
+            }
+            .plan-item .plan-price-wrap input {
+                width: 100%;
+            }
+            .plan-preview-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ─── NAVBAR ─── -->
+    <header class="navbar">
+        <div class="nav-left">
+            <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <a href="#" class="nav-logo" id="logoLink">
+                <div class="logo-icon">P</div>
+                <span>Prontox</span>
+            </a>
+        </div>
+        <div class="nav-right">
+            <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </button>
+            <div class="avatar" id="avatarBtn" tabindex="0">JD</div>
+        </div>
+    </header>
+
+    <!-- ─── SIDEBAR OVERLAY ─── -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight:700;color:var(--text-primary);">Menu</span>
+            <button class="close-sidebar" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-group">
+                <div class="nav-group-label">MAIN</div>
+                <a href="#" class="nav-item" data-page="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="#" class="nav-item" data-page="customer"><i class="fas fa-user-friends"></i> Customers</a>
+                <a href="#" class="nav-item active" data-page="income-projection"><i class="fas fa-chart-line"></i> Income Projection</a>
+                <a href="#" class="nav-item" data-page="payments"><i class="fas fa-credit-card"></i> Payments</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">REPORTS</div>
+                <a href="#" class="nav-item" data-page="monthly-income"><i class="fas fa-calendar-alt"></i> Monthly Income</a>
+                <a href="#" class="nav-item" data-page="projection-vs-actual"><i class="fas fa-arrows-left-right"></i> Proj vs Actual</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">SYSTEM</div>
+                <a href="#" class="nav-item" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+                <a href="#" class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <main class="main-content" id="mainContent">
+
+        <!-- ==========================================================
+             PAGE: DASHBOARD (placeholder)
+             ========================================================== -->
+        <div id="page-dashboard" class="page-content">
+            <div class="page-header">
+                <h2>Dashboard</h2>
+                <p>Overview coming soon.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-th-large"></i>
+                <h3>Dashboard</h3>
+                <p>Summary metrics will appear here.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: CUSTOMERS (placeholder)
+             ========================================================== -->
+        <div id="page-customer" class="page-content">
+            <div class="page-header">
+                <h2>Customers</h2>
+                <p>Manage your customers.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-user-friends"></i>
+                <h3>Customer List</h3>
+                <p>Customer data will appear here.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: INCOME PROJECTION (FULLY BUILT)
+             ========================================================== -->
+        <div id="page-income-projection" class="page-content active">
+            <div class="page-header">
+                <h2>Income Projection</h2>
+                <p>Create and view projected income for each plan across different timeframes.</p>
+            </div>
+
+            <!-- Add Projection Card -->
+            <div class="add-projection-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-plus-circle"></i> Create New Projection</h3>
+                    <button class="toggle-form-btn" id="toggleFormBtn"><i class="fas fa-chevron-down"></i> Open Form</button>
+                </div>
+
+                <div class="projection-form" id="projectionForm">
+                    <div class="form-group">
+                        <label for="projDate">Date</label>
+                        <input type="date" id="projDate" />
+                    </div>
+                    <div class="form-group">
+                        <label for="projPlan">Plan</label>
+                        <select id="projPlan">
+                            <!-- populated by JS -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="proj3Days">3-Day Projection (₦)</label>
+                        <input type="number" id="proj3Days" placeholder="e.g. 150000" min="0" step="1000" />
+                        <span class="input-hint">Expected revenue in the next 3 days</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="proj1Week">1-Week Projection (₦)</label>
+                        <input type="number" id="proj1Week" placeholder="e.g. 350000" min="0" step="1000" />
+                        <span class="input-hint">Expected revenue in the next week</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="proj1Month">1-Month Projection (₦)</label>
+                        <input type="number" id="proj1Month" placeholder="e.g. 1500000" min="0" step="1000" />
+                        <span class="input-hint">Expected revenue in the next month</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="proj1Year">1-Year Projection (₦)</label>
+                        <input type="number" id="proj1Year" placeholder="e.g. 18000000" min="0" step="1000" />
+                        <span class="input-hint">Expected revenue in the next year</span>
+                    </div>
+                    <div class="form-actions">
+                        <button class="cancel-btn" id="cancelFormBtn">Cancel</button>
+                        <button class="save-btn" id="saveProjectionBtn"><i class="fas fa-save"></i> Save Projection</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Projections -->
+            <div class="view-projection-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-filter"></i> Stored Projections <span class="projection-count" id="projectionCount">(0 entries)</span></h3>
+                    <div class="filter-tabs" id="filterTabs">
+                        <button class="filter-btn active" data-filter="daily">Daily (3-day)</button>
+                        <button class="filter-btn" data-filter="weekly">Weekly</button>
+                        <button class="filter-btn" data-filter="monthly">Monthly</button>
+                        <button class="filter-btn" data-filter="annually">Annually</button>
+                    </div>
+                </div>
+
+                <div class="projection-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Plan</th>
+                                <th id="projectionHeader">Projected Amount (₦)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectionTableBody">
+                            <!-- rendered by JS -->
+                        </tbody>
+                    </table>
+                    <div id="noProjection" class="no-projection" style="display:none;">
+                        <i class="fas fa-chart-simple"></i>
+                        <p>No projections found. Create your first projection above!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: PAYMENTS (placeholder)
+             ========================================================== -->
+        <div id="page-payments" class="page-content">
+            <div class="page-header">
+                <h2>Payments</h2>
+                <p>Process payments.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-credit-card"></i>
+                <h3>Payment Processing</h3>
+                <p>Payment interface will appear here.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: MONTHLY INCOME (placeholder)
+             ========================================================== -->
+        <div id="page-monthly-income" class="page-content">
+            <div class="page-header">
+                <h2>Monthly Income</h2>
+                <p>Monthly breakdown.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-calendar-alt"></i>
+                <h3>Monthly Income</h3>
+                <p>Monthly data will appear here.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: PROJ VS ACTUAL (placeholder)
+             ========================================================== -->
+        <div id="page-projection-vs-actual" class="page-content">
+            <div class="page-header">
+                <h2>Proj vs Actual</h2>
+                <p>Compare projections with actuals.</p>
+            </div>
+            <div class="placeholder-page">
+                <i class="fas fa-arrows-left-right"></i>
+                <h3>Comparison</h3>
+                <p>Charts will appear here.</p>
+            </div>
+        </div>
+
+        <!-- ==========================================================
+             PAGE: SETTINGS (connected to Income Projection)
+             ========================================================== -->
+        <div id="page-settings" class="page-content">
+            <div class="page-header">
+                <h2>Settings</h2>
+                <p>Configure your workspace, manage plans, and adjust preferences.</p>
+            </div>
+
+            <div class="settings-container">
+                <div class="settings-body">
+
+                    <!-- Settings sidebar -->
+                    <nav class="settings-sidebar">
+                        <button class="nav-item active" data-settings-page="general">
+                            <i class="fas fa-sliders-h"></i> General
+                        </button>
+                        <button class="nav-item" data-settings-page="plans">
+                            <i class="fas fa-cubes"></i> Plans
+                        </button>
+                    </nav>
+
+                    <!-- Settings content -->
+                    <div class="settings-content" id="settingsContent">
+
+                        <!-- General Settings -->
+                        <div id="settings-page-general" class="settings-page-content active">
+                            <div class="settings-page-header">
+                                <h2>General Settings</h2>
+                                <p>Manage your workspace preferences and defaults.</p>
+                            </div>
+                            <div class="general-settings">
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Workspace Name
+                                        <small>Your workspace display name</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <input type="text" value="Prontox Inc." style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-xs);font-size:0.85rem;background:var(--surface);color:var(--text-primary);min-width:180px;transition:background var(--transition),color var(--transition),border-color var(--transition);" />
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Dark Mode
+                                        <small>Toggle dark theme across the app</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <div class="toggle" id="settingsDarkToggle"></div>
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Default Language
+                                        <small>Interface language</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <select class="select-input">
+                                            <option>English (US)</option>
+                                            <option>Spanish</option>
+                                            <option>French</option>
+                                            <option>German</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Notifications
+                                        <small>Email and in-app notifications</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <div class="toggle active" id="notifToggle"></div>
+                                    </div>
+                                </div>
+                                <div class="setting-row">
+                                    <div class="setting-label">
+                                        Currency
+                                        <small>Default currency for plans and billing</small>
+                                    </div>
+                                    <div class="setting-control">
+                                        <span style="font-weight:600;color:var(--accent);font-size:0.95rem;">₦ Naira</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Plans Settings -->
+                        <div id="settings-page-plans" class="settings-page-content">
+                            <div class="settings-page-header">
+                                <h2>Plans &amp; Pricing</h2>
+                                <p>Manage your subscription plans and pricing tiers.</p>
+                            </div>
+
+                            <div class="plan-settings-header">
+                                <span style="font-size:0.85rem;color:var(--text-secondary);transition:color var(--transition);">
+                                    <i class="fas fa-cubes" style="color:var(--accent);margin-right:6px;"></i>
+                                    <span id="settingsPlanCountLabel">9 plans</span> configured
+                                </span>
+                                <button id="openPlanEditorBtn" style="padding:8px 20px;background:var(--accent);color:#fff;border-radius:var(--radius-xs);font-weight:600;font-size:0.85rem;transition:background 0.2s;">
+                                    <i class="fas fa-edit"></i> Edit Plans
+                                </button>
+                            </div>
+
+                            <div class="plan-preview-grid" id="settingsPlanPreviewGrid">
+                                <!-- populated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Plan Editor Overlay -->
+                        <div class="settings-inner-overlay" id="planEditorOverlay">
+                            <div class="settings-inner-header">
+                                <h3><i class="fas fa-cubes"></i> Edit Plans</h3>
+                                <button class="back-btn" id="closePlanEditorBtn">
+                                    <i class="fas fa-arrow-left"></i> Back to Plans
+                                </button>
+                            </div>
+
+                            <div class="plan-list" id="planListContainer">
+                                <!-- rendered by JS -->
+                            </div>
+
+                            <div class="add-plan-area">
+                                <input type="text" id="newPlanName" placeholder="Plan name (e.g. Silver)" />
+                                <input type="text" id="newPlanPrice" placeholder="Price (e.g. ₦5,000/mo)" />
+                                <button class="add-btn" id="addPlanBtn"><i class="fas fa-plus"></i> Add Plan</button>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- /settings-content -->
+                </div>
+                <!-- /settings-body -->
+            </div>
+            <!-- /settings-container -->
+        </div>
+        <!-- /page-settings -->
+
+    </main>
+
+    <!-- ─── JAVASCRIPT ─── -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── SHARED PLAN DATA ───
+            const DEFAULT_PLANS = [
+                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
+                'SME silver', 'SME gold', 'SME platinum', 'SME platinum+'
+            ];
+
+            const PLAN_PRICES = {
+                'Silver': '₦5,000/mo',
+                'Gold': '₦10,000/mo',
+                'Platinum': '₦20,000/mo',
+                'Premium': '₦35,000/mo',
+                'Premium+': '₦50,000/mo',
+                'SME silver': '₦7,500/mo',
+                'SME gold': '₦15,000/mo',
+                'SME platinum': '₦30,000/mo',
+                'SME platinum+': '₦60,000/mo'
+            };
+
+            // ─── PLAN DATA STORAGE ───
+            const PLAN_STORAGE_KEY = 'prontoxPlans';
+
+            let planList = [];
+
+            function loadPlans() {
+                try {
+                    const stored = localStorage.getItem(PLAN_STORAGE_KEY);
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            planList = parsed;
+                            return;
+                        }
+                    }
+                } catch (_) {}
+                // Default
+                planList = DEFAULT_PLANS.map((name, index) => ({
+                    id: index + 1,
+                    name: name,
+                    price: PLAN_PRICES[name] || '₦0/mo'
+                }));
+                savePlans();
+            }
+
+            function savePlans() {
+                localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(planList));
+                // Also update the projection plan dropdown
+                populatePlanDropdown();
+                // Update settings preview
+                renderSettingsPlanPreview();
+                // Update projection page if visible
+                renderProjectionTable();
+            }
+
+            function getPlanNames() {
+                return planList.map(p => p.name);
+            }
+
+            function getPlanPrice(name) {
+                const plan = planList.find(p => p.name === name);
+                return plan ? plan.price : '₦0/mo';
+            }
+
+            // ─── INCOME PROJECTION STORAGE ───
+            const PROJ_STORAGE_KEY = 'incomeProjections';
+            let projections = [];
+            let nextId = 1;
+
+            function loadProjections() {
+                try {
+                    const data = localStorage.getItem(PROJ_STORAGE_KEY);
+                    if (data) {
+                        projections = JSON.parse(data);
+                        let maxId = 0;
+                        projections.forEach(p => { if (p.id > maxId) maxId = p.id; });
+                        nextId = maxId + 1;
+                        return;
+                    }
+                } catch (_) {}
+                // Seed with sample data
+                const today = new Date().toISOString().split('T')[0];
+                const samplePlans = DEFAULT_PLANS;
+                projections = samplePlans.map((name, idx) => ({
+                    id: idx + 1,
+                    date: today,
+                    plan: name,
+                    projection3Days: (idx + 1) * 50000,
+                    projection1Week: (idx + 1) * 120000,
+                    projection1Month: (idx + 1) * 500000,
+                    projection1Year: (idx + 1) * 6000000
+                }));
+                nextId = projections.length + 1;
+                saveProjections();
+            }
+
+            function saveProjections() {
+                localStorage.setItem(PROJ_STORAGE_KEY, JSON.stringify(projections));
+                renderProjectionTable();
+            }
+
+            // ─── DOM REFS ───
+            // Nav
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+            const navItems = document.querySelectorAll('.sidebar-nav .nav-item:not(.logout)');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const avatarBtn = document.getElementById('avatarBtn');
+
+            // Projection
+            const projDate = document.getElementById('projDate');
+            const projPlan = document.getElementById('projPlan');
+            const proj3Days = document.getElementById('proj3Days');
+            const proj1Week = document.getElementById('proj1Week');
+            const proj1Month = document.getElementById('proj1Month');
+            const proj1Year = document.getElementById('proj1Year');
+            const toggleFormBtn = document.getElementById('toggleFormBtn');
+            const cancelFormBtn = document.getElementById('cancelFormBtn');
+            const saveBtn = document.getElementById('saveProjectionBtn');
+            const projectionForm = document.getElementById('projectionForm');
+            const tableBody = document.getElementById('projectionTableBody');
+            const noProjection = document.getElementById('noProjection');
+            const projectionCount = document.getElementById('projectionCount');
+            const projectionHeader = document.getElementById('projectionHeader');
+            const filterTabs = document.getElementById('filterTabs');
+
+            // Settings
+            const settingsSidebarItems = document.querySelectorAll('.settings-sidebar .nav-item');
+            const settingsPages = {
+                general: document.getElementById('settings-page-general'),
+                plans: document.getElementById('settings-page-plans'),
+            };
+            const settingsPlanPreviewGrid = document.getElementById('settingsPlanPreviewGrid');
+            const settingsPlanCountLabel = document.getElementById('settingsPlanCountLabel');
+            const openPlanEditorBtn = document.getElementById('openPlanEditorBtn');
+            const closePlanEditorBtn = document.getElementById('closePlanEditorBtn');
+            const planEditorOverlay = document.getElementById('planEditorOverlay');
+            const planListContainer = document.getElementById('planListContainer');
+            const addPlanBtn = document.getElementById('addPlanBtn');
+            const newPlanName = document.getElementById('newPlanName');
+            const newPlanPrice = document.getElementById('newPlanPrice');
+            const settingsDarkToggle = document.getElementById('settingsDarkToggle');
+            const notifToggle = document.getElementById('notifToggle');
+
+            // ─── THEME ───
+            let darkMode = false;
+
+            function applyTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeIcon.className = 'fas fa-sun';
+                    if (settingsDarkToggle) settingsDarkToggle.classList.add('active');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeIcon.className = 'fas fa-moon';
+                    if (settingsDarkToggle) settingsDarkToggle.classList.remove('active');
+                }
+                darkMode = isDark;
+                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+            }
+
+            try {
+                const saved = localStorage.getItem('prontox-theme');
+                if (saved === 'dark') applyTheme(true);
+                else if (saved === 'light') applyTheme(false);
+                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+                else applyTheme(false);
+            } catch (_) { applyTheme(false); }
+
+            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+            if (settingsDarkToggle) {
+                settingsDarkToggle.addEventListener('click', function() {
+                    applyTheme(!darkMode);
+                });
+            }
+
+            // ─── SIDEBAR TOGGLE ───
+            function openSidebar() {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('open');
+                hamburgerBtn.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+                hamburgerBtn.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            hamburgerBtn.addEventListener('click', function() {
+                if (sidebar.classList.contains('open')) closeSidebar();
+                else openSidebar();
+            });
+            closeSidebarBtn.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            });
+
+            // ─── NAVIGATION ───
+            function navigateTo(pageId) {
+                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+                const target = document.getElementById('page-' + pageId);
+                if (target) target.classList.add('active');
+
+                navItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.page === pageId) item.classList.add('active');
+                });
+
+                closeSidebar();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                // If navigating to settings, render plans
+                if (pageId === 'settings') {
+                    renderSettingsPlanPreview();
+                    renderPlanList();
+                    showSettingsPage('general');
+                }
+            }
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    if (page) navigateTo(page);
+                });
+            });
+
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('Logout?')) alert('Logging out...');
+            });
+
+            avatarBtn.addEventListener('click', function() {
+                alert('User profile');
+            });
+
+            document.getElementById('logoLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateTo('dashboard');
+            });
+
+            // ─── SETTINGS SUB-NAVIGATION ───
+            function showSettingsPage(pageId) {
+                Object.keys(settingsPages).forEach(key => {
+                    settingsPages[key].classList.remove('active');
+                });
+                if (settingsPages[pageId]) {
+                    settingsPages[pageId].classList.add('active');
+                }
+                settingsSidebarItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.settingsPage === pageId) {
+                        item.classList.add('active');
+                    }
+                });
+                planEditorOverlay.classList.remove('open');
+                if (pageId === 'plans') {
+                    renderSettingsPlanPreview();
+                }
+            }
+
+            settingsSidebarItems.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = this.dataset.settingsPage;
+                    if (page) showSettingsPage(page);
+                });
+            });
+
+            // ─── POPULATE PLAN DROPDOWN ───
+            function populatePlanDropdown() {
+                if (!projPlan) return;
+                const currentVal = projPlan.value;
+                const names = getPlanNames();
+                projPlan.innerHTML = names.map(name =>
+                    `<option value="${name}">${name}</option>`
+                ).join('');
+                if (names.includes(currentVal)) {
+                    projPlan.value = currentVal;
+                }
+            }
+
+            // ─── PROJECTION FORM ───
+            function resetForm() {
+                projDate.value = new Date().toISOString().split('T')[0];
+                projPlan.value = getPlanNames()[0] || 'Silver';
+                proj3Days.value = '';
+                proj1Week.value = '';
+                proj1Month.value = '';
+                proj1Year.value = '';
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Projection';
+            }
+
+            toggleFormBtn.addEventListener('click', function() {
+                if (projectionForm.classList.contains('open')) {
+                    projectionForm.classList.remove('open');
+                    toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
+                } else {
+                    projectionForm.classList.add('open');
+                    toggleFormBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Close Form';
+                    resetForm();
+                }
+            });
+
+            cancelFormBtn.addEventListener('click', function() {
+                projectionForm.classList.remove('open');
+                toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
+            });
+
+            // ─── SAVE PROJECTION ───
+            function handleSaveProjection() {
+                const date = projDate.value;
+                const plan = projPlan.value;
+                const p3d = parseInt(proj3Days.value) || 0;
+                const p1w = parseInt(proj1Week.value) || 0;
+                const p1m = parseInt(proj1Month.value) || 0;
+                const p1y = parseInt(proj1Year.value) || 0;
+
+                if (!date) {
+                    alert('Please select a date.');
+                    return;
+                }
+
+                if (p3d === 0 && p1w === 0 && p1m === 0 && p1y === 0) {
+                    alert('Please enter at least one projection value.');
+                    return;
+                }
+
+                const existing = projections.find(p => p.date === date && p.plan === plan);
+                if (existing) {
+                    if (!confirm(`A projection for ${plan} on ${date} already exists. Overwrite?`)) {
+                        return;
+                    }
+                    existing.projection3Days = p3d;
+                    existing.projection1Week = p1w;
+                    existing.projection1Month = p1m;
+                    existing.projection1Year = p1y;
+                } else {
+                    projections.push({
+                        id: nextId++,
+                        date: date,
+                        plan: plan,
+                        projection3Days: p3d,
+                        projection1Week: p1w,
+                        projection1Month: p1m,
+                        projection1Year: p1y,
+                    });
+                }
+
+                saveProjections();
+                projectionForm.classList.remove('open');
+                toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
+                alert('✅ Projection saved successfully!');
+            }
+
+            saveBtn.addEventListener('click', handleSaveProjection);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && projectionForm.classList.contains('open')) {
+                    const active = document.activeElement;
+                    if (active && (active.tagName === 'INPUT' || active.tagName === 'SELECT')) {
+                        handleSaveProjection();
+                    }
+                }
+            });
+
+            // ─── RENDER PROJECTION TABLE ───
+            let currentFilter = 'daily';
+
+            function renderProjectionTable() {
+                if (!tableBody) return;
+
+                const filterMap = {
+                    daily: { key: 'projection3Days', label: '3-Day Projection (₦)' },
+                    weekly: { key: 'projection1Week', label: '1-Week Projection (₦)' },
+                    monthly: { key: 'projection1Month', label: '1-Month Projection (₦)' },
+                    annually: { key: 'projection1Year', label: '1-Year Projection (₦)' },
+                };
+                const current = filterMap[currentFilter];
+                if (!current) return;
+
+                projectionHeader.textContent = current.label;
+
+                const grouped = {};
+                projections.forEach(p => {
+                    if (!grouped[p.date]) grouped[p.date] = [];
+                    grouped[p.date].push(p);
+                });
+
+                const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+                if (sortedDates.length === 0) {
+                    tableBody.innerHTML = '';
+                    noProjection.style.display = 'block';
+                    projectionCount.textContent = '(0 entries)';
+                    return;
+                }
+
+                noProjection.style.display = 'none';
+                projectionCount.textContent = `(${projections.length} entries)`;
+
+                let html = '';
+                sortedDates.forEach(date => {
+                    const items = grouped[date];
+                    items.sort((a, b) => a.plan.localeCompare(b.plan));
+
+                    let total = 0;
+                    items.forEach(item => {
+                        total += item[current.key] || 0;
+                    });
+
+                    items.forEach(item => {
+                        const amount = item[current.key] || 0;
+                        html += `
+                            <tr>
+                                <td>${date}</td>
+                                <td>${item.plan}</td>
+                                <td>₦${amount.toLocaleString()}</td>
+                            </tr>
+                        `;
+                    });
+
+                    html += `
+                        <tr class="total-row">
+                            <td colspan="2" style="text-align:right; font-weight:700;">Total (${date})</td>
+                            <td style="font-weight:700;">₦${total.toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+
+                tableBody.innerHTML = html;
+            }
+
+            // ─── FILTER TABS ───
+            filterTabs.addEventListener('click', function(e) {
+                const btn = e.target.closest('.filter-btn');
+                if (!btn) return;
+                const filter = btn.dataset.filter;
+                if (!filter) return;
+
+                filterTabs.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = filter;
+                renderProjectionTable();
+            });
+
+            // ─── SETTINGS PLAN RENDER ───
+            function renderSettingsPlanPreview() {
+                if (!settingsPlanPreviewGrid) return;
+                if (planList.length === 0) {
+                    settingsPlanPreviewGrid.innerHTML =
+                        `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);">No plans configured.</div>`;
+                    settingsPlanCountLabel.textContent = '0 plans';
+                    return;
+                }
+                let html = '';
+                planList.forEach(p => {
+                    html += `
+                        <div class="plan-card">
+                            <div class="name">${p.name}</div>
+                            <div class="price">${p.price}</div>
+                        </div>
+                    `;
+                });
+                settingsPlanPreviewGrid.innerHTML = html;
+                settingsPlanCountLabel.textContent = `${planList.length} plans`;
+            }
+
+            // ─── PLAN LIST (editor) ───
+            function renderPlanList() {
+                if (!planListContainer) return;
+                if (planList.length === 0) {
+                    planListContainer.innerHTML = `
+                        <div class="empty-plans">
+                            <i class="fas fa-cube"></i>
+                            <p>No plans yet. Add your first plan below.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                let html = '';
+                planList.forEach(p => {
+                    html += `
+                        <div class="plan-item" data-id="${p.id}">
+                            <div class="plan-info">
+                                <span class="plan-name">${p.name}</span>
+                                <div class="plan-price-wrap">
+                                    <label>Price</label>
+                                    <input type="text" class="plan-price-input" value="${p.price}" data-id="${p.id}" />
+                                </div>
+                            </div>
+                            <div class="plan-actions">
+                                <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
+                                <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-trash"></i> Remove</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                planListContainer.innerHTML = html;
+
+                document.querySelectorAll('.save-price-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.dataset.id);
+                        const input = document.querySelector(`.plan-price-input[data-id="${id}"]`);
+                        if (!input) return;
+                        const newPrice = input.value.trim();
+                        const plan = planList.find(p => p.id === id);
+                        if (plan) {
+                            plan.price = newPrice || plan.price;
+                            savePlans();
+                            renderPlanList();
+                            renderSettingsPlanPreview();
+                            // Update projections dropdown
+                            populatePlanDropdown();
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.remove-plan-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = parseInt(this.dataset.id);
+                        if (!confirm('Remove this plan?')) return;
+                        // Check if plan is used in projections
+                        const planName = planList.find(p => p.id === id)?.name;
+                        if (planName && projections.some(p => p.plan === planName)) {
+                            if (!confirm(`This plan is used in existing projections. Remove anyway?`)) {
+                                return;
+                            }
+                            // Remove projections for this plan
+                            projections = projections.filter(p => p.plan !== planName);
+                            saveProjections();
+                        }
+                        planList = planList.filter(p => p.id !== id);
+                        savePlans();
+                        renderPlanList();
+                        renderSettingsPlanPreview();
+                        populatePlanDropdown();
+                        renderProjectionTable();
+                    });
+                });
+
+                document.querySelectorAll('.plan-price-input').forEach(inp => {
+                    inp.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            const id = parseInt(this.dataset.id);
+                            const btn = document.querySelector(`.save-price-btn[data-id="${id}"]`);
+                            if (btn) btn.click();
+                        }
+                    });
+                });
+            }
+
+            // ─── ADD PLAN ───
+            function handleAddPlan() {
+                const name = newPlanName.value.trim();
+                const price = newPlanPrice.value.trim();
+                if (!name) {
+                    alert('Please enter a plan name.');
+                    return;
+                }
+                if (!price) {
+                    alert('Please enter a price.');
+                    return;
+                }
+                if (planList.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                    alert('A plan with this name already exists.');
+                    return;
+                }
+                const maxId = planList.reduce((max, p) => p.id > max ? p.id : max, 0);
+                planList.push({ id: maxId + 1, name, price });
+                savePlans();
+                newPlanName.value = '';
+                newPlanPrice.value = '';
+                renderPlanList();
+                renderSettingsPlanPreview();
+                populatePlanDropdown();
+            }
+
+            addPlanBtn.addEventListener('click', handleAddPlan);
+            newPlanName.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
+            newPlanPrice.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
+
+            // ─── OPEN / CLOSE PLAN EDITOR ───
+            openPlanEditorBtn.addEventListener('click', function() {
+                renderPlanList();
+                planEditorOverlay.classList.add('open');
+            });
+
+            closePlanEditorBtn.addEventListener('click', function() {
+                planEditorOverlay.classList.remove('open');
+            });
+
+            // ─── NOTIFICATIONS TOGGLE ───
+            if (notifToggle) {
+                notifToggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+            }
+
+            // ─── KEYBOARD SHORTCUTS ───
+            document.addEventListener('keydown', function(e) {
+                const pages = ['dashboard', 'customer', 'income-projection', 'payments', 'monthly-income',
+                    'projection-vs-actual', 'settings'
+                ];
+                if (e.ctrlKey && e.key >= '1' && e.key <= '7') {
+                    e.preventDefault();
+                    const idx = parseInt(e.key) - 1;
+                    if (pages[idx]) navigateTo(pages[idx]);
+                }
+                if (e.key === 'Escape' && planEditorOverlay.classList.contains('open')) {
+                    planEditorOverlay.classList.remove('open');
+                }
+            });
+
+            // ─── INIT ───
+            loadPlans();
+            loadProjections();
+            populatePlanDropdown();
+            resetForm();
+            renderProjectionTable();
+            renderSettingsPlanPreview();
+
+            // Ensure income projection page is active
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-income-projection').classList.add('active');
+
+            console.log('✅ Prontox platform ready with connected Income Projection & Settings.');
+        })();
+    </script>
+
+</body>
+</html>
