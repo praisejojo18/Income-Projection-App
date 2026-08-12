@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Prontox · Platform</title>
+    <title>Prontox · Customers</title>
 
     <!-- Font Awesome 6 (Free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
@@ -12,8 +12,6 @@
         /* ============================================================
            PRONTOX COLOR PALETTE & FONTS
            ============================================================ */
-
-        /* --- COLORS (Light Mode - default) --- */
         :root {
             --bg: #F0F4F8;
             --surface: #FFFFFF;
@@ -31,35 +29,22 @@
             --danger: #ef4444;
             --danger-hover: #dc2626;
             --danger-light: #fee2e2;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
 
-            /* Status Colors */
-            --status-submitted: #8b5cf6;
-            --status-submitted-bg: #ede9fe;
-            --status-review: #f59e0b;
-            --status-review-bg: #fef3c7;
-            --status-approved: #3b82f6;
-            --status-approved-bg: #dbeafe;
-            --status-implemented: #10b981;
-            --status-implemented-bg: #d1fae5;
-
-            /* Shadows */
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
             --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.08);
 
-            /* Border Radius */
             --radius: 14px;
             --radius-sm: 10px;
             --radius-xs: 8px;
-
-            /* Transitions */
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-            /* Navbar */
             --nav-height: 68px;
         }
 
-        /* --- DARK MODE OVERRIDES --- */
         [data-theme="dark"] {
             --bg: #0E0F11;
             --surface: #1A1E21;
@@ -77,17 +62,13 @@
             --danger: #f87171;
             --danger-hover: #ef4444;
             --danger-light: #4a1a1a;
+            --success: #34d399;
+            --success-light: #0a3a2a;
+            --warning: #fbbf24;
+            --warning-light: #3a2a0a;
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
             --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.6);
-            --status-submitted: #a78bfa;
-            --status-submitted-bg: #2d1b4e;
-            --status-review: #fbbf24;
-            --status-review-bg: #4d3a0a;
-            --status-approved: #60a5fa;
-            --status-approved-bg: #1a2a4a;
-            --status-implemented: #34d399;
-            --status-implemented-bg: #0a3a2a;
         }
 
         /* --- RESET & BASE --- */
@@ -113,14 +94,11 @@
             border: none;
             background: none;
         }
-
         a {
             text-decoration: none;
             color: inherit;
         }
-
-        input,
-        select {
+        input, select {
             font-family: inherit;
             outline: none;
         }
@@ -249,7 +227,7 @@
         }
 
         /* ============================================================
-           SIDEBAR (UPDATED with groups)
+           SIDEBAR (grouped)
            ============================================================ */
         .sidebar-overlay {
             position: fixed;
@@ -314,7 +292,6 @@
             gap: 2px;
         }
 
-        /* --- NEW: Nav Groups --- */
         .sidebar-nav .nav-group {
             margin-bottom: 6px;
         }
@@ -368,10 +345,8 @@
             color: var(--accent);
         }
 
-        /* Logout specific styling - kept under SYSTEM group */
         .sidebar-nav .nav-item.logout {
             color: var(--danger);
-            border-top: none;
             padding-top: 10px;
         }
         .sidebar-nav .nav-item.logout i {
@@ -413,547 +388,9 @@
             transition: color var(--transition);
         }
 
-        /* Hide all pages by default, show active */
-        .page-content {
-            display: none;
-        }
-        .page-content.active {
-            display: block;
-        }
-
         /* ============================================================
-           SETTINGS COMPONENT (UPDATED)
+           CUSTOMER PAGE SPECIFIC STYLES
            ============================================================ */
-
-        /* ─── settings container ─── */
-        .settings-container {
-            width: 100%;
-            background: var(--surface);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--shadow);
-            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
-        }
-
-        /* ─── body: sidebar + content ─── */
-        .settings-body {
-            display: flex;
-            flex: 1;
-            min-height: 500px;
-        }
-
-        /* ─── settings sidebar ─── */
-        .settings-sidebar {
-            width: 200px;
-            background: var(--surface-2);
-            border-right: 1px solid var(--border);
-            padding: 16px 0;
-            flex-shrink: 0;
-            transition: background var(--transition), border-color var(--transition);
-        }
-        .settings-sidebar .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            border-left: 3px solid transparent;
-            transition: all 0.2s;
-            width: 100%;
-            text-align: left;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .settings-sidebar .nav-item i {
-            width: 18px;
-            color: var(--text-muted);
-            transition: color 0.2s;
-        }
-        .settings-sidebar .nav-item:hover {
-            background: var(--accent-light);
-            color: var(--accent-dark);
-        }
-        .settings-sidebar .nav-item:hover i {
-            color: var(--accent);
-        }
-        .settings-sidebar .nav-item.active {
-            background: var(--accent-light);
-            color: var(--accent-dark);
-            border-left-color: var(--accent);
-            font-weight: 600;
-        }
-        .settings-sidebar .nav-item.active i {
-            color: var(--accent);
-        }
-
-        /* ─── settings content area ─── */
-        .settings-content {
-            flex: 1;
-            padding: 24px 28px 32px;
-            overflow-y: auto;
-            background: var(--surface);
-            position: relative;
-            transition: background var(--transition);
-        }
-
-        /* ─── settings page header ─── */
-        .settings-page-header {
-            margin-bottom: 24px;
-        }
-        .settings-page-header h2 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-            transition: color var(--transition);
-        }
-        .settings-page-header p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            transition: color var(--transition);
-        }
-
-        /* ─── inner page overlay (plan editor) ─── */
-        .settings-inner-overlay {
-            position: absolute;
-            inset: 0;
-            background: var(--surface);
-            z-index: 10;
-            padding: 24px 28px 32px;
-            display: none;
-            flex-direction: column;
-            border-radius: var(--radius);
-            animation: slideIn 0.25s ease;
-            transition: background var(--transition);
-        }
-        .settings-inner-overlay.open {
-            display: flex;
-        }
-
-        @keyframes slideIn {
-            0% {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .settings-inner-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-            transition: border-color var(--transition);
-        }
-        .settings-inner-header h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            transition: color var(--transition);
-        }
-        .settings-inner-header h3 i {
-            color: var(--accent);
-            margin-right: 10px;
-            transition: color var(--transition);
-        }
-        .settings-inner-header .back-btn {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            padding: 6px 14px;
-            border-radius: var(--radius-xs);
-            border: 1px solid var(--border);
-            transition: all 0.2s;
-        }
-        .settings-inner-header .back-btn:hover {
-            background: var(--surface-2);
-            border-color: var(--text-muted);
-        }
-        .settings-inner-header .back-btn i {
-            margin-right: 6px;
-        }
-
-        /* ─── plan list ─── */
-        .plan-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            flex: 1;
-            max-height: 420px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-        .plan-list::-webkit-scrollbar {
-            width: 4px;
-        }
-        .plan-list::-webkit-scrollbar-track {
-            background: var(--surface-2);
-            border-radius: 20px;
-        }
-        .plan-list::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 20px;
-        }
-
-        .plan-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: var(--surface-2);
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            transition: border-color 0.2s, background var(--transition), border-color var(--transition);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .plan-item:hover {
-            border-color: var(--accent-mid);
-        }
-        .plan-item .plan-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .plan-item .plan-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            min-width: 120px;
-            transition: color var(--transition);
-        }
-        .plan-item .plan-price-wrap {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .plan-item .plan-price-wrap label {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-        .plan-item .plan-price-wrap input {
-            width: 110px;
-            padding: 4px 10px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            font-size: 0.85rem;
-            background: var(--surface);
-            color: var(--text-primary);
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .plan-item .plan-price-wrap input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-light);
-        }
-        .plan-item .plan-actions {
-            display: flex;
-            gap: 6px;
-        }
-        .plan-item .plan-actions button {
-            padding: 4px 10px;
-            border-radius: var(--radius-xs);
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .plan-item .plan-actions .save-price-btn {
-            background: var(--accent);
-            color: #fff;
-        }
-        .plan-item .plan-actions .save-price-btn:hover {
-            background: var(--accent-hover);
-        }
-        .plan-item .plan-actions .remove-plan-btn {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        .plan-item .plan-actions .remove-plan-btn:hover {
-            background: #fecaca;
-        }
-        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn {
-            background: #4a1a1a;
-            color: #f87171;
-        }
-        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn:hover {
-            background: #5a2a2a;
-        }
-
-        /* ─── add plan ─── */
-        .add-plan-area {
-            margin-top: 18px;
-            padding-top: 18px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
-            transition: border-color var(--transition);
-        }
-        .add-plan-area input {
-            padding: 8px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            font-size: 0.85rem;
-            background: var(--surface);
-            color: var(--text-primary);
-            flex: 1;
-            min-width: 140px;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .add-plan-area input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-light);
-        }
-        .add-plan-area .add-btn {
-            padding: 8px 20px;
-            background: var(--accent);
-            color: #fff;
-            border-radius: var(--radius-xs);
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        .add-plan-area .add-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        /* ─── empty state ─── */
-        .empty-plans {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
-        .empty-plans i {
-            font-size: 2.5rem;
-            color: var(--border);
-            margin-bottom: 12px;
-            display: block;
-            transition: color var(--transition);
-        }
-        .empty-plans p {
-            font-size: 0.9rem;
-        }
-
-        /* ─── general settings page ─── */
-        .general-settings {
-            display: block;
-        }
-        .general-settings .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 10px;
-            transition: border-color var(--transition);
-        }
-        .general-settings .setting-row:last-child {
-            border-bottom: none;
-        }
-        .general-settings .setting-label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            transition: color var(--transition);
-        }
-        .general-settings .setting-label small {
-            display: block;
-            font-weight: 400;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            margin-top: 2px;
-            transition: color var(--transition);
-        }
-        .general-settings .setting-control {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .general-settings .toggle {
-            width: 42px;
-            height: 24px;
-            background: var(--border);
-            border-radius: 999px;
-            position: relative;
-            transition: background 0.3s;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .general-settings .toggle.active {
-            background: var(--accent);
-        }
-        .general-settings .toggle::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background: #fff;
-            border-radius: 50%;
-            transition: transform 0.3s;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-        }
-        .general-settings .toggle.active::after {
-            transform: translateX(18px);
-        }
-        .general-settings .select-input {
-            padding: 6px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .general-settings .select-input:focus {
-            border-color: var(--accent);
-        }
-
-        /* ─── plan preview grid ─── */
-        .plan-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 12px;
-        }
-        .plan-preview-grid .plan-card {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 14px 16px;
-            text-align: center;
-            transition: background var(--transition), border-color var(--transition);
-        }
-        .plan-preview-grid .plan-card .name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            transition: color var(--transition);
-        }
-        .plan-preview-grid .plan-card .price {
-            font-size: 0.85rem;
-            color: var(--accent);
-            font-weight: 600;
-            margin-top: 4px;
-            transition: color var(--transition);
-        }
-
-        /* ─── settings responsive ─── */
-        @media (max-width: 768px) {
-            .settings-body {
-                flex-direction: column;
-            }
-            .settings-sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-                padding: 8px 0;
-                display: flex;
-                overflow-x: auto;
-                gap: 4px;
-                padding: 8px 16px;
-            }
-            .settings-sidebar .nav-item {
-                border-left: none;
-                border-bottom: 3px solid transparent;
-                padding: 8px 14px;
-                white-space: nowrap;
-                font-size: 0.8rem;
-            }
-            .settings-sidebar .nav-item.active {
-                border-left: none;
-                border-bottom-color: var(--accent);
-            }
-            .settings-content {
-                padding: 18px 16px 24px;
-                min-height: 400px;
-            }
-            .settings-inner-overlay {
-                padding: 18px 16px 24px;
-            }
-            .plan-item {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .plan-item .plan-info {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-            }
-            .plan-item .plan-price-wrap {
-                flex-wrap: wrap;
-            }
-            .plan-item .plan-actions {
-                justify-content: flex-end;
-            }
-            .add-plan-area {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .plan-preview-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            }
-        }
-
-        @media (max-width: 480px) {
-            .main-content {
-                padding: 16px 12px;
-            }
-            .settings-container {
-                border-radius: var(--radius-sm);
-            }
-            .settings-content {
-                padding: 14px 12px 18px;
-            }
-            .plan-item .plan-price-wrap input {
-                width: 100%;
-            }
-            .plan-preview-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        /* ============================================================
-           OTHER PAGE PLACEHOLDER STYLES
-           ============================================================ */
-        .placeholder-page {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
-        .placeholder-page i {
-            font-size: 3rem;
-            color: var(--border);
-            margin-bottom: 16px;
-            display: block;
-        }
-        .placeholder-page h3 {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        /* ============================================================
-           CUSTOMER PAGE
-           ============================================================ */
-
-        /* header row with Add Customer button */
         .customer-page-header {
             display: flex;
             justify-content: space-between;
@@ -1013,7 +450,6 @@
         .btn-danger:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
         .btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* toolbar: search + filters */
         .customer-toolbar {
             display: flex;
             gap: 12px;
@@ -1049,6 +485,7 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--accent-light);
         }
+
         .customer-filters {
             display: flex;
             gap: 10px;
@@ -1056,9 +493,30 @@
         }
         .customer-filters .select-input {
             min-width: 150px;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xs);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
+        }
+        .customer-filters .select-input:focus {
+            border-color: var(--accent);
         }
 
-        /* table card */
+        .settings-container {
+            width: 100%;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+        }
+
         .customer-table-card {
             border-radius: var(--radius-sm);
         }
@@ -1118,7 +576,6 @@
             white-space: nowrap;
         }
 
-        /* status badges */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -1138,8 +595,8 @@
             flex-shrink: 0;
         }
         .status-badge.status-active {
-            background: var(--status-implemented-bg);
-            color: var(--status-implemented);
+            background: var(--success-light);
+            color: var(--success);
         }
         .status-badge.status-expired {
             background: var(--danger-light);
@@ -1151,7 +608,6 @@
             border: 1px solid var(--border);
         }
 
-        /* action icon buttons in table */
         .icon-action-btn {
             width: 34px;
             height: 34px;
@@ -1177,7 +633,6 @@
             outline-offset: 2px;
         }
 
-        /* pagination */
         .pagination-bar {
             display: flex;
             justify-content: space-between;
@@ -1229,7 +684,6 @@
             font-size: 0.82rem;
         }
 
-        /* empty states (customer specific) */
         .customer-empty-state {
             text-align: center;
             padding: 64px 20px;
@@ -1252,10 +706,14 @@
             margin-bottom: 18px;
         }
 
-        /* customer profile view */
         .customer-profile-view {
             animation: slideIn 0.25s ease;
         }
+        @keyframes slideIn {
+            0% { opacity: 0; transform: translateX(20px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
         .profile-back-btn {
             font-size: 0.8rem;
             font-weight: 600;
@@ -1273,6 +731,7 @@
             background: var(--surface-2);
             border-color: var(--text-muted);
         }
+
         .profile-card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -1312,6 +771,7 @@
             margin-bottom: 8px;
             transition: color var(--transition);
         }
+
         .profile-details-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -1334,6 +794,7 @@
             color: var(--text-primary);
             transition: color var(--transition);
         }
+
         .profile-actions {
             display: flex;
             gap: 12px;
@@ -1348,7 +809,7 @@
             margin-top: 20px;
         }
 
-        /* generic modal */
+        /* Modal styles */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -1418,6 +879,7 @@
             border-top: 1px solid var(--border);
             transition: border-color var(--transition);
         }
+
         .form-field {
             margin-bottom: 18px;
         }
@@ -1446,11 +908,6 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--accent-light);
         }
-        .form-field .field-hint {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 6px;
-        }
         .form-field .field-error {
             font-size: 0.75rem;
             color: var(--danger);
@@ -1464,6 +921,7 @@
         .form-field.has-error .field-error {
             display: block;
         }
+
         .quick-chips {
             display: flex;
             gap: 8px;
@@ -1485,6 +943,7 @@
             color: var(--accent-dark);
             background: var(--accent-light);
         }
+
         .plan-amount-preview {
             padding: 10px 14px;
             background: var(--accent-light);
@@ -1494,6 +953,7 @@
             font-weight: 600;
             margin-top: 10px;
         }
+
         .confirm-icon {
             width: 52px;
             height: 52px;
@@ -1514,10 +974,70 @@
         }
         .confirm-text strong { color: var(--text-primary); }
 
-        /* responsive table -> cards */
-        @media (max-width: 760px) {
-            .customer-table { min-width: 0; }
-            .customer-table thead { display: none; }
+        /* responsive for customer table */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 16px;
+            }
+            .customer-page-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .customer-page-header .btn-primary {
+                width: 100%;
+                justify-content: center;
+            }
+            .customer-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .customer-filters {
+                width: 100%;
+            }
+            .customer-filters .select-input {
+                flex: 1;
+                min-width: 0;
+            }
+            .pagination-bar {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .pagination-controls {
+                justify-content: center;
+            }
+            .profile-actions {
+                flex-direction: column;
+            }
+            .profile-actions .btn-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+            .profile-footer {
+                justify-content: stretch;
+            }
+            .profile-footer .btn-danger {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .settings-content {
+                padding: 14px 12px 18px;
+            }
+            .plan-item .plan-price-wrap input {
+                width: 100%;
+            }
+            .plan-preview-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .customer-table {
+                min-width: 0;
+            }
+            .customer-table thead {
+                display: none;
+            }
             .customer-table, .customer-table tbody, .customer-table tr, .customer-table td {
                 display: block;
                 width: 100%;
@@ -1557,20 +1077,6 @@
             }
             .customer-table .cust-name-cell { font-size: 0.95rem; }
         }
-
-        @media (max-width: 640px) {
-            .customer-page-header { flex-direction: column; align-items: stretch; }
-            .customer-page-header .btn-primary { width: 100%; justify-content: center; }
-            .customer-toolbar { flex-direction: column; align-items: stretch; }
-            .customer-filters { width: 100%; }
-            .customer-filters .select-input { flex: 1; min-width: 0; }
-            .pagination-bar { flex-direction: column; align-items: stretch; text-align: center; }
-            .pagination-controls { justify-content: center; }
-            .profile-actions { flex-direction: column; }
-            .profile-actions .btn-secondary { width: 100%; justify-content: center; }
-            .profile-footer { justify-content: stretch; }
-            .profile-footer .btn-danger { width: 100%; justify-content: center; }
-        }
     </style>
 </head>
 <body>
@@ -1583,10 +1089,6 @@
                 <span></span>
                 <span></span>
             </button>
-            <a href="#" class="nav-logo" id="logoLink">
-                <div class="logo-icon">P</div>
-                <span>Prontox</span>
-            </a>
         </div>
         <div class="nav-right">
             <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
@@ -1599,33 +1101,28 @@
     <!-- ─── SIDEBAR OVERLAY ─── -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- ─── SIDEBAR (UPDATED STRUCTURE) ─── -->
+    <!-- ─── SIDEBAR ─── -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <span style="font-weight:700;color:var(--text-primary);">Menu</span>
             <button class="close-sidebar" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
         </div>
         <nav class="sidebar-nav">
-            <!-- MAIN GROUP -->
             <div class="nav-group">
                 <div class="nav-group-label">MAIN</div>
-                <a href="#" class="nav-item active" data-page="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
-                <a href="#" class="nav-item" data-page="customer"><i class="fas fa-user-friends"></i> Customers</a>
-                <a href="#" class="nav-item" data-page="income-projection"><i class="fas fa-chart-line"></i> Income Projection</a>
-                <a href="#" class="nav-item" data-page="payments"><i class="fas fa-credit-card"></i> Payments</a>
+                <a href="dashboard.html" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="customer.html" class="nav-item active"><i class="fas fa-user-friends"></i> Customers</a>
+                <a href="income-projection.html" class="nav-item"><i class="fas fa-chart-line"></i> Income Projection</a>
+                <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i> Payments</a>
             </div>
-
-            <!-- REPORTS GROUP -->
             <div class="nav-group">
                 <div class="nav-group-label">REPORTS</div>
-                <a href="#" class="nav-item" data-page="monthly-income"><i class="fas fa-calendar-alt"></i> Monthly Income</a>
-                <a href="#" class="nav-item" data-page="projection-vs-actual"><i class="fas fa-arrows-left-right"></i> Proj vs Actual</a>
+                <a href="monthly-income.html" class="nav-item"><i class="fas fa-calendar-alt"></i> Monthly Income</a>
+                <a href="projection-vs-actual.html" class="nav-item"><i class="fas fa-arrows-left-right"></i> Proj vs Actual</a>
             </div>
-
-            <!-- SYSTEM GROUP -->
             <div class="nav-group">
                 <div class="nav-group-label">SYSTEM</div>
-                <a href="#" class="nav-item" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+                <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
                 <a href="#" class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </nav>
@@ -1634,109 +1131,7 @@
     <!-- ─── MAIN CONTENT ─── -->
     <main class="main-content" id="mainContent">
 
-        <!-- ==========================================================
-             PAGE: Dashboard (default)
-             ========================================================== -->
-        <div id="page-dashboard" class="page-content active">
-            <div class="page-header">
-                <h2>Dashboard</h2>
-                <p>Welcome back! Here's a quick overview of your category performance.</p>
-            </div>
-
-            <!-- Table card -->
-            <div class="settings-container" style="border-radius:var(--radius-sm);">
-                <div style="padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;transition:border-color var(--transition);">
-                    <h3 style="font-size:1rem;font-weight:600;color:var(--text-primary);transition:color var(--transition);">
-                        <i class="fas fa-table" style="color:var(--accent);margin-right:8px;"></i> Category Performance
-                    </h3>
-                    <span style="padding:4px 12px;background:var(--accent-light);color:var(--accent-dark);border-radius:999px;font-size:0.75rem;font-weight:600;transition:background var(--transition),color var(--transition);">
-                        <i class="fas fa-calendar-alt"></i> This Month
-                    </span>
-                </div>
-                <div style="overflow-x:auto;padding:4px 4px 0 4px;">
-                    <table style="width:100%;border-collapse:collapse;font-size:0.9rem;min-width:400px;">
-                        <thead>
-                            <tr>
-                                <th style="text-align:left;padding:16px 24px;font-weight:600;color:var(--text-secondary);background:var(--surface-2);border-bottom:2px solid var(--border);transition:background var(--transition),color var(--transition),border-color var(--transition);">Category</th>
-                                <th style="text-align:left;padding:16px 24px;font-weight:600;color:var(--text-secondary);background:var(--surface-2);border-bottom:2px solid var(--border);transition:background var(--transition),color var(--transition),border-color var(--transition);">Value (%)</th>
-                                <th style="text-align:left;padding:16px 24px;font-weight:600;color:var(--text-secondary);background:var(--surface-2);border-bottom:2px solid var(--border);transition:background var(--transition),color var(--transition),border-color var(--transition);">Progress</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
-                                    <span style="display:flex;align-items:center;gap:12px;font-weight:500;">
-                                        <span style="width:10px;height:10px;border-radius:999px;background:var(--accent);flex-shrink:0;"></span>
-                                        PRONTO BROADBAND SOLUTIONS
-                                    </span>
-                                </td>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);font-weight:700;transition:border-color var(--transition),color var(--transition);">
-                                    950<span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;margin-left:2px;">%</span>
-                                </td>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
-                                    <div style="width:120px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;display:inline-block;vertical-align:middle;transition:background var(--transition);">
-                                        <div style="height:100%;border-radius:999px;background:var(--accent);width:95%;transition:width 1s ease;"></div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
-                                    <span style="display:flex;align-items:center;gap:12px;font-weight:500;">
-                                        <span style="width:10px;height:10px;border-radius:999px;background:var(--status-approved);flex-shrink:0;"></span>
-                                        BASE COLOR
-                                    </span>
-                                </td>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);font-weight:700;transition:border-color var(--transition),color var(--transition);">
-                                    950<span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;margin-left:2px;">%</span>
-                                </td>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
-                                    <div style="width:120px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;display:inline-block;vertical-align:middle;transition:background var(--transition);">
-                                        <div style="height:100%;border-radius:999px;background:var(--status-approved);width:95%;transition:width 1s ease;"></div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
-                                    <span style="display:flex;align-items:center;gap:12px;font-weight:500;">
-                                        <span style="width:10px;height:10px;border-radius:999px;background:var(--status-review);flex-shrink:0;"></span>
-                                        50% OPACITY
-                                    </span>
-                                </td>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);font-weight:700;transition:border-color var(--transition),color var(--transition);">
-                                    950<span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;margin-left:2px;">%</span>
-                                </td>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
-                                    <div style="width:120px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;display:inline-block;vertical-align:middle;transition:background var(--transition);">
-                                        <div style="height:100%;border-radius:999px;background:var(--status-review);width:95%;transition:width 1s ease;"></div>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
-                                    <span style="display:flex;align-items:center;gap:12px;font-weight:500;">
-                                        <span style="width:10px;height:10px;border-radius:999px;background:var(--status-submitted);flex-shrink:0;"></span>
-                                        CODES
-                                    </span>
-                                </td>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);font-weight:700;transition:border-color var(--transition),color var(--transition);">
-                                    950<span style="font-weight:400;color:var(--text-muted);font-size:0.8rem;margin-left:2px;">%</span>
-                                </td>
-                                <td style="padding:14px 24px;border-bottom:1px solid var(--border);color:var(--text-primary);transition:border-color var(--transition),color var(--transition);">
-                                    <div style="width:120px;height:6px;background:var(--border);border-radius:999px;overflow:hidden;display:inline-block;vertical-align:middle;transition:background var(--transition);">
-                                        <div style="height:100%;border-radius:999px;background:var(--status-submitted);width:95%;transition:width 1s ease;"></div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: Customer (placeholder)
-             ========================================================== -->
-        <div id="page-customer" class="page-content">
+        <div id="page-customer">
             <div class="page-header customer-page-header">
                 <div>
                     <h2>Customers</h2>
@@ -1749,7 +1144,6 @@
 
             <!-- ===================== LIST VIEW ===================== -->
             <div id="customerListView">
-
                 <div class="customer-toolbar">
                     <div class="customer-search-wrap">
                         <i class="fas fa-search"></i>
@@ -1758,15 +1152,7 @@
                     <div class="customer-filters">
                         <select id="planFilter" class="select-input" aria-label="Filter by plan">
                             <option value="all">All Plans</option>
-                            <option value="Silver">Silver</option>
-                            <option value="Gold">Gold</option>
-                            <option value="Platinum">Platinum</option>
-                            <option value="Premium">Premium</option>
-                            <option value="Premium+">Premium+</option>
-                            <option value="SME Silver">SME Silver</option>
-                            <option value="SME Gold">SME Gold</option>
-                            <option value="SME Platinum">SME Platinum</option>
-                            <option value="SME Platinum+">SME Platinum+</option>
+                            <!-- populated by JS -->
                         </select>
                         <select id="statusFilter" class="select-input" aria-label="Filter by status">
                             <option value="all">All Statuses</option>
@@ -1861,644 +1247,33 @@
             </div>
         </div>
 
-        <!-- ===================== GENERIC MODAL ===================== -->
-        <div class="modal-overlay" id="modalOverlay">
-            <div class="modal-box" id="modalBox" role="dialog" aria-modal="true">
-                <!-- populated by JS -->
-            </div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: Income Projection (placeholder)
-             ========================================================== -->
-        <div id="page-income-projection" class="page-content">
-            <div class="page-header">
-                <h2>Income Projection</h2>
-                <p>Forecast your future revenue based on current trends.</p>
-            </div>
-            <div class="placeholder-page">
-                <i class="fas fa-chart-line"></i>
-                <h3>Projection Charts</h3>
-                <p>Visualize your income projections here.</p>
-            </div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: Payments (placeholder)
-             ========================================================== -->
-        <div id="page-payments" class="page-content">
-            <div class="page-header">
-                <h2>Payments</h2>
-                <p>Track all incoming and outgoing payments across your platform.</p>
-            </div>
-            <div class="placeholder-page">
-                <i class="fas fa-credit-card"></i>
-                <h3>Payment Transactions</h3>
-                <p>Monitor your payment history and status.</p>
-            </div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: Monthly Income (placeholder)
-             ========================================================== -->
-        <div id="page-monthly-income" class="page-content">
-            <div class="page-header">
-                <h2>Monthly Income</h2>
-                <p>Detailed breakdown of your income performance month by month.</p>
-            </div>
-            <div class="placeholder-page">
-                <i class="fas fa-calendar-alt"></i>
-                <h3>Monthly Breakdown</h3>
-                <p>See your income trends per month.</p>
-            </div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: Projection vs Actual (placeholder)
-             ========================================================== -->
-        <div id="page-projection-vs-actual" class="page-content">
-            <div class="page-header">
-                <h2>Projection vs Actual</h2>
-                <p>Compare your projected income against actual results.</p>
-            </div>
-            <div class="placeholder-page">
-                <i class="fas fa-arrows-left-right"></i>
-                <h3>Comparison View</h3>
-                <p>Analyze discrepancies between projections and actuals.</p>
-            </div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: SETTINGS (UPDATED)
-             ========================================================== -->
-        <div id="page-settings" class="page-content">
-            <div class="page-header">
-                <h2>Settings</h2>
-                <p>Configure your workspace, manage plans, and adjust preferences.</p>
-            </div>
-
-            <div class="settings-container">
-                <!-- settings body -->
-                <div class="settings-body">
-
-                    <!-- settings sidebar (Team & Integrations removed) -->
-                    <nav class="settings-sidebar">
-                        <button class="nav-item active" data-settings-page="general">
-                            <i class="fas fa-sliders-h"></i> General
-                        </button>
-                        <button class="nav-item" data-settings-page="plans">
-                            <i class="fas fa-cubes"></i> Plans
-                        </button>
-                    </nav>
-
-                    <!-- settings content -->
-                    <div class="settings-content" id="settingsContent">
-
-                        <!-- ===================== -->
-                        <!-- SETTINGS: General -->
-                        <!-- ===================== -->
-                        <div id="settings-page-general" class="settings-page-content">
-                            <div class="settings-page-header">
-                                <h2>General Settings</h2>
-                                <p>Manage your workspace preferences and defaults.</p>
-                            </div>
-                            <div class="general-settings">
-                                <div class="setting-row">
-                                    <div class="setting-label">
-                                        Workspace Name
-                                        <small>Your workspace display name</small>
-                                    </div>
-                                    <div class="setting-control">
-                                        <input type="text" value="Prontox Inc." style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-xs);font-size:0.85rem;background:var(--surface);color:var(--text-primary);min-width:180px;transition:background var(--transition),color var(--transition),border-color var(--transition);" />
-                                    </div>
-                                </div>
-                                <div class="setting-row">
-                                    <div class="setting-label">
-                                        Dark Mode
-                                        <small>Toggle dark theme across the app</small>
-                                    </div>
-                                    <div class="setting-control">
-                                        <div class="toggle" id="settingsDarkToggle"></div>
-                                    </div>
-                                </div>
-                                <div class="setting-row">
-                                    <div class="setting-label">
-                                        Default Language
-                                        <small>Interface language</small>
-                                    </div>
-                                    <div class="setting-control">
-                                        <select class="select-input">
-                                            <option>English (US)</option>
-                                            <option>Spanish</option>
-                                            <option>French</option>
-                                            <option>German</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="setting-row">
-                                    <div class="setting-label">
-                                        Notifications
-                                        <small>Email and in-app notifications</small>
-                                    </div>
-                                    <div class="setting-control">
-                                        <div class="toggle active" id="notifToggle"></div>
-                                    </div>
-                                </div>
-                                <div class="setting-row">
-                                    <div class="setting-label">
-                                        Currency
-                                        <small>Default currency for plans and billing</small>
-                                    </div>
-                                    <div class="setting-control">
-                                        <span style="font-weight:600;color:var(--accent);font-size:0.95rem;">₦ Naira</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ===================== -->
-                        <!-- SETTINGS: Plans (UPDATED with 9 plans & Naira) -->
-                        <!-- ===================== -->
-                        <div id="settings-page-plans" class="settings-page-content" style="display:none;">
-                            <div class="settings-page-header">
-                                <h2>Plans &amp; Pricing</h2>
-                                <p>Manage your subscription plans and pricing tiers.</p>
-                            </div>
-
-                            <!-- quick summary + edit button -->
-                            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
-                                <span style="font-size:0.85rem;color:var(--text-secondary);transition:color var(--transition);">
-                                    <i class="fas fa-cubes" style="color:var(--accent);margin-right:6px;"></i>
-                                    <span id="planCountLabel">9 plans</span> configured
-                                </span>
-                                <button id="openPlanEditorBtn" style="padding:8px 20px;background:var(--accent);color:#fff;border-radius:var(--radius-xs);font-weight:600;font-size:0.85rem;transition:background 0.2s;">
-                                    <i class="fas fa-edit"></i> Edit Plans
-                                </button>
-                            </div>
-
-                            <!-- quick plan preview -->
-                            <div class="plan-preview-grid" id="planPreviewGrid">
-                                <!-- populated by JS -->
-                            </div>
-                        </div>
-
-                        <!-- ========================================================== -->
-                        <!-- INNER PAGE: Plan Editor (overlay)                          -->
-                        <!-- ========================================================== -->
-                        <div class="settings-inner-overlay" id="planEditorOverlay">
-                            <div class="settings-inner-header">
-                                <h3><i class="fas fa-cubes"></i> Edit Plans</h3>
-                                <button class="back-btn" id="closePlanEditorBtn">
-                                    <i class="fas fa-arrow-left"></i> Back to Plans
-                                </button>
-                            </div>
-
-                            <!-- plan list -->
-                            <div class="plan-list" id="planListContainer">
-                                <!-- rendered by JS -->
-                            </div>
-
-                            <!-- add plan -->
-                            <div class="add-plan-area">
-                                <input type="text" id="newPlanName" placeholder="Plan name (e.g. Silver)" />
-                                <input type="text" id="newPlanPrice" placeholder="Price (e.g. ₦5,000/mo)" />
-                                <button class="add-btn" id="addPlanBtn"><i class="fas fa-plus"></i> Add Plan</button>
-                            </div>
-                        </div>
-
-                    </div>
-                    <!-- /settings-content -->
-                </div>
-                <!-- /settings-body -->
-            </div>
-            <!-- /settings-container -->
-        </div>
-        <!-- /page-settings -->
-
     </main>
+
+    <!-- ─── GENERIC MODAL ─── -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box" id="modalBox" role="dialog" aria-modal="true">
+            <!-- populated by JS -->
+        </div>
+    </div>
 
     <!-- ─── JAVASCRIPT ─── -->
     <script>
         (function() {
             'use strict';
 
-            // ─── PAGE CONFIG (for main nav) ───
-            const pageConfig = {
-                dashboard: { title: 'Dashboard', desc: 'Welcome back! Here\'s a quick overview of your category performance.' },
-                customer: { title: 'Customers', desc: 'View and manage all your customer accounts and interactions.' },
-                'income-projection': { title: 'Income Projection', desc: 'Forecast your future revenue based on current trends.' },
-                payments: { title: 'Payments', desc: 'Track all incoming and outgoing payments across your platform.' },
-                'monthly-income': { title: 'Monthly Income', desc: 'Detailed breakdown of your income performance month by month.' },
-                'projection-vs-actual': { title: 'Projection vs Actual', desc: 'Compare your projected income against actual results.' },
-                settings: { title: 'Settings', desc: 'Configure your workspace, manage plans, and adjust preferences.' },
-            };
+            // ============================================================
+            // CONSTANTS & STATE
+            // ============================================================
+            const STORAGE_KEY = 'prontox_customers_v1';
+            const SEEDED_FLAG_KEY = 'prontox_customers_seeded_v1';
+            const PAGE_SIZE = 50;
 
-            // ─── DOM REFS (main nav) ───
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-            const navItems = document.querySelectorAll('.sidebar-nav .nav-item:not(.logout)');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            const avatarBtn = document.getElementById('avatarBtn');
-
-            // ─── SETTINGS SPECIFIC DOM REFS ───
-            const settingsSidebarItems = document.querySelectorAll('.settings-sidebar .nav-item');
-            const settingsPages = {
-                general: document.getElementById('settings-page-general'),
-                plans: document.getElementById('settings-page-plans'),
-            };
-            const planPreviewGrid = document.getElementById('planPreviewGrid');
-            const planCountLabel = document.getElementById('planCountLabel');
-            const openPlanEditorBtn = document.getElementById('openPlanEditorBtn');
-            const closePlanEditorBtn = document.getElementById('closePlanEditorBtn');
-            const planEditorOverlay = document.getElementById('planEditorOverlay');
-            const planListContainer = document.getElementById('planListContainer');
-            const addPlanBtn = document.getElementById('addPlanBtn');
-            const newPlanName = document.getElementById('newPlanName');
-            const newPlanPrice = document.getElementById('newPlanPrice');
-            const settingsDarkToggle = document.getElementById('settingsDarkToggle');
-            const notifToggle = document.getElementById('notifToggle');
-
-            // ─── PLAN DATA (UPDATED: 9 specified plans, Naira currency) ───
-            const defaultPlans = [
-                'Silver',
-                'Gold',
-                'Platinum',
-                'Premium',
-                'Premium+',
-                'SME silver',
-                'SME gold',
-                'SME platinum',
-                'SME platinum+'
+            // Default plans and their prices (numeric)
+            const PLAN_NAMES = [
+                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
+                'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
             ];
-
-            let plans = defaultPlans.map((name, index) => ({
-                id: index + 1,
-                name: name,
-                price: index === 0 ? '₦5,000/mo' :
-                    index === 1 ? '₦10,000/mo' :
-                    index === 2 ? '₦20,000/mo' :
-                    index === 3 ? '₦35,000/mo' :
-                    index === 4 ? '₦50,000/mo' :
-                    index === 5 ? '₦7,500/mo' :
-                    index === 6 ? '₦15,000/mo' :
-                    index === 7 ? '₦30,000/mo' :
-                    '₦60,000/mo'
-            }));
-            let nextId = plans.length + 1;
-
-            // ─── THEME ───
-            let darkMode = false;
-
-            function applyTheme(isDark) {
-                if (isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    themeIcon.className = 'fas fa-sun';
-                    if (settingsDarkToggle) settingsDarkToggle.classList.add('active');
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    themeIcon.className = 'fas fa-moon';
-                    if (settingsDarkToggle) settingsDarkToggle.classList.remove('active');
-                }
-                darkMode = isDark;
-                try {
-                    localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light');
-                } catch (_) {}
-            }
-
-            try {
-                const saved = localStorage.getItem('prontox-theme');
-                if (saved === 'dark') applyTheme(true);
-                else if (saved === 'light') applyTheme(false);
-                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-                else applyTheme(false);
-            } catch (_) { applyTheme(false); }
-
-            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
-
-            if (settingsDarkToggle) {
-                settingsDarkToggle.addEventListener('click', function() {
-                    applyTheme(!darkMode);
-                });
-            }
-
-            // ─── SIDEBAR TOGGLE ───
-            function openSidebar() {
-                sidebar.classList.add('open');
-                sidebarOverlay.classList.add('open');
-                hamburgerBtn.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('open');
-                hamburgerBtn.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-
-            function toggleSidebar() {
-                if (sidebar.classList.contains('open')) {
-                    closeSidebar();
-                } else {
-                    openSidebar();
-                }
-            }
-
-            hamburgerBtn.addEventListener('click', toggleSidebar);
-            closeSidebarBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
-                    closeSidebar();
-                }
-            });
-
-            // ─── MAIN NAVIGATION (FIXED) ───
-            function navigateTo(pageId) {
-                // Hide all pages
-                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-
-                // Show target
-                const target = document.getElementById('page-' + pageId);
-                if (target) target.classList.add('active');
-
-                // Update nav items
-                navItems.forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.page === pageId) item.classList.add('active');
-                });
-
-                // Update page header (if present)
-                const config = pageConfig[pageId];
-                if (config) {
-                    const activePage = document.querySelector('.page-content.active');
-                    if (activePage) {
-                        const header = activePage.querySelector('.page-header');
-                        if (header) {
-                            const h2 = header.querySelector('h2');
-                            const p = header.querySelector('p');
-                            if (h2) h2.textContent = config.title;
-                            if (p) p.textContent = config.desc;
-                        }
-                    }
-                }
-
-                closeSidebar();
-
-                // --- Special handling for Settings ---
-                if (pageId === 'settings') {
-                    renderPlanPreview();
-                    renderPlanList();
-                    showSettingsPage('general');
-                }
-
-                // --- Special handling for Customers ---
-                if (pageId === 'customer') {
-                    if (window.CustomerModule && typeof window.CustomerModule.onPageShow === 'function') {
-                        window.CustomerModule.onPageShow();
-                    } else {
-                        // Fallback: try again after a short delay (if module not yet defined)
-                        setTimeout(() => {
-                            if (window.CustomerModule && typeof window.CustomerModule.onPageShow === 'function') {
-                                window.CustomerModule.onPageShow();
-                            }
-                        }, 50);
-                    }
-                }
-
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-
-            // ─── SETTINGS SUB-NAVIGATION ───
-            function showSettingsPage(pageId) {
-                Object.keys(settingsPages).forEach(key => {
-                    settingsPages[key].style.display = 'none';
-                });
-                if (settingsPages[pageId]) {
-                    settingsPages[pageId].style.display = 'block';
-                }
-                settingsSidebarItems.forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.settingsPage === pageId) {
-                        item.classList.add('active');
-                    }
-                });
-                planEditorOverlay.classList.remove('open');
-                if (pageId === 'plans') {
-                    renderPlanPreview();
-                }
-            }
-
-            settingsSidebarItems.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const page = this.dataset.settingsPage;
-                    if (page) showSettingsPage(page);
-                });
-            });
-
-            // ─── PLAN RENDER FUNCTIONS ───
-            function renderPlanPreview() {
-                if (!planPreviewGrid) return;
-                if (plans.length === 0) {
-                    planPreviewGrid.innerHTML =
-                        `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem;">No plans configured yet.</div>`;
-                    planCountLabel.textContent = '0 plans';
-                    return;
-                }
-                let html = '';
-                plans.forEach(p => {
-                    html += `
-                        <div class="plan-card">
-                            <div class="name">${p.name}</div>
-                            <div class="price">${p.price}</div>
-                        </div>
-                    `;
-                });
-                planPreviewGrid.innerHTML = html;
-                planCountLabel.textContent = `${plans.length} plans`;
-            }
-
-            function renderPlanList() {
-                if (!planListContainer) return;
-                if (plans.length === 0) {
-                    planListContainer.innerHTML = `
-                        <div class="empty-plans">
-                            <i class="fas fa-cube"></i>
-                            <p>No plans yet. Add your first plan below.</p>
-                        </div>
-                    `;
-                    return;
-                }
-                let html = '';
-                plans.forEach(p => {
-                    html += `
-                        <div class="plan-item" data-id="${p.id}">
-                            <div class="plan-info">
-                                <span class="plan-name">${p.name}</span>
-                                <div class="plan-price-wrap">
-                                    <label>Price</label>
-                                    <input type="text" class="plan-price-input" value="${p.price}" data-id="${p.id}" />
-                                </div>
-                            </div>
-                            <div class="plan-actions">
-                                <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
-                                <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-trash"></i> Remove</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                planListContainer.innerHTML = html;
-
-                document.querySelectorAll('.save-price-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const id = parseInt(this.dataset.id);
-                        const input = document.querySelector(`.plan-price-input[data-id="${id}"]`);
-                        if (!input) return;
-                        const newPrice = input.value.trim();
-                        const plan = plans.find(p => p.id === id);
-                        if (plan) {
-                            plan.price = newPrice || plan.price;
-                            renderPlanList();
-                            renderPlanPreview();
-                        }
-                    });
-                });
-
-                document.querySelectorAll('.remove-plan-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const id = parseInt(this.dataset.id);
-                        if (!confirm('Remove this plan?')) return;
-                        plans = plans.filter(p => p.id !== id);
-                        renderPlanList();
-                        renderPlanPreview();
-                    });
-                });
-
-                document.querySelectorAll('.plan-price-input').forEach(inp => {
-                    inp.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
-                            const id = parseInt(this.dataset.id);
-                            const btn = document.querySelector(`.save-price-btn[data-id="${id}"]`);
-                            if (btn) btn.click();
-                        }
-                    });
-                });
-            }
-
-            // ─── ADD PLAN ───
-            function addPlan() {
-                const name = newPlanName.value.trim();
-                const price = newPlanPrice.value.trim();
-                if (!name) {
-                    alert('Please enter a plan name.');
-                    return;
-                }
-                if (!price) {
-                    alert('Please enter a price.');
-                    return;
-                }
-                plans.push({ id: nextId++, name, price });
-                newPlanName.value = '';
-                newPlanPrice.value = '';
-                renderPlanList();
-                renderPlanPreview();
-            }
-
-            addPlanBtn.addEventListener('click', addPlan);
-            newPlanName.addEventListener('keydown', e => { if (e.key === 'Enter') addPlan(); });
-            newPlanPrice.addEventListener('keydown', e => { if (e.key === 'Enter') addPlan(); });
-
-            // ─── OPEN / CLOSE PLAN EDITOR ───
-            function openPlanEditor() {
-                renderPlanList();
-                planEditorOverlay.classList.add('open');
-            }
-
-            function closePlanEditor() {
-                planEditorOverlay.classList.remove('open');
-            }
-
-            openPlanEditorBtn.addEventListener('click', openPlanEditor);
-            closePlanEditorBtn.addEventListener('click', closePlanEditor);
-
-            // ─── NOTIFICATIONS TOGGLE ───
-            if (notifToggle) {
-                notifToggle.addEventListener('click', function() {
-                    this.classList.toggle('active');
-                });
-            }
-
-            // ─── NAV ITEMS CLICK (FIXED) ───
-            navItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const page = this.dataset.page;
-                    if (page) {
-                        navigateTo(page);
-                    }
-                });
-            });
-
-            // ─── LOGOUT ───
-            logoutBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (confirm('Are you sure you want to log out?')) {
-                    alert('Logging out... (Demo)');
-                }
-            });
-
-            // ─── AVATAR ───
-            avatarBtn.addEventListener('click', function() {
-                alert('👤 User profile – would open user settings.');
-            });
-
-            // ─── LOGO (FIXED) ───
-            document.getElementById('logoLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                navigateTo('dashboard');
-            });
-
-            // ─── KEYBOARD SHORTCUTS ───
-            document.addEventListener('keydown', function(e) {
-                const pages = ['dashboard', 'customer', 'income-projection', 'payments', 'monthly-income',
-                    'projection-vs-actual', 'settings'
-                ];
-                if (e.ctrlKey && e.key >= '1' && e.key <= '7') {
-                    e.preventDefault();
-                    const idx = parseInt(e.key) - 1;
-                    if (pages[idx]) navigateTo(pages[idx]);
-                }
-            });
-
-            // ─── INIT ───
-            navigateTo('dashboard');
-            console.log('✅ Prontox platform ready (Naira currency, 9 plans, grouped sidebar).');
-        })();
-    </script>
-
-    <!-- ─── CUSTOMER MANAGEMENT JAVASCRIPT ─── -->
-    <script>
-        (function() {
-            'use strict';
-
-            /* ============================================================
-               CONSTANTS
-               ============================================================ */
-            var STORAGE_KEY = 'prontox_customers_v1';
-            var SEEDED_FLAG_KEY = 'prontox_customers_seeded_v1';
-            var PAGE_SIZE = 50;
-
-            // TEMPORARY plan → amount mapping (Naira, numeric).
-            // Replace this map with the live values from Settings > Plans
-            // once plan pricing is wired to a real data source.
-            var PLAN_PRICES = {
+            const PLAN_PRICES = {
                 'Silver': 5000,
                 'Gold': 10000,
                 'Platinum': 20000,
@@ -2509,12 +1284,8 @@
                 'SME Platinum': 30000,
                 'SME Platinum+': 60000
             };
-            var PLAN_NAMES = Object.keys(PLAN_PRICES);
 
-            /* ============================================================
-               STATE
-               ============================================================ */
-            var state = {
+            let state = {
                 search: '',
                 plan: 'all',
                 status: 'all',
@@ -2522,38 +1293,38 @@
                 currentProfileId: null
             };
 
-            /* ============================================================
-               DOM REFS
-               ============================================================ */
-            var addCustomerBtn = document.getElementById('addCustomerBtn');
-            var customerListView = document.getElementById('customerListView');
-            var customerProfileView = document.getElementById('customerProfileView');
-            var customerSearchInput = document.getElementById('customerSearchInput');
-            var planFilterEl = document.getElementById('planFilter');
-            var statusFilterEl = document.getElementById('statusFilter');
-            var customerTableBody = document.getElementById('customerTableBody');
-            var customerEmptyState = document.getElementById('customerEmptyState');
-            var paginationBar = document.getElementById('paginationBar');
-            var paginationSummary = document.getElementById('paginationSummary');
-            var paginationControls = document.getElementById('paginationControls');
-            var backToCustomersBtn = document.getElementById('backToCustomersBtn');
-            var deactivateBtn = document.getElementById('deactivateBtn');
-            var profileExtendBtn = document.getElementById('profileExtendBtn');
-            var profileChangePlanBtn = document.getElementById('profileChangePlanBtn');
-            var modalOverlay = document.getElementById('modalOverlay');
-            var modalBox = document.getElementById('modalBox');
+            // ============================================================
+            // DOM REFS
+            // ============================================================
+            const addCustomerBtn = document.getElementById('addCustomerBtn');
+            const customerListView = document.getElementById('customerListView');
+            const customerProfileView = document.getElementById('customerProfileView');
+            const customerSearchInput = document.getElementById('customerSearchInput');
+            const planFilterEl = document.getElementById('planFilter');
+            const statusFilterEl = document.getElementById('statusFilter');
+            const customerTableBody = document.getElementById('customerTableBody');
+            const customerEmptyState = document.getElementById('customerEmptyState');
+            const paginationBar = document.getElementById('paginationBar');
+            const paginationSummary = document.getElementById('paginationSummary');
+            const paginationControls = document.getElementById('paginationControls');
+            const backToCustomersBtn = document.getElementById('backToCustomersBtn');
+            const deactivateBtn = document.getElementById('deactivateBtn');
+            const profileExtendBtn = document.getElementById('profileExtendBtn');
+            const profileChangePlanBtn = document.getElementById('profileChangePlanBtn');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalBox = document.getElementById('modalBox');
 
-            /* ============================================================
-               STORAGE HELPERS (data layer — single source of truth)
-               ============================================================ */
+            // ============================================================
+            // STORAGE HELPERS
+            // ============================================================
             function getCustomers() {
                 try {
-                    var raw = localStorage.getItem(STORAGE_KEY);
+                    const raw = localStorage.getItem(STORAGE_KEY);
                     if (!raw) return [];
-                    var parsed = JSON.parse(raw);
+                    const parsed = JSON.parse(raw);
                     return Array.isArray(parsed) ? parsed : [];
                 } catch (e) {
-                    console.error('Failed to read customers from storage:', e);
+                    console.error('Failed to read customers:', e);
                     return [];
                 }
             }
@@ -2563,20 +1334,20 @@
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
                     return true;
                 } catch (e) {
-                    console.error('Failed to save customers to storage:', e);
+                    console.error('Failed to save customers:', e);
                     return false;
                 }
             }
 
             function addCustomerRecord(customer) {
-                var list = getCustomers();
+                const list = getCustomers();
                 list.push(customer);
                 saveCustomers(list);
             }
 
             function updateCustomerRecord(id, patch) {
-                var list = getCustomers();
-                var idx = list.findIndex(function(c) { return c.id === id; });
+                const list = getCustomers();
+                const idx = list.findIndex(c => c.id === id);
                 if (idx === -1) return null;
                 list[idx] = Object.assign({}, list[idx], patch);
                 saveCustomers(list);
@@ -2584,8 +1355,8 @@
             }
 
             function findCustomerById(id) {
-                var list = getCustomers();
-                return list.find(function(c) { return c.id === id; }) || null;
+                const list = getCustomers();
+                return list.find(c => c.id === id) || null;
             }
 
             function generateId() {
@@ -2595,41 +1366,32 @@
                 return 'cust_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
             }
 
-            /* ============================================================
-               DERIVED DATA HELPERS
-               ============================================================ */
+            // ============================================================
+            // HELPERS
+            // ============================================================
             function parseLocalDate(dateStr) {
-                // Treats YYYY-MM-DD as a local calendar date, avoiding UTC
-                // offset issues that can shift the date by a day.
-                var d = new Date(dateStr + 'T00:00:00');
-                return d;
+                return new Date(dateStr + 'T00:00:00');
             }
 
             function calculateStatus(customer) {
-                if (!customer) return 'Inactive';
-                if (customer.deactivated) return 'Inactive';
-
-                var expiry = parseLocalDate(customer.expiryDate);
+                if (!customer || customer.deactivated) return 'Inactive';
+                const expiry = parseLocalDate(customer.expiryDate);
                 if (isNaN(expiry.getTime())) return 'Inactive';
-
-                var today = new Date();
+                const today = new Date();
                 today.setHours(0, 0, 0, 0);
-
                 if (today < expiry) return 'Active';
-
-                var twoMonthsAfter = new Date(expiry);
+                const twoMonthsAfter = new Date(expiry);
                 twoMonthsAfter.setMonth(twoMonthsAfter.getMonth() + 2);
-
                 if (today <= twoMonthsAfter) return 'Expired';
                 return 'Inactive';
             }
 
             function getPlanAmount(planName) {
-                return PLAN_PRICES.hasOwnProperty(planName) ? PLAN_PRICES[planName] : 0;
+                return PLAN_PRICES[planName] || 0;
             }
 
             function formatCurrency(amount) {
-                var n = Number(amount) || 0;
+                const n = Number(amount) || 0;
                 try {
                     return new Intl.NumberFormat('en-NG', {
                         style: 'currency',
@@ -2638,31 +1400,31 @@
                         maximumFractionDigits: 0
                     }).format(n);
                 } catch (e) {
-                    return '\u20A6' + n.toLocaleString('en-US');
+                    return '₦' + n.toLocaleString('en-US');
                 }
             }
 
             function formatDate(dateStr) {
-                var d = parseLocalDate(dateStr);
+                const d = parseLocalDate(dateStr);
                 if (isNaN(d.getTime())) return '—';
                 return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
             }
 
             function formatDateTime(isoStr) {
-                var d = new Date(isoStr);
+                const d = new Date(isoStr);
                 if (isNaN(d.getTime())) return '—';
                 return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
             }
 
             function getInitials(name) {
                 if (!name) return '?';
-                var parts = name.trim().split(/\s+/);
-                var initials = parts.slice(0, 2).map(function(p) { return p.charAt(0).toUpperCase(); });
+                const parts = name.trim().split(/\s+/);
+                const initials = parts.slice(0, 2).map(p => p.charAt(0).toUpperCase());
                 return initials.join('') || '?';
             }
 
             function escapeHtml(str) {
-                var div = document.createElement('div');
+                const div = document.createElement('div');
                 div.textContent = str == null ? '' : String(str);
                 return div.innerHTML;
             }
@@ -2673,20 +1435,14 @@
                 return 'status-inactive';
             }
 
-            /* ============================================================
-               FILTER + PAGINATE
-               ============================================================ */
+            // ============================================================
+            // FILTER & PAGINATION
+            // ============================================================
             function getFilteredCustomers() {
-                var list = getCustomers();
-
-                // newest first — new customers surface immediately
-                list = list.slice().sort(function(a, b) {
-                    return new Date(b.createdAt) - new Date(a.createdAt);
-                });
-
-                var search = state.search.trim().toLowerCase();
-
-                return list.filter(function(c) {
+                let list = getCustomers();
+                list = list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                const search = state.search.trim().toLowerCase();
+                return list.filter(c => {
                     if (search && (!c.name || c.name.toLowerCase().indexOf(search) === -1)) return false;
                     if (state.plan !== 'all' && c.plan !== state.plan) return false;
                     if (state.status !== 'all' && calculateStatus(c) !== state.status) return false;
@@ -2695,22 +1451,55 @@
             }
 
             function paginate(list, page, pageSize) {
-                var totalCount = list.length;
-                var totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-                var safePage = Math.min(Math.max(1, page), totalPages);
-                var start = (safePage - 1) * pageSize;
-                var pageItems = list.slice(start, start + pageSize);
-                return { pageItems: pageItems, totalPages: totalPages, totalCount: totalCount, page: safePage, start: start };
+                const totalCount = list.length;
+                const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+                const safePage = Math.min(Math.max(1, page), totalPages);
+                const start = (safePage - 1) * pageSize;
+                const pageItems = list.slice(start, start + pageSize);
+                return { pageItems, totalPages, totalCount, page: safePage, start };
             }
 
-            /* ============================================================
-               RENDER: LIST VIEW
-               ============================================================ */
+            function getPageNumberSequence(current, total) {
+                const delta = 1;
+                const range = [];
+                for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+                    range.push(i);
+                }
+                let pages = [];
+                if (current - delta > 2) {
+                    pages.push(1, '...');
+                } else {
+                    pages.push(1);
+                }
+                pages = pages.concat(range);
+                if (current + delta < total - 1) {
+                    pages.push('...', total);
+                } else if (total > 1) {
+                    pages.push(total);
+                }
+                const seen = {};
+                return pages.filter(p => {
+                    if (p === '...') return true;
+                    if (seen[p]) return false;
+                    seen[p] = true;
+                    return true;
+                });
+            }
+
+            // ============================================================
+            // RENDER: LIST
+            // ============================================================
             function renderCustomerList() {
-                var allCustomers = getCustomers();
-                var filtered = getFilteredCustomers();
-                var result = paginate(filtered, state.page, PAGE_SIZE);
+                const allCustomers = getCustomers();
+                const filtered = getFilteredCustomers();
+                const result = paginate(filtered, state.page, PAGE_SIZE);
                 state.page = result.page;
+
+                // Populate plan filter options
+                const currentPlan = planFilterEl.value;
+                planFilterEl.innerHTML = '<option value="all">All Plans</option>' +
+                    PLAN_NAMES.map(p => `<option value="${p}">${p}</option>`).join('');
+                planFilterEl.value = currentPlan;
 
                 if (allCustomers.length === 0) {
                     customerTableBody.innerHTML = '';
@@ -2728,54 +1517,54 @@
 
                 hideEmptyState();
 
-                var rowsHtml = result.pageItems.map(function(customer, i) {
-                    var rowNum = result.start + i + 1;
-                    var status = calculateStatus(customer);
-                    var safeName = escapeHtml(customer.name);
-                    var safePlan = escapeHtml(customer.plan);
-                    return (
-                        '<tr data-id="' + customer.id + '" tabindex="0" role="button" aria-label="View profile for ' + safeName + '">' +
-                            '<td class="row-num" data-label="#">' + rowNum + '</td>' +
-                            '<td class="cust-name-cell" data-label="Customer">' + safeName + '</td>' +
-                            '<td data-label="Plan">' + safePlan + '</td>' +
-                            '<td data-label="Status"><span class="status-badge ' + statusBadgeClass(status) + '">' + status + '</span></td>' +
-                            '<td data-label="Expiry">' + formatDate(customer.expiryDate) + '</td>' +
-                            '<td class="amount-cell" data-label="Amount">' + formatCurrency(customer.amount) + '</td>' +
-                            '<td class="action-cell" data-label="Action">' +
-                                '<button type="button" class="icon-action-btn extend-btn" data-id="' + customer.id + '" title="Extend Service" aria-label="Extend service for ' + safeName + '"><i class="fas fa-calendar-plus"></i></button>' +
-                                '<button type="button" class="icon-action-btn change-plan-btn" data-id="' + customer.id + '" title="Change Plan" aria-label="Change plan for ' + safeName + '"><i class="fas fa-exchange-alt"></i></button>' +
-                            '</td>' +
-                        '</tr>'
-                    );
+                let rowsHtml = result.pageItems.map((customer, i) => {
+                    const rowNum = result.start + i + 1;
+                    const status = calculateStatus(customer);
+                    const safeName = escapeHtml(customer.name);
+                    const safePlan = escapeHtml(customer.plan);
+                    return `
+                            <tr data-id="${customer.id}" tabindex="0" role="button" aria-label="View profile for ${safeName}">
+                                <td class="row-num" data-label="#">${rowNum}</td>
+                                <td class="cust-name-cell" data-label="Customer">${safeName}</td>
+                                <td data-label="Plan">${safePlan}</td>
+                                <td data-label="Status"><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td>
+                                <td data-label="Expiry">${formatDate(customer.expiryDate)}</td>
+                                <td class="amount-cell" data-label="Amount">${formatCurrency(customer.amount)}</td>
+                                <td class="action-cell" data-label="Action">
+                                    <button type="button" class="icon-action-btn extend-btn" data-id="${customer.id}" title="Extend Service" aria-label="Extend service for ${safeName}"><i class="fas fa-calendar-plus"></i></button>
+                                    <button type="button" class="icon-action-btn change-plan-btn" data-id="${customer.id}" title="Change Plan" aria-label="Change plan for ${safeName}"><i class="fas fa-exchange-alt"></i></button>
+                                </td>
+                            </tr>
+                        `;
                 }).join('');
 
                 customerTableBody.innerHTML = rowsHtml;
-
                 renderPagination(result);
             }
 
             function showEmptyState(kind) {
-                var html;
+                let html;
                 if (kind === 'no-customers') {
-                    html =
-                        '<i class="fas fa-user-friends"></i>' +
-                        '<h3>No customers yet</h3>' +
-                        '<p>Add your first customer to get started.</p>' +
-                        '<button type="button" class="btn-primary" id="emptyAddCustomerBtn"><i class="fas fa-plus"></i> Add Customer</button>';
+                    html = `
+                            <i class="fas fa-user-friends"></i>
+                            <h3>No customers yet</h3>
+                            <p>Add your first customer to get started.</p>
+                            <button type="button" class="btn-primary" id="emptyAddCustomerBtn"><i class="fas fa-plus"></i> Add Customer</button>
+                        `;
                 } else {
-                    html =
-                        '<i class="fas fa-filter"></i>' +
-                        '<h3>No customers match your current filters</h3>' +
-                        '<p>Try adjusting your search or filters.</p>' +
-                        '<button type="button" class="btn-secondary" id="clearFiltersBtn"><i class="fas fa-times"></i> Clear Filters</button>';
+                    html = `
+                            <i class="fas fa-filter"></i>
+                            <h3>No customers match your current filters</h3>
+                            <p>Try adjusting your search or filters.</p>
+                            <button type="button" class="btn-secondary" id="clearFiltersBtn"><i class="fas fa-times"></i> Clear Filters</button>
+                        `;
                 }
                 customerEmptyState.innerHTML = html;
                 customerEmptyState.style.display = 'block';
 
-                var emptyAddBtn = document.getElementById('emptyAddCustomerBtn');
+                const emptyAddBtn = document.getElementById('emptyAddCustomerBtn');
                 if (emptyAddBtn) emptyAddBtn.addEventListener('click', openAddCustomerModal);
-
-                var clearBtn = document.getElementById('clearFiltersBtn');
+                const clearBtn = document.getElementById('clearFiltersBtn');
                 if (clearBtn) clearBtn.addEventListener('click', clearFilters);
             }
 
@@ -2795,75 +1584,41 @@
                 renderCustomerList();
             }
 
-            /* ============================================================
-               RENDER: PAGINATION
-               ============================================================ */
             function renderPagination(result) {
                 if (result.totalCount <= PAGE_SIZE) {
-                    // still show a summary line even on a single page
+                    // still show summary
                 }
                 paginationBar.style.display = 'flex';
+                const startNum = result.totalCount === 0 ? 0 : result.start + 1;
+                const endNum = Math.min(result.start + PAGE_SIZE, result.totalCount);
+                paginationSummary.textContent = 'Showing ' + startNum + '\u2013' + endNum + ' of ' + result.totalCount
+                    .toLocaleString('en-US') + ' customers';
 
-                var startNum = result.totalCount === 0 ? 0 : result.start + 1;
-                var endNum = Math.min(result.start + PAGE_SIZE, result.totalCount);
-                paginationSummary.textContent = 'Showing ' + startNum + '\u2013' + endNum + ' of ' + result.totalCount.toLocaleString('en-US') + ' customers';
+                const page = result.page;
+                const totalPages = result.totalPages;
+                let html = '';
+                html += '<button type="button" class="page-btn" data-page="' + (page - 1) + '" ' + (page <= 1 ? 'disabled' :
+                    '') + ' aria-label="Previous page"><i class="fas fa-chevron-left"></i></button>';
 
-                var page = result.page;
-                var totalPages = result.totalPages;
-                var html = '';
-
-                html += '<button type="button" class="page-btn" data-page="' + (page - 1) + '" ' + (page <= 1 ? 'disabled' : '') + ' aria-label="Previous page"><i class="fas fa-chevron-left"></i></button>';
-
-                var pages = getPageNumberSequence(page, totalPages);
-                pages.forEach(function(p) {
+                const pages = getPageNumberSequence(page, totalPages);
+                pages.forEach(p => {
                     if (p === '...') {
                         html += '<span class="page-ellipsis">\u2026</span>';
                     } else {
-                        html += '<button type="button" class="page-btn ' + (p === page ? 'active' : '') + '" data-page="' + p + '" aria-label="Page ' + p + '" ' + (p === page ? 'aria-current="page"' : '') + '>' + p + '</button>';
+                        html += '<button type="button" class="page-btn ' + (p === page ? 'active' : '') + '" data-page="' +
+                            p + '" aria-label="Page ' + p + '" ' + (p === page ? 'aria-current="page"' : '') + '>' + p +
+                            '</button>';
                     }
                 });
 
-                html += '<button type="button" class="page-btn" data-page="' + (page + 1) + '" ' + (page >= totalPages ? 'disabled' : '') + ' aria-label="Next page"><i class="fas fa-chevron-right"></i></button>';
-
+                html += '<button type="button" class="page-btn" data-page="' + (page + 1) + '" ' + (page >= totalPages ?
+                    'disabled' : '') + ' aria-label="Next page"><i class="fas fa-chevron-right"></i></button>';
                 paginationControls.innerHTML = html;
             }
 
-            function getPageNumberSequence(current, total) {
-                var delta = 1;
-                var range = [];
-                var pages = [];
-
-                for (var i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-                    range.push(i);
-                }
-
-                if (current - delta > 2) {
-                    pages.push(1, '...');
-                } else {
-                    pages.push(1);
-                }
-
-                pages = pages.concat(range);
-
-                if (current + delta < total - 1) {
-                    pages.push('...', total);
-                } else if (total > 1) {
-                    pages.push(total);
-                }
-
-                // de-dupe (handles small totals cleanly)
-                var seen = {};
-                return pages.filter(function(p) {
-                    if (p === '...') return true;
-                    if (seen[p]) return false;
-                    seen[p] = true;
-                    return true;
-                });
-            }
-
-            /* ============================================================
-               RENDER: PROFILE VIEW
-               ============================================================ */
+            // ============================================================
+            // RENDER: PROFILE
+            // ============================================================
             function showCustomerListView() {
                 state.currentProfileId = null;
                 customerProfileView.style.display = 'none';
@@ -2871,9 +1626,8 @@
             }
 
             function showCustomerProfileView(id) {
-                var customer = findCustomerById(id);
+                const customer = findCustomerById(id);
                 if (!customer) {
-                    // invalid/missing id — fall back gracefully
                     showCustomerListView();
                     renderCustomerList();
                     return;
@@ -2886,11 +1640,11 @@
             }
 
             function renderProfile(customer) {
-                var status = calculateStatus(customer);
+                const status = calculateStatus(customer);
                 document.getElementById('profileAvatar').textContent = getInitials(customer.name);
                 document.getElementById('profileName').textContent = customer.name;
 
-                var badge = document.getElementById('profileStatusBadge');
+                const badge = document.getElementById('profileStatusBadge');
                 badge.className = 'status-badge ' + statusBadgeClass(status);
                 badge.textContent = status;
 
@@ -2906,25 +1660,26 @@
                     '<i class="fas fa-user-slash"></i> Deactivate Customer';
             }
 
-            /* ============================================================
-               GENERIC MODAL
-               ============================================================ */
+            // ============================================================
+            // MODAL
+            // ============================================================
             function openModal(titleText, bodyHtml, footerHtml) {
-                modalBox.innerHTML =
-                    '<div class="modal-header">' +
-                        '<h3>' + titleText + '</h3>' +
-                        '<button type="button" class="modal-close-btn" id="modalCloseBtn" aria-label="Close"><i class="fas fa-times"></i></button>' +
-                    '</div>' +
-                    '<div class="modal-body">' + bodyHtml + '</div>' +
-                    (footerHtml ? '<div class="modal-footer">' + footerHtml + '</div>' : '');
+                modalBox.innerHTML = `
+                        <div class="modal-header">
+                            <h3>${titleText}</h3>
+                            <button type="button" class="modal-close-btn" id="modalCloseBtn" aria-label="Close"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="modal-body">${bodyHtml}</div>
+                        ${footerHtml ? `<div class="modal-footer">${footerHtml}</div>` : ''}
+                    `;
 
                 modalOverlay.classList.add('open');
                 document.body.style.overflow = 'hidden';
 
                 document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
 
-                var firstInput = modalBox.querySelector('input, select');
-                if (firstInput) setTimeout(function() { firstInput.focus(); }, 50);
+                const firstInput = modalBox.querySelector('input, select');
+                if (firstInput) setTimeout(() => firstInput.focus(), 50);
             }
 
             function closeModal() {
@@ -2944,63 +1699,65 @@
             });
 
             function planOptionsHtml(selectedPlan) {
-                return PLAN_NAMES.map(function(p) {
-                    return '<option value="' + p + '" ' + (p === selectedPlan ? 'selected' : '') + '>' + p + ' (' + formatCurrency(PLAN_PRICES[p]) + ')</option>';
-                }).join('');
+                return PLAN_NAMES.map(p =>
+                    `<option value="${p}" ${p === selectedPlan ? 'selected' : ''}>${p} (${formatCurrency(PLAN_PRICES[p])})</option>`
+                ).join('');
             }
 
-            /* ============================================================
-               ADD CUSTOMER
-               ============================================================ */
+            // ============================================================
+            // ADD CUSTOMER
+            // ============================================================
             function openAddCustomerModal() {
-                var todayIso = new Date().toISOString().slice(0, 10);
+                const todayIso = new Date().toISOString().slice(0, 10);
 
-                var body =
-                    '<div class="form-field" id="addNameField">' +
-                        '<label for="addCustomerName">Customer Name</label>' +
-                        '<input type="text" id="addCustomerName" placeholder="e.g. Adaeze Okonkwo" autocomplete="off" />' +
-                        '<div class="field-error">Please enter a customer name.</div>' +
-                    '</div>' +
-                    '<div class="form-field" id="addPlanField">' +
-                        '<label for="addCustomerPlan">Plan</label>' +
-                        '<select id="addCustomerPlan">' + planOptionsHtml(PLAN_NAMES[0]) + '</select>' +
-                    '</div>' +
-                    '<div class="form-field" id="addExpiryField">' +
-                        '<label for="addCustomerExpiry">Expiry Date</label>' +
-                        '<input type="date" id="addCustomerExpiry" value="" min="' + todayIso + '" />' +
-                        '<div class="field-error">Please choose a valid expiry date.</div>' +
-                    '</div>';
+                const body = `
+                        <div class="form-field" id="addNameField">
+                            <label for="addCustomerName">Customer Name</label>
+                            <input type="text" id="addCustomerName" placeholder="e.g. Adaeze Okonkwo" autocomplete="off" />
+                            <div class="field-error">Please enter a customer name.</div>
+                        </div>
+                        <div class="form-field" id="addPlanField">
+                            <label for="addCustomerPlan">Plan</label>
+                            <select id="addCustomerPlan">${planOptionsHtml(PLAN_NAMES[0])}</select>
+                        </div>
+                        <div class="form-field" id="addExpiryField">
+                            <label for="addCustomerExpiry">Expiry Date</label>
+                            <input type="date" id="addCustomerExpiry" value="" min="${todayIso}" />
+                            <div class="field-error">Please choose a valid expiry date.</div>
+                        </div>
+                    `;
 
-                var footer =
-                    '<button type="button" class="btn-secondary" id="cancelAddCustomer">Cancel</button>' +
-                    '<button type="button" class="btn-primary" id="confirmAddCustomer"><i class="fas fa-check"></i> Add Customer</button>';
+                const footer = `
+                        <button type="button" class="btn-secondary" id="cancelAddCustomer">Cancel</button>
+                        <button type="button" class="btn-primary" id="confirmAddCustomer"><i class="fas fa-check"></i> Add Customer</button>
+                    `;
 
                 openModal('Add Customer', body, footer);
 
                 document.getElementById('cancelAddCustomer').addEventListener('click', closeModal);
                 document.getElementById('confirmAddCustomer').addEventListener('click', handleAddCustomer);
 
-                var nameInput = document.getElementById('addCustomerName');
+                const nameInput = document.getElementById('addCustomerName');
                 nameInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter') handleAddCustomer();
                 });
             }
 
             function handleAddCustomer() {
-                var nameInput = document.getElementById('addCustomerName');
-                var planSelect = document.getElementById('addCustomerPlan');
-                var expiryInput = document.getElementById('addCustomerExpiry');
+                const nameInput = document.getElementById('addCustomerName');
+                const planSelect = document.getElementById('addCustomerPlan');
+                const expiryInput = document.getElementById('addCustomerExpiry');
 
-                var name = nameInput.value.trim();
-                var plan = planSelect.value;
-                var expiry = expiryInput.value;
+                const name = nameInput.value.trim();
+                const plan = planSelect.value;
+                const expiry = expiryInput.value;
 
-                var nameField = document.getElementById('addNameField');
-                var expiryField = document.getElementById('addExpiryField');
+                const nameField = document.getElementById('addNameField');
+                const expiryField = document.getElementById('addExpiryField');
                 nameField.classList.remove('has-error');
                 expiryField.classList.remove('has-error');
 
-                var valid = true;
+                let valid = true;
                 if (!name) {
                     nameField.classList.add('has-error');
                     valid = false;
@@ -3011,7 +1768,7 @@
                 }
                 if (!valid) return;
 
-                var customer = {
+                const customer = {
                     id: generateId(),
                     name: name,
                     plan: plan,
@@ -3024,48 +1781,50 @@
                 addCustomerRecord(customer);
                 closeModal();
 
-                // reset filters so the new customer is immediately visible
+                // reset filters so the new customer is visible
                 clearFilters();
             }
 
-            /* ============================================================
-               EXTEND SERVICE
-               ============================================================ */
+            // ============================================================
+            // EXTEND SERVICE
+            // ============================================================
             function openExtendServiceModal(id) {
-                var customer = findCustomerById(id);
+                const customer = findCustomerById(id);
                 if (!customer) return;
 
-                var currentExpiry = parseLocalDate(customer.expiryDate);
-                var baseDate = currentExpiry.getTime() > Date.now() ? currentExpiry : new Date();
+                const currentExpiry = parseLocalDate(customer.expiryDate);
+                const baseDate = currentExpiry.getTime() > Date.now() ? currentExpiry : new Date();
 
-                var body =
-                    '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px;">' +
-                        'Current expiry: <strong style="color:var(--text-primary);">' + formatDate(customer.expiryDate) + '</strong>' +
-                    '</p>' +
-                    '<div class="quick-chips">' +
-                        '<button type="button" class="quick-chip" data-months="1">+1 Month</button>' +
-                        '<button type="button" class="quick-chip" data-months="3">+3 Months</button>' +
-                        '<button type="button" class="quick-chip" data-months="6">+6 Months</button>' +
-                        '<button type="button" class="quick-chip" data-months="12">+12 Months</button>' +
-                    '</div>' +
-                    '<div class="form-field" id="extendDateField">' +
-                        '<label for="extendExpiryInput">New Expiry Date</label>' +
-                        '<input type="date" id="extendExpiryInput" value="' + customer.expiryDate + '" />' +
-                        '<div class="field-error">Please choose a valid date.</div>' +
-                    '</div>';
+                const body = `
+                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px;">
+                            Current expiry: <strong style="color:var(--text-primary);">${formatDate(customer.expiryDate)}</strong>
+                        </p>
+                        <div class="quick-chips">
+                            <button type="button" class="quick-chip" data-months="1">+1 Month</button>
+                            <button type="button" class="quick-chip" data-months="3">+3 Months</button>
+                            <button type="button" class="quick-chip" data-months="6">+6 Months</button>
+                            <button type="button" class="quick-chip" data-months="12">+12 Months</button>
+                        </div>
+                        <div class="form-field" id="extendDateField">
+                            <label for="extendExpiryInput">New Expiry Date</label>
+                            <input type="date" id="extendExpiryInput" value="${customer.expiryDate}" />
+                            <div class="field-error">Please choose a valid date.</div>
+                        </div>
+                    `;
 
-                var footer =
-                    '<button type="button" class="btn-secondary" id="cancelExtend">Cancel</button>' +
-                    '<button type="button" class="btn-primary" id="confirmExtend"><i class="fas fa-check"></i> Extend Service</button>';
+                const footer = `
+                        <button type="button" class="btn-secondary" id="cancelExtend">Cancel</button>
+                        <button type="button" class="btn-primary" id="confirmExtend"><i class="fas fa-check"></i> Extend Service</button>
+                    `;
 
                 openModal('Extend Service', body, footer);
 
-                var dateInput = document.getElementById('extendExpiryInput');
+                const dateInput = document.getElementById('extendExpiryInput');
 
-                document.querySelectorAll('.quick-chip').forEach(function(chip) {
+                document.querySelectorAll('.quick-chip').forEach(chip => {
                     chip.addEventListener('click', function() {
-                        var months = parseInt(this.getAttribute('data-months'), 10);
-                        var d = new Date(baseDate);
+                        const months = parseInt(this.getAttribute('data-months'), 10);
+                        const d = new Date(baseDate);
                         d.setMonth(d.getMonth() + months);
                         dateInput.value = d.toISOString().slice(0, 10);
                     });
@@ -3078,9 +1837,9 @@
             }
 
             function handleExtendService(id) {
-                var dateInput = document.getElementById('extendExpiryInput');
-                var field = document.getElementById('extendDateField');
-                var newExpiry = dateInput.value;
+                const dateInput = document.getElementById('extendExpiryInput');
+                const field = document.getElementById('extendDateField');
+                const newExpiry = dateInput.value;
 
                 field.classList.remove('has-error');
                 if (!newExpiry || isNaN(parseLocalDate(newExpiry).getTime())) {
@@ -3097,30 +1856,32 @@
                 renderCustomerList();
             }
 
-            /* ============================================================
-               CHANGE PLAN
-               ============================================================ */
+            // ============================================================
+            // CHANGE PLAN
+            // ============================================================
             function openChangePlanModal(id) {
-                var customer = findCustomerById(id);
+                const customer = findCustomerById(id);
                 if (!customer) return;
 
-                var body =
-                    '<div class="form-field">' +
-                        '<label for="changePlanSelect">New Plan</label>' +
-                        '<select id="changePlanSelect">' + planOptionsHtml(customer.plan) + '</select>' +
-                    '</div>' +
-                    '<div class="plan-amount-preview" id="planAmountPreview">' +
-                        'New amount: ' + formatCurrency(getPlanAmount(customer.plan)) +
-                    '</div>';
+                const body = `
+                        <div class="form-field">
+                            <label for="changePlanSelect">New Plan</label>
+                            <select id="changePlanSelect">${planOptionsHtml(customer.plan)}</select>
+                        </div>
+                        <div class="plan-amount-preview" id="planAmountPreview">
+                            New amount: ${formatCurrency(getPlanAmount(customer.plan))}
+                        </div>
+                    `;
 
-                var footer =
-                    '<button type="button" class="btn-secondary" id="cancelChangePlan">Cancel</button>' +
-                    '<button type="button" class="btn-primary" id="confirmChangePlan"><i class="fas fa-check"></i> Change Plan</button>';
+                const footer = `
+                        <button type="button" class="btn-secondary" id="cancelChangePlan">Cancel</button>
+                        <button type="button" class="btn-primary" id="confirmChangePlan"><i class="fas fa-check"></i> Change Plan</button>
+                    `;
 
                 openModal('Change Plan', body, footer);
 
-                var select = document.getElementById('changePlanSelect');
-                var preview = document.getElementById('planAmountPreview');
+                const select = document.getElementById('changePlanSelect');
+                const preview = document.getElementById('planAmountPreview');
                 select.addEventListener('change', function() {
                     preview.textContent = 'New amount: ' + formatCurrency(getPlanAmount(select.value));
                 });
@@ -3132,8 +1893,8 @@
             }
 
             function handleChangePlan(id) {
-                var select = document.getElementById('changePlanSelect');
-                var newPlan = select.value;
+                const select = document.getElementById('changePlanSelect');
+                const newPlan = select.value;
 
                 updateCustomerRecord(id, { plan: newPlan, amount: getPlanAmount(newPlan) });
                 closeModal();
@@ -3144,21 +1905,23 @@
                 renderCustomerList();
             }
 
-            /* ============================================================
-               DEACTIVATE
-               ============================================================ */
+            // ============================================================
+            // DEACTIVATE
+            // ============================================================
             function openDeactivateConfirm(id) {
-                var customer = findCustomerById(id);
+                const customer = findCustomerById(id);
                 if (!customer || customer.deactivated) return;
 
-                var body =
-                    '<div class="confirm-icon"><i class="fas fa-user-slash"></i></div>' +
-                    '<p class="confirm-text">Are you sure you want to deactivate <strong>' + escapeHtml(customer.name) + '</strong>? ' +
-                    'Their account status will permanently change to Inactive. This cannot be undone from here.</p>';
+                const body = `
+                        <div class="confirm-icon"><i class="fas fa-user-slash"></i></div>
+                        <p class="confirm-text">Are you sure you want to deactivate <strong>${escapeHtml(customer.name)}</strong>?
+                        Their account status will permanently change to Inactive. This cannot be undone from here.</p>
+                    `;
 
-                var footer =
-                    '<button type="button" class="btn-secondary" id="cancelDeactivate">Cancel</button>' +
-                    '<button type="button" class="btn-danger" id="confirmDeactivate"><i class="fas fa-user-slash"></i> Deactivate</button>';
+                const footer = `
+                        <button type="button" class="btn-secondary" id="cancelDeactivate">Cancel</button>
+                        <button type="button" class="btn-danger" id="confirmDeactivate"><i class="fas fa-user-slash"></i> Deactivate</button>
+                    `;
 
                 openModal('Deactivate Customer', body, footer);
 
@@ -3173,15 +1936,15 @@
                 });
             }
 
-            /* ============================================================
-               EVENT WIRING
-               ============================================================ */
+            // ============================================================
+            // EVENT WIRING
+            // ============================================================
             addCustomerBtn.addEventListener('click', openAddCustomerModal);
 
-            var searchDebounceTimer = null;
+            let searchDebounceTimer = null;
             customerSearchInput.addEventListener('input', function() {
                 clearTimeout(searchDebounceTimer);
-                var value = this.value;
+                const value = this.value;
                 searchDebounceTimer = setTimeout(function() {
                     state.search = value;
                     state.page = 1;
@@ -3201,21 +1964,20 @@
                 renderCustomerList();
             });
 
-            // row click -> profile, action buttons -> their own modals
             customerTableBody.addEventListener('click', function(e) {
-                var extendBtn = e.target.closest('.extend-btn');
+                const extendBtn = e.target.closest('.extend-btn');
                 if (extendBtn) {
                     e.stopPropagation();
                     openExtendServiceModal(extendBtn.getAttribute('data-id'));
                     return;
                 }
-                var changePlanBtn = e.target.closest('.change-plan-btn');
+                const changePlanBtn = e.target.closest('.change-plan-btn');
                 if (changePlanBtn) {
                     e.stopPropagation();
                     openChangePlanModal(changePlanBtn.getAttribute('data-id'));
                     return;
                 }
-                var row = e.target.closest('tr[data-id]');
+                const row = e.target.closest('tr[data-id]');
                 if (row) {
                     showCustomerProfileView(row.getAttribute('data-id'));
                 }
@@ -3223,7 +1985,7 @@
 
             customerTableBody.addEventListener('keydown', function(e) {
                 if (e.key !== 'Enter' && e.key !== ' ') return;
-                var row = e.target.closest('tr[data-id]');
+                const row = e.target.closest('tr[data-id]');
                 if (row && e.target === row) {
                     e.preventDefault();
                     showCustomerProfileView(row.getAttribute('data-id'));
@@ -3231,9 +1993,9 @@
             });
 
             paginationControls.addEventListener('click', function(e) {
-                var btn = e.target.closest('.page-btn');
+                const btn = e.target.closest('.page-btn');
                 if (!btn || btn.disabled) return;
-                var page = parseInt(btn.getAttribute('data-page'), 10);
+                const page = parseInt(btn.getAttribute('data-page'), 10);
                 if (isNaN(page)) return;
                 state.page = page;
                 renderCustomerList();
@@ -3257,16 +2019,16 @@
                 if (state.currentProfileId) openChangePlanModal(state.currentProfileId);
             });
 
-            /* ============================================================
-               SEED DATA (dev/testing only — safe to remove)
-               ============================================================ */
+            // ============================================================
+            // SEED DATA
+            // ============================================================
             function seedInitialData() {
-                var alreadySeeded = false;
+                let alreadySeeded = false;
                 try { alreadySeeded = localStorage.getItem(SEEDED_FLAG_KEY) === 'true'; } catch (e) {}
 
                 if (alreadySeeded || getCustomers().length > 0) return;
 
-                var names = [
+                const names = [
                     'Adaeze Okonkwo', 'Chinedu Williams', 'Fatima Bello', 'Emeka Nwosu',
                     'Ngozi Adeyemi', 'Tunde Balogun', 'Blessing Eze', 'Ibrahim Suleiman',
                     'Chiamaka Obi', 'Segun Afolabi', 'Amaka Chukwu', 'David Okafor',
@@ -3274,19 +2036,18 @@
                 ];
 
                 function isoDateFromToday(offsetDays) {
-                    var d = new Date();
+                    const d = new Date();
                     d.setDate(d.getDate() + offsetDays);
                     return d.toISOString().slice(0, 10);
                 }
 
-                // spread of offsets so seed data covers Active / Expired / Inactive
-                var offsets = [45, 20, 5, -10, -25, -50, -70, 90, -3, 15, 60, -100, 30, -15];
+                const offsets = [45, 20, 5, -10, -25, -50, -70, 90, -3, 15, 60, -100, 30, -15];
 
-                var seeded = names.map(function(name, i) {
-                    var plan = PLAN_NAMES[i % PLAN_NAMES.length];
-                    var expiryDate = isoDateFromToday(offsets[i % offsets.length]);
-                    var createdOffsetDays = Math.floor(Math.random() * 180) + 10;
-                    var createdAt = new Date(Date.now() - createdOffsetDays * 86400000).toISOString();
+                const seeded = names.map((name, i) => {
+                    const plan = PLAN_NAMES[i % PLAN_NAMES.length];
+                    const expiryDate = isoDateFromToday(offsets[i % offsets.length]);
+                    const createdOffsetDays = Math.floor(Math.random() * 180) + 10;
+                    const createdAt = new Date(Date.now() - createdOffsetDays * 86400000).toISOString();
                     return {
                         id: generateId(),
                         name: name,
@@ -3303,14 +2064,13 @@
             }
 
             // Dev helper: generate N extra customers to stress-test pagination/perf.
-            // Call from the browser console: seedTestCustomers(10000)
             window.seedTestCustomers = function(count) {
                 count = count || 1000;
-                var list = getCustomers();
-                for (var i = 0; i < count; i++) {
-                    var plan = PLAN_NAMES[i % PLAN_NAMES.length];
-                    var offsetDays = (i % 5 === 0) ? -80 : (i % 3 === 0) ? -20 : 60;
-                    var d = new Date();
+                const list = getCustomers();
+                for (let i = 0; i < count; i++) {
+                    const plan = PLAN_NAMES[i % PLAN_NAMES.length];
+                    const offsetDays = (i % 5 === 0) ? -80 : (i % 3 === 0) ? -20 : 60;
+                    const d = new Date();
                     d.setDate(d.getDate() + offsetDays);
                     list.push({
                         id: generateId(),
@@ -3323,25 +2083,100 @@
                     });
                 }
                 saveCustomers(list);
-                if (window.CustomerModule) window.CustomerModule.onPageShow();
+                renderCustomerList();
                 console.log('Seeded ' + count + ' test customers. Total: ' + list.length);
             };
 
             seedInitialData();
 
-            /* ============================================================
-               PUBLIC HOOK (called by main navigateTo() when Customers page opens)
-               ============================================================ */
-            window.CustomerModule = {
-                onPageShow: function() {
-                    showCustomerListView();
-                    renderCustomerList();
+            // ============================================================
+            // SIDEBAR & THEME (shared across pages)
+            // ============================================================
+            // Sidebar toggle
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('open');
+                hamburgerBtn.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+                hamburgerBtn.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            hamburgerBtn.addEventListener('click', function() {
+                if (sidebar.classList.contains('open')) closeSidebar();
+                else openSidebar();
+            });
+            closeSidebarBtn.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
+            });
+
+            // Theme toggle
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            let darkMode = false;
+
+            function applyTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeIcon.className = 'fas fa-sun';
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeIcon.className = 'fas fa-moon';
                 }
-            };
+                darkMode = isDark;
+                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+            }
 
-            // render once up front too, in case Customers is the first page shown
+            try {
+                const saved = localStorage.getItem('prontox-theme');
+                if (saved === 'dark') applyTheme(true);
+                else if (saved === 'light') applyTheme(false);
+                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+                else applyTheme(false);
+            } catch (_) { applyTheme(false); }
+
+            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+            // Logo link (go to dashboard)
+            document.getElementById('logoLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'dashboard.html';
+            });
+
+            // Avatar click
+            document.getElementById('avatarBtn').addEventListener('click', function() {
+                alert('👤 User profile – would open user settings.');
+            });
+
+           // ─── LOGOUT ───
+logoutBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (confirm('Are you sure you want to log out?')) {
+        // Clear session from localStorage
+        localStorage.removeItem('prontox_session');
+        // Redirect to login page
+        window.location.href = 'login.html';
+    }
+});
+
+            // ============================================================
+            // INIT
+            // ============================================================
             renderCustomerList();
-
+            console.log('✅ Customer page ready.');
         })();
     </script>
 

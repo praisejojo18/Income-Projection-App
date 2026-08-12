@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Prontox · Platform</title>
+    <title>Prontox · Dashboard</title>
 
-    <!-- Font Awesome 6 (Free) -->
+    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <style>
         /* ============================================================
            PRONTOX COLOR PALETTE & FONTS
            ============================================================ */
-
-        /* --- COLORS (Light Mode - default) --- */
         :root {
             --bg: #F0F4F8;
             --surface: #FFFFFF;
@@ -36,24 +34,17 @@
             --warning: #f59e0b;
             --warning-light: #fef3c7;
 
-            /* Shadows */
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
             --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.08);
 
-            /* Border Radius */
             --radius: 14px;
             --radius-sm: 10px;
             --radius-xs: 8px;
-
-            /* Transitions */
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-            /* Navbar */
             --nav-height: 68px;
         }
 
-        /* --- DARK MODE OVERRIDES --- */
         [data-theme="dark"] {
             --bg: #0E0F11;
             --surface: #1A1E21;
@@ -103,12 +94,10 @@
             border: none;
             background: none;
         }
-
         a {
             text-decoration: none;
             color: inherit;
         }
-
         input,
         select {
             font-family: inherit;
@@ -384,29 +373,6 @@
             transition: padding 0.3s;
         }
 
-        .page-header {
-            margin-bottom: 28px;
-        }
-        .page-header h2 {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            transition: color var(--transition);
-        }
-        .page-header p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin-top: 4px;
-            transition: color var(--transition);
-        }
-
-        .page-content {
-            display: none;
-        }
-        .page-content.active {
-            display: block;
-        }
-
         /* ============================================================
            DASHBOARD STYLES
            ============================================================ */
@@ -618,10 +584,6 @@
             background: #fef3c7;
             color: #d97706;
         }
-        .status-badge.warning-status {
-            background: #fef3c7;
-            color: #d97706;
-        }
         [data-theme="dark"] .status-badge.active {
             background: #1a3a2a;
             color: #4ade80;
@@ -635,10 +597,6 @@
             color: #60a5fa;
         }
         [data-theme="dark"] .status-badge.unpaid {
-            background: #3a2a0a;
-            color: #fbbf24;
-        }
-        [data-theme="dark"] .status-badge.warning-status {
             background: #3a2a0a;
             color: #fbbf24;
         }
@@ -685,7 +643,7 @@
             background: #a78bfa;
             color: #4c1d95;
         }
-        .plan-tag.sme-premium-plus {
+        .plan-tag.sme-platinum-plus {
             background: #f472b6;
             color: #831843;
         }
@@ -721,7 +679,7 @@
             background: #4c1d95;
             color: #a78bfa;
         }
-        [data-theme="dark"] .plan-tag.sme-premium-plus {
+        [data-theme="dark"] .plan-tag.sme-platinum-plus {
             background: #5b1a3a;
             color: #f472b6;
         }
@@ -732,13 +690,11 @@
         .text-primary-custom {
             color: var(--accent) !important;
         }
-        .text-red {
-            color: #dc2626 !important;
+        .fw-600 {
             font-weight: 600;
         }
-        .text-yellow {
-            color: #d97706 !important;
-            font-weight: 600;
+        .fs-small {
+            font-size: 13px;
         }
 
         .filter-bar {
@@ -796,16 +752,7 @@
             transition: width 0.4s ease;
         }
 
-        .fw-600 {
-            font-weight: 600;
-        }
-        .fs-small {
-            font-size: 13px;
-        }
-
-        /* ============================================================
-           PLAN DISTRIBUTION BAR CHART (REFERENCE: Unit Sales.png)
-           ============================================================ */
+        /* Plan Distribution Table */
         .distribution-table {
             width: 100%;
             border-collapse: collapse;
@@ -830,7 +777,6 @@
         .distribution-table tr:last-child td {
             border-bottom: none;
         }
-
         .distribution-table .plan-label-cell {
             font-weight: 500;
             display: flex;
@@ -844,12 +790,10 @@
             flex-shrink: 0;
             display: inline-block;
         }
-
         .distribution-table .bar-cell {
             min-width: 120px;
             padding-right: 8px;
         }
-
         .distribution-table .bar-track {
             height: 20px;
             background: var(--surface-2);
@@ -859,7 +803,6 @@
             position: relative;
             transition: background var(--transition), border-color var(--transition);
         }
-
         .distribution-table .bar-fill {
             height: 100%;
             border-radius: 3px;
@@ -870,7 +813,6 @@
             padding-right: 4px;
             min-width: 20px;
         }
-
         .distribution-table .bar-fill .bar-value-label {
             font-size: 0.6rem;
             font-weight: 700;
@@ -878,7 +820,6 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
             white-space: nowrap;
         }
-
         .distribution-table .amount-cell {
             font-weight: 600;
             text-align: right;
@@ -899,7 +840,6 @@
             white-space: nowrap;
             min-width: 60px;
         }
-
         .distribution-table .total-row td {
             font-weight: 700;
             padding-top: 12px;
@@ -945,9 +885,7 @@
             font-size: 0.9rem;
         }
 
-        /* ============================================================
-           EXPIRING SOON & TODAY EXPIRED TABLE STYLES
-           ============================================================ */
+        /* Expiring Soon & Today Expired */
         .expiry-table-wrap {
             overflow-x: auto;
             border-radius: var(--radius-sm);
@@ -985,7 +923,6 @@
         .expiry-table-wrap tr:hover td {
             background: var(--surface-2);
         }
-
         .expiry-table-wrap .expiry-customer {
             font-weight: 600;
             display: flex;
@@ -1005,7 +942,6 @@
             font-weight: 700;
             flex-shrink: 0;
         }
-
         .expiry-table-wrap .expiry-status {
             display: inline-block;
             padding: 2px 10px;
@@ -1025,7 +961,6 @@
             background: var(--accent-light);
             color: var(--accent-dark);
         }
-
         .expiry-table-wrap .expiry-countdown {
             font-weight: 600;
             font-size: 0.85rem;
@@ -1039,7 +974,6 @@
         .expiry-table-wrap .expiry-countdown.safe {
             color: var(--success);
         }
-
         .expiry-empty {
             text-align: center;
             padding: 30px 20px;
@@ -1055,1183 +989,7 @@
             font-size: 0.9rem;
         }
 
-        /* ============================================================
-           PAYMENT PAGE STYLES
-           ============================================================ */
-        .payment-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        @media (max-width: 900px) {
-            .payment-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .payment-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
-        }
-
-        .payment-card h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .payment-card h3 i {
-            color: var(--accent);
-        }
-
-        .search-area {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .search-area input {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .search-area input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-light);
-        }
-        .search-area .search-btn {
-            padding: 10px 20px;
-            background: var(--accent);
-            color: #fff;
-            border-radius: var(--radius-xs);
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        .search-area .search-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        .customer-info {
-            background: var(--surface-2);
-            border-radius: var(--radius-sm);
-            padding: 16px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-            transition: background var(--transition), border-color var(--transition);
-        }
-        .customer-info .row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .customer-info .row:last-child {
-            border-bottom: none;
-        }
-        .customer-info .label {
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-        .customer-info .value {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-        }
-        .customer-info .value .badge {
-            background: var(--success-light);
-            color: var(--success);
-            padding: 2px 10px;
-            border-radius: 999px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-        .customer-info .value .badge.inactive {
-            background: var(--danger-light);
-            color: var(--danger);
-        }
-
-        .payment-form .form-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-        }
-        .payment-form .form-row label {
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            min-width: 120px;
-        }
-        .payment-form .form-row input {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            width: 100px;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .payment-form .form-row input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-light);
-        }
-        .payment-form .form-row .amount-display {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--accent);
-            min-width: 100px;
-        }
-        .payment-form .hint {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 16px;
-            padding: 10px 14px;
-            background: var(--surface-2);
-            border-radius: var(--radius-xs);
-            border-left: 3px solid var(--accent);
-        }
-
-        .payment-form .confirm-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--accent);
-            color: #fff;
-            font-weight: 600;
-            font-size: 1rem;
-            border-radius: var(--radius-xs);
-            transition: background 0.2s;
-        }
-        .payment-form .confirm-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        .table-wrap {
-            overflow-x: auto;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            transition: border-color var(--transition);
-        }
-        .table-wrap table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            min-width: 600px;
-        }
-        .table-wrap th {
-            text-align: left;
-            padding: 12px 16px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            background: var(--surface-2);
-            border-bottom: 2px solid var(--border);
-            transition: background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .table-wrap td {
-            padding: 10px 16px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
-            transition: border-color var(--transition), color var(--transition);
-        }
-        .table-wrap tr:last-child td {
-            border-bottom: none;
-        }
-
-        .no-result {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
-        .no-result i {
-            font-size: 2rem;
-            color: var(--border);
-            margin-bottom: 12px;
-            display: block;
-        }
-
-        /* ============================================================
-           INCOME PROJECTION STYLES
-           ============================================================ */
-        .add-projection-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 28px;
-            box-shadow: var(--shadow);
-            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
-        }
-
-        .add-projection-card .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-        .add-projection-card .card-header h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .add-projection-card .card-header h3 i {
-            color: var(--accent);
-        }
-        .add-projection-card .card-header .toggle-form-btn {
-            padding: 6px 16px;
-            border-radius: var(--radius-xs);
-            font-weight: 600;
-            font-size: 0.85rem;
-            background: var(--accent);
-            color: #fff;
-            transition: background 0.2s;
-        }
-        .add-projection-card .card-header .toggle-form-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        .projection-form {
-            display: none;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-            transition: border-color var(--transition);
-        }
-        .projection-form.open {
-            display: grid;
-        }
-
-        .projection-form .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .projection-form .form-group label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-        .projection-form .form-group input,
-        .projection-form .form-group select {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .projection-form .form-group input:focus,
-        .projection-form .form-group select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-light);
-        }
-        .projection-form .form-group .input-hint {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        .projection-form .form-actions {
-            grid-column: 1 / -1;
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 8px;
-        }
-        .projection-form .form-actions .save-btn {
-            padding: 10px 28px;
-            background: var(--success);
-            color: #fff;
-            border-radius: var(--radius-xs);
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-        .projection-form .form-actions .save-btn:hover {
-            background: #059669;
-        }
-        .projection-form .form-actions .cancel-btn {
-            padding: 10px 20px;
-            background: var(--surface-2);
-            color: var(--text-secondary);
-            border-radius: var(--radius-xs);
-            font-weight: 500;
-            font-size: 0.9rem;
-            border: 1px solid var(--border);
-            transition: all 0.2s;
-        }
-        .projection-form .form-actions .cancel-btn:hover {
-            background: var(--border);
-        }
-
-        .view-projection-section {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
-        }
-
-        .view-projection-section .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 20px;
-            cursor: pointer;
-        }
-        .view-projection-section .section-header:hover h3 {
-            color: var(--accent);
-        }
-        .view-projection-section .section-header h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: color 0.2s;
-        }
-        .view-projection-section .section-header h3 i {
-            color: var(--accent);
-        }
-        .view-projection-section .section-header .toggle-icon {
-            font-size: 16px;
-            color: var(--text-muted);
-            transition: transform 0.3s;
-        }
-        .view-projection-section .section-header .toggle-icon.collapsed {
-            transform: rotate(-90deg);
-        }
-
-        .view-projection-body {
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-        .view-projection-body.collapsed {
-            max-height: 0 !important;
-            padding-top: 0;
-            opacity: 0;
-            margin: 0;
-        }
-        .view-projection-body.expanded {
-            max-height: 2000px;
-            opacity: 1;
-        }
-
-        .filter-tabs {
-            display: flex;
-            gap: 6px;
-            background: var(--surface-2);
-            padding: 4px;
-            border-radius: var(--radius-xs);
-            border: 1px solid var(--border);
-            margin-bottom: 18px;
-            flex-wrap: wrap;
-        }
-        .filter-tabs .filter-btn {
-            padding: 6px 16px;
-            border-radius: var(--radius-xs);
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            transition: all 0.2s;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-        .filter-tabs .filter-btn:hover {
-            color: var(--text-primary);
-            background: var(--surface-3);
-        }
-        .filter-tabs .filter-btn.active {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        .projection-table-wrap {
-            overflow-x: auto;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            transition: border-color var(--transition);
-        }
-        .projection-table-wrap table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            min-width: 500px;
-        }
-        .projection-table-wrap th {
-            text-align: left;
-            padding: 12px 16px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            background: var(--surface-2);
-            border-bottom: 2px solid var(--border);
-            transition: background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .projection-table-wrap td {
-            padding: 10px 16px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
-            transition: border-color var(--transition), color var(--transition);
-            vertical-align: middle;
-        }
-        .projection-table-wrap tr:last-child td {
-            border-bottom: none;
-        }
-        .projection-table-wrap .total-row td {
-            font-weight: 700;
-            background: var(--accent-light);
-            color: var(--text-primary);
-            border-top: 2px solid var(--border);
-        }
-
-        .projection-table-wrap .delete-btn {
-            padding: 4px 12px;
-            background: var(--danger);
-            color: #fff;
-            border-radius: var(--radius-xs);
-            font-size: 0.7rem;
-            font-weight: 600;
-            transition: background 0.2s;
-            cursor: pointer;
-            border: none;
-        }
-        .projection-table-wrap .delete-btn:hover {
-            background: var(--danger-hover);
-        }
-
-        .no-projection {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
-        .no-projection i {
-            font-size: 2.5rem;
-            color: var(--border);
-            margin-bottom: 12px;
-            display: block;
-        }
-        .no-projection p {
-            font-size: 0.95rem;
-        }
-
-        .projection-count {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-left: 8px;
-            font-weight: 400;
-        }
-
-        /* ============================================================
-           PROJ VS ACTUAL STYLES
-           ============================================================ */
-        .pa-summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .pa-summary-grid .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 16px 20px;
-            box-shadow: var(--shadow);
-            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
-        }
-        .pa-summary-grid .card .label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .pa-summary-grid .card .value {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-top: 4px;
-            transition: color var(--transition);
-        }
-        .pa-summary-grid .card .sub {
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-top: 4px;
-        }
-        .pa-summary-grid .card .sub.positive {
-            color: var(--success);
-        }
-        .pa-summary-grid .card .sub.negative {
-            color: var(--danger);
-        }
-        .pa-summary-grid .card .sub.neutral {
-            color: var(--text-muted);
-        }
-
-        .pa-filter-area {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-        .pa-filter-area select {
-            padding: 8px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .pa-filter-area select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-light);
-        }
-
-        .pa-chart-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            gap: 6px;
-            height: 280px;
-            padding: 0 4px 0 4px;
-            border-bottom: 2px solid var(--border);
-            transition: border-color var(--transition);
-            margin-bottom: 16px;
-        }
-
-        .pa-chart-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            min-width: 0;
-            height: 100%;
-            justify-content: flex-end;
-        }
-
-        .pa-chart-bars {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-            height: 220px;
-            flex-shrink: 0;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .pa-bar-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-            justify-content: flex-end;
-            gap: 3px;
-            flex: 1;
-            max-width: 44px;
-            min-width: 24px;
-        }
-
-        .pa-bar-group .bar-value {
-            font-size: 0.55rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            transition: color var(--transition);
-            text-align: center;
-            line-height: 1.2;
-        }
-
-        .pa-bar-group .bar {
-            width: 100%;
-            border-radius: 4px 4px 0 0;
-            min-height: 3px;
-            transition: height 0.5s ease, background 0.2s;
-            flex-shrink: 0;
-        }
-
-        .pa-bar-group .bar.projection {
-            background: var(--accent);
-            opacity: 0.85;
-        }
-        .pa-bar-group .bar.actual {
-            background: var(--success);
-            opacity: 0.85;
-        }
-
-        .pa-chart-legend {
-            display: flex;
-            justify-content: center;
-            gap: 28px;
-            margin-top: 8px;
-        }
-        .pa-chart-legend span {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            transition: color var(--transition);
-        }
-        .pa-chart-legend .dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-            flex-shrink: 0;
-        }
-        .pa-chart-legend .dot.projection {
-            background: var(--accent);
-        }
-        .pa-chart-legend .dot.actual {
-            background: var(--success);
-        }
-
-        .pa-period-label {
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-top: 8px;
-            text-align: center;
-            transition: color var(--transition);
-            letter-spacing: 0.02em;
-        }
-
-        .pa-table-wrap {
-            overflow-x: auto;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            transition: border-color var(--transition);
-            margin-top: 16px;
-        }
-        .pa-table-wrap table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            min-width: 500px;
-        }
-        .pa-table-wrap th {
-            text-align: left;
-            padding: 12px 16px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            background: var(--surface-2);
-            border-bottom: 2px solid var(--border);
-            transition: background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .pa-table-wrap td {
-            padding: 10px 16px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
-            transition: border-color var(--transition), color var(--transition);
-        }
-        .pa-table-wrap tr:last-child td {
-            border-bottom: none;
-        }
-        .pa-table-wrap .variance-badge {
-            padding: 2px 10px;
-            border-radius: 999px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .pa-table-wrap .variance-badge.positive {
-            background: var(--success-light);
-            color: var(--success);
-        }
-        .pa-table-wrap .variance-badge.negative {
-            background: var(--danger-light);
-            color: var(--danger);
-        }
-        .pa-table-wrap .variance-badge.neutral {
-            background: var(--surface-3);
-            color: var(--text-muted);
-        }
-
-        /* ============================================================
-           SETTINGS STYLES
-           ============================================================ */
-        .settings-container {
-            width: 100%;
-            background: var(--surface);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--shadow);
-            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
-        }
-
-        .settings-body {
-            display: flex;
-            flex: 1;
-            min-height: 500px;
-        }
-
-        .settings-sidebar {
-            width: 200px;
-            background: var(--surface-2);
-            border-right: 1px solid var(--border);
-            padding: 16px 0;
-            flex-shrink: 0;
-            transition: background var(--transition), border-color var(--transition);
-        }
-        .settings-sidebar .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 20px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            border-left: 3px solid transparent;
-            transition: all 0.2s;
-            width: 100%;
-            text-align: left;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-        }
-        .settings-sidebar .nav-item i {
-            width: 18px;
-            color: var(--text-muted);
-            transition: color 0.2s;
-        }
-        .settings-sidebar .nav-item:hover {
-            background: var(--accent-light);
-            color: var(--accent-dark);
-        }
-        .settings-sidebar .nav-item:hover i {
-            color: var(--accent);
-        }
-        .settings-sidebar .nav-item.active {
-            background: var(--accent-light);
-            color: var(--accent-dark);
-            border-left-color: var(--accent);
-            font-weight: 600;
-        }
-        .settings-sidebar .nav-item.active i {
-            color: var(--accent);
-        }
-
-        .settings-content {
-            flex: 1;
-            padding: 24px 28px 32px;
-            overflow-y: auto;
-            background: var(--surface);
-            position: relative;
-            transition: background var(--transition);
-        }
-
-        .settings-page-header {
-            margin-bottom: 24px;
-        }
-        .settings-page-header h2 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-            transition: color var(--transition);
-        }
-        .settings-page-header p {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            transition: color var(--transition);
-        }
-
-        .settings-page-content {
-            display: none;
-        }
-        .settings-page-content.active {
-            display: block;
-        }
-
-        .general-settings .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 10px;
-            transition: border-color var(--transition);
-        }
-        .general-settings .setting-row:last-child {
-            border-bottom: none;
-        }
-        .general-settings .setting-label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            transition: color var(--transition);
-        }
-        .general-settings .setting-label small {
-            display: block;
-            font-weight: 400;
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            margin-top: 2px;
-            transition: color var(--transition);
-        }
-        .general-settings .setting-control {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .general-settings .toggle {
-            width: 42px;
-            height: 24px;
-            background: var(--border);
-            border-radius: 999px;
-            position: relative;
-            transition: background 0.3s;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .general-settings .toggle.active {
-            background: var(--accent);
-        }
-        .general-settings .toggle::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 20px;
-            height: 20px;
-            background: #fff;
-            border-radius: 50%;
-            transition: transform 0.3s;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-        }
-        .general-settings .toggle.active::after {
-            transform: translateX(18px);
-        }
-        .general-settings .select-input {
-            padding: 6px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .general-settings .select-input:focus {
-            border-color: var(--accent);
-        }
-
-        .plan-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 12px;
-            margin-top: 16px;
-        }
-        .plan-preview-grid .plan-card {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 14px 16px;
-            text-align: center;
-            transition: background var(--transition), border-color var(--transition);
-        }
-        .plan-preview-grid .plan-card .name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            transition: color var(--transition);
-        }
-        .plan-preview-grid .plan-card .price {
-            font-size: 0.85rem;
-            color: var(--accent);
-            font-weight: 600;
-            margin-top: 4px;
-            transition: color var(--transition);
-        }
-
-        .plan-settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 18px;
-        }
-
-        .settings-inner-overlay {
-            position: absolute;
-            inset: 0;
-            background: var(--surface);
-            z-index: 10;
-            padding: 24px 28px 32px;
-            display: none;
-            flex-direction: column;
-            border-radius: var(--radius);
-            animation: slideIn 0.25s ease;
-            transition: background var(--transition);
-        }
-        .settings-inner-overlay.open {
-            display: flex;
-        }
-
-        @keyframes slideIn {
-            0% {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .settings-inner-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-            transition: border-color var(--transition);
-        }
-        .settings-inner-header h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            transition: color var(--transition);
-        }
-        .settings-inner-header h3 i {
-            color: var(--accent);
-            margin-right: 10px;
-            transition: color var(--transition);
-        }
-        .settings-inner-header .back-btn {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            padding: 6px 14px;
-            border-radius: var(--radius-xs);
-            border: 1px solid var(--border);
-            transition: all 0.2s;
-        }
-        .settings-inner-header .back-btn:hover {
-            background: var(--surface-2);
-            border-color: var(--text-muted);
-        }
-        .settings-inner-header .back-btn i {
-            margin-right: 6px;
-        }
-
-        .plan-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            flex: 1;
-            max-height: 420px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-        .plan-list::-webkit-scrollbar {
-            width: 4px;
-        }
-        .plan-list::-webkit-scrollbar-track {
-            background: var(--surface-2);
-            border-radius: 20px;
-        }
-        .plan-list::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 20px;
-        }
-
-        .plan-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: var(--surface-2);
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            transition: border-color 0.2s, background var(--transition), border-color var(--transition);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .plan-item:hover {
-            border-color: var(--accent-mid);
-        }
-        .plan-item .plan-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .plan-item .plan-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            min-width: 120px;
-            transition: color var(--transition);
-        }
-        .plan-item .plan-price-wrap {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .plan-item .plan-price-wrap label {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--text-muted);
-        }
-        .plan-item .plan-price-wrap input {
-            width: 110px;
-            padding: 4px 10px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            font-size: 0.85rem;
-            background: var(--surface);
-            color: var(--text-primary);
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .plan-item .plan-price-wrap input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-light);
-        }
-        .plan-item .plan-actions {
-            display: flex;
-            gap: 6px;
-        }
-        .plan-item .plan-actions button {
-            padding: 4px 10px;
-            border-radius: var(--radius-xs);
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .plan-item .plan-actions .save-price-btn {
-            background: var(--accent);
-            color: #fff;
-        }
-        .plan-item .plan-actions .save-price-btn:hover {
-            background: var(--accent-hover);
-        }
-        .plan-item .plan-actions .remove-plan-btn {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-        .plan-item .plan-actions .remove-plan-btn:hover {
-            background: #fecaca;
-        }
-        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn {
-            background: #4a1a1a;
-            color: #f87171;
-        }
-        [data-theme="dark"] .plan-item .plan-actions .remove-plan-btn:hover {
-            background: #5a2a2a;
-        }
-
-        .add-plan-area {
-            margin-top: 18px;
-            padding-top: 18px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
-            transition: border-color var(--transition);
-        }
-        .add-plan-area input {
-            padding: 8px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            font-size: 0.85rem;
-            background: var(--surface);
-            color: var(--text-primary);
-            flex: 1;
-            min-width: 140px;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .add-plan-area input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-light);
-        }
-        .add-plan-area .add-btn {
-            padding: 8px 20px;
-            background: var(--accent);
-            color: #fff;
-            border-radius: var(--radius-xs);
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        .add-plan-area .add-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        .empty-plans {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
-        .empty-plans i {
-            font-size: 2.5rem;
-            color: var(--border);
-            margin-bottom: 12px;
-            display: block;
-            transition: color var(--transition);
-        }
-        .empty-plans p {
-            font-size: 0.9rem;
-        }
-
-        /* ============================================================
-           PLACEHOLDER PAGES
-           ============================================================ */
-        .placeholder-page {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
-        }
-        .placeholder-page i {
-            font-size: 3rem;
-            color: var(--border);
-            margin-bottom: 16px;
-            display: block;
-        }
-        .placeholder-page h3 {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        /* ============================================================
-           RESPONSIVE
-           ============================================================ */
+        /* Responsive */
         @media (max-width: 768px) {
             .main-content {
                 padding: 20px 16px;
@@ -2239,129 +997,9 @@
             .stats-grid {
                 grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             }
-            .payment-grid {
-                grid-template-columns: 1fr;
-            }
-            .payment-form .form-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .payment-form .form-row input {
-                width: 100%;
-            }
-            .payment-form .form-row .amount-display {
-                text-align: center;
-            }
-            .search-area {
-                flex-direction: column;
-            }
-            .search-area .search-btn {
-                width: 100%;
-            }
-            .customer-info .row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
-            }
-            .projection-form {
-                grid-template-columns: 1fr;
-            }
-            .projection-form .form-actions {
-                flex-direction: column;
-            }
-            .projection-form .form-actions button {
-                width: 100%;
-                justify-content: center;
-            }
-            .filter-tabs {
-                justify-content: stretch;
-            }
-            .filter-tabs .filter-btn {
-                flex: 1;
-                text-align: center;
-            }
-            .add-projection-card .card-header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-            .pa-chart-container {
-                height: 200px;
-            }
-            .pa-chart-bars {
-                height: 160px;
-                gap: 6px;
-            }
-            .pa-bar-group {
-                max-width: 34px;
-                min-width: 18px;
-            }
-            .pa-bar-group .bar-value {
-                font-size: 0.5rem;
-            }
-            .pa-period-label {
-                font-size: 0.55rem;
-                margin-top: 6px;
-            }
-            .pa-summary-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .settings-body {
-                flex-direction: column;
-            }
-            .settings-sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-                padding: 8px 0;
-                display: flex;
-                overflow-x: auto;
-                gap: 4px;
-                padding: 8px 16px;
-            }
-            .settings-sidebar .nav-item {
-                border-left: none;
-                border-bottom: 3px solid transparent;
-                padding: 8px 14px;
-                white-space: nowrap;
-                font-size: 0.8rem;
-            }
-            .settings-sidebar .nav-item.active {
-                border-left: none;
-                border-bottom-color: var(--accent);
-            }
-            .settings-content {
-                padding: 18px 16px 24px;
-                min-height: 400px;
-            }
-            .settings-inner-overlay {
-                padding: 18px 16px 24px;
-            }
-            .plan-item {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .plan-item .plan-info {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-            }
-            .plan-item .plan-price-wrap {
-                flex-wrap: wrap;
-            }
-            .plan-item .plan-actions {
-                justify-content: flex-end;
-            }
-            .add-plan-area {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .plan-preview-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            }
-            .pa-filter-area {
-                flex-direction: column;
-                align-items: stretch;
+            .topbar .actions .btn {
+                padding: 7px 14px;
+                font-size: 12px;
             }
             .distribution-table {
                 font-size: 0.75rem;
@@ -2369,10 +1007,6 @@
             .distribution-table th,
             .distribution-table td {
                 padding: 4px 6px 4px 0;
-            }
-            .distribution-table .plan-label-cell {
-                font-size: 0.75rem;
-                gap: 4px;
             }
             .distribution-table .bar-cell {
                 min-width: 80px;
@@ -2382,21 +1016,6 @@
             }
             .distribution-table .bar-fill .bar-value-label {
                 font-size: 0.5rem;
-            }
-            .distribution-table .amount-cell {
-                font-size: 0.75rem;
-                min-width: 60px;
-            }
-            .distribution-table .count-cell {
-                font-size: 0.65rem;
-                min-width: 50px;
-            }
-            .distribution-table .percent-cell {
-                font-size: 0.75rem;
-                min-width: 40px;
-            }
-            .distribution-table .total-row .bar-track {
-                height: 20px;
             }
             .expiry-table-wrap table {
                 font-size: 0.8rem;
@@ -2420,62 +1039,6 @@
             }
             .panel {
                 padding: 16px 14px 20px;
-            }
-            .topbar .actions .btn {
-                padding: 7px 14px;
-                font-size: 12px;
-            }
-            .payment-card {
-                padding: 16px;
-            }
-            .table-wrap table {
-                font-size: 0.75rem;
-                min-width: 480px;
-            }
-            .table-wrap th,
-            .table-wrap td {
-                padding: 8px 10px;
-            }
-            .projection-table-wrap table {
-                font-size: 0.75rem;
-                min-width: 400px;
-            }
-            .projection-table-wrap th,
-            .projection-table-wrap td {
-                padding: 8px 10px;
-            }
-            .pa-chart-container {
-                height: 160px;
-            }
-            .pa-chart-bars {
-                height: 130px;
-                gap: 4px;
-            }
-            .pa-bar-group {
-                max-width: 28px;
-                min-width: 14px;
-            }
-            .pa-bar-group .bar-value {
-                font-size: 0.45rem;
-            }
-            .pa-period-label {
-                font-size: 0.5rem;
-            }
-            .pa-summary-grid {
-                grid-template-columns: 1fr;
-            }
-            .pa-table-wrap table {
-                font-size: 0.75rem;
-                min-width: 400px;
-            }
-            .settings-content {
-                padding: 14px 12px 18px;
-            }
-            .plan-item .plan-price-wrap input {
-                width: 100%;
-            }
-            .plan-preview-grid {
-                grid-template-columns: 1fr 1fr;
             }
             .distribution-table {
                 font-size: 0.7rem;
@@ -2536,7 +1099,8 @@
     </style>
 </head>
 <body>
-    <!-- ===== NAVBAR ===== -->
+
+    <!-- ─── NAVBAR ─── -->
     <header class="navbar">
         <div class="nav-left">
             <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu">
@@ -2544,10 +1108,6 @@
                 <span></span>
                 <span></span>
             </button>
-            <a href="#" class="nav-logo" id="logoLink">
-                <div class="logo-icon">P</div>
-                <span>Prontox</span>
-            </a>
         </div>
         <div class="nav-right">
             <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
@@ -2557,10 +1117,10 @@
         </div>
     </header>
 
-    <!-- ===== SIDEBAR OVERLAY ===== -->
+    <!-- ─── SIDEBAR OVERLAY ─── -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- ===== SIDEBAR ===== -->
+    <!-- ─── SIDEBAR ─── -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <span style="font-weight:700;color:var(--text-primary);">Menu</span>
@@ -2569,411 +1129,187 @@
         <nav class="sidebar-nav">
             <div class="nav-group">
                 <div class="nav-group-label">MAIN</div>
-                <a href="#" class="nav-item active" data-page="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
-                <a href="#" class="nav-item" data-page="customer"><i class="fas fa-user-friends"></i> Customers</a>
-                <a href="#" class="nav-item" data-page="income-projection"><i class="fas fa-chart-line"></i> Income Projection</a>
-                <a href="#" class="nav-item" data-page="payments"><i class="fas fa-credit-card"></i> Payments</a>
+                <a href="dashboard.html" class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="customer.html" class="nav-item"><i class="fas fa-user-friends"></i> Customers</a>
+                <a href="income-projection.html" class="nav-item"><i class="fas fa-chart-line"></i> Income Projection</a>
+                <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i> Payments</a>
             </div>
             <div class="nav-group">
                 <div class="nav-group-label">REPORTS</div>
-                <a href="#" class="nav-item" data-page="monthly-income"><i class="fas fa-calendar-alt"></i> Monthly Income</a>
-                <a href="#" class="nav-item" data-page="projection-vs-actual"><i class="fas fa-arrows-left-right"></i> Proj vs Actual</a>
+                <a href="monthly-income.html" class="nav-item"><i class="fas fa-calendar-alt"></i> Monthly Income</a>
+                <a href="projection-vs-actual.html" class="nav-item"><i class="fas fa-arrows-left-right"></i> Proj vs Actual</a>
             </div>
             <div class="nav-group">
                 <div class="nav-group-label">SYSTEM</div>
-                <a href="#" class="nav-item" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+                <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
                 <a href="#" class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </nav>
     </aside>
 
-    <!-- ===== MAIN CONTENT ===== -->
+    <!-- ─── MAIN CONTENT ─── -->
     <main class="main-content" id="mainContent">
 
-        <!-- ==========================================================
-             PAGE: DASHBOARD (UPDATED)
-             ========================================================== -->
-        <div id="page-dashboard" class="page-content active">
-            <div class="topbar">
-                <div class="page-title">
-                    <h1>Dashboard</h1>
-                    <p>Overview of your billing &amp; customer activity</p>
-                </div>
-                <div class="actions">
-                    <button class="btn btn-primary" id="newCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button>
-                    <button class="btn btn-outline-secondary" id="refreshBtn"><i class="fas fa-sync-alt"></i></button>
+        <div class="topbar">
+            <div class="page-title">
+                <h1>Dashboard</h1>
+                <p>Overview of your billing &amp; customer activity</p>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" id="dashNewCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button>
+                <button class="btn btn-outline-secondary" id="dashRefreshBtn"><i class="fas fa-sync-alt"></i></button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-users"></i></div>
+                <div class="label">Total Customers</div>
+                <div class="value" id="statTotal">0</div>
+                <div class="sub">active: <span id="statActiveCount">0</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-wallet"></i></div>
+                <div class="label">Monthly Projection</div>
+                <div class="value" id="statProjection">₦0</div>
+                <div class="sub" id="statProjSub">for current month</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-check-circle"></i></div>
+                <div class="label">Received (this month)</div>
+                <div class="value" id="statReceived">₦0</div>
+                <div class="sub" id="statReceivedDiff">+0% vs projection</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-tachometer-alt"></i></div>
+                <div class="label">Avg. Payment Speed</div>
+                <div class="value" id="statAvgSpeed">0d</div>
+                <div class="sub">avg days to pay</div>
+            </div>
+        </div>
+
+        <!-- Plan Summary Card -->
+        <div class="panel" id="planSummaryPanel">
+            <div class="panel-header" onclick="togglePanel('planSummaryPanel')">
+                <h3><i class="fas fa-table me-2 text-primary-custom"></i> Plan Summary — Total, Paid &amp; Unpaid</h3>
+                <div>
+                    <span class="subtitle">auto-updates on payment</span>
+                    <i class="fas fa-chevron-down toggle-icon" id="planSummaryIcon"></i>
                 </div>
             </div>
-
-            <!-- Stats -->
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="icon"><i class="fas fa-users"></i></div>
-                    <div class="label">Total Customers</div>
-                    <div class="value" id="statTotal">0</div>
-                    <div class="sub">active: <span id="statActiveCount">0</span></div>
-                </div>
-                <div class="stat-card">
-                    <div class="icon"><i class="fas fa-wallet"></i></div>
-                    <div class="label">Monthly Projection</div>
-                    <div class="value" id="statProjection">₦0</div>
-                    <div class="sub" id="statProjSub">for current month</div>
-                </div>
-                <div class="stat-card">
-                    <div class="icon"><i class="fas fa-check-circle"></i></div>
-                    <div class="label">Received (this month)</div>
-                    <div class="value" id="statReceived">₦0</div>
-                    <div class="sub" id="statReceivedDiff">+0% vs projection</div>
-                </div>
-                <div class="stat-card">
-                    <div class="icon"><i class="fas fa-tachometer-alt"></i></div>
-                    <div class="label">Avg. Payment Speed</div>
-                    <div class="value" id="statAvgSpeed">0d</div>
-                    <div class="sub">avg days to pay</div>
+            <div class="panel-body expanded" id="planSummaryBody">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Service Plan</th>
+                                <th>Total</th>
+                                <th>Paid</th>
+                                <th>Unpaid</th>
+                                <th>Payment Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="planSummaryTableBody"></tbody>
+                    </table>
                 </div>
             </div>
+        </div>
 
-            <!-- Plan Summary Card -->
-            <div class="panel" id="planSummaryPanel">
-                <div class="panel-header" onclick="togglePanel('planSummaryPanel')">
-                    <h3><i class="fas fa-table me-2 text-primary-custom"></i> Plan Summary — Total, Paid &amp; Unpaid</h3>
-                    <div>
-                        <span class="subtitle">auto-updates on payment</span>
-                        <i class="fas fa-chevron-down toggle-icon" id="planSummaryIcon"></i>
-                    </div>
-                </div>
-                <div class="panel-body expanded" id="planSummaryBody">
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Service Plan</th>
-                                    <th>Total</th>
-                                    <th>Paid</th>
-                                    <th>Unpaid</th>
-                                    <th>Payment Rate</th>
-                                </tr>
-                            </thead>
-                            <tbody id="planSummaryTableBody"></tbody>
-                        </table>
-                    </div>
+        <!-- Total Projection Card -->
+        <div class="panel" id="projectionPanel">
+            <div class="panel-header" onclick="togglePanel('projectionPanel')">
+                <h3><i class="fas fa-wallet me-2 text-primary-custom"></i> Total Projection</h3>
+                <div>
+                    <i class="fas fa-chevron-down toggle-icon" id="projectionIcon"></i>
                 </div>
             </div>
-
-            <!-- Total Projection Card with Filter -->
-            <div class="panel" id="projectionPanel">
-                <div class="panel-header" onclick="togglePanel('projectionPanel')">
-                    <h3><i class="fas fa-wallet me-2 text-primary-custom"></i> Total Projection</h3>
-                    <div>
-                        <i class="fas fa-chevron-down toggle-icon" id="projectionIcon"></i>
-                    </div>
+            <div class="panel-body expanded" id="projectionBody">
+                <div class="filter-bar">
+                    <select id="dashboardProjectionFilter" style="width:auto;min-width:140px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:13px;">
+                        <option value="daily">Daily (3 days)</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly" selected>Monthly</option>
+                    </select>
+                    <button class="btn-filter" id="dashboardApplyFilter"><i class="fas fa-filter"></i> Apply</button>
                 </div>
-                <div class="panel-body expanded" id="projectionBody">
-                    <div class="filter-bar">
-                        <select id="dashboardProjectionFilter" class="form-select" style="width:auto;min-width:140px;">
-                            <option value="daily">Daily (3 days)</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly" selected>Monthly</option>
-                        </select>
-                        <button class="btn-filter" id="dashboardApplyFilter"><i class="fas fa-filter"></i> Apply</button>
-                    </div>
-                    <div id="dashboardTotalProjection" style="font-size:24px;font-weight:700;color:var(--accent);padding:12px 0;">
-                        ₦0
-                    </div>
-                    <div class="text-muted" id="dashboardProjectionPeriodLabel">Projected for current period</div>
+                <div id="dashboardTotalProjection" style="font-size:24px;font-weight:700;color:var(--accent);padding:12px 0;">
+                    ₦0
+                </div>
+                <div class="text-muted" id="dashboardProjectionPeriodLabel">Projected for current period</div>
+            </div>
+        </div>
+
+        <!-- Plan Distribution -->
+        <div class="panel" id="distributionPanel">
+            <div class="panel-header" onclick="togglePanel('distributionPanel')">
+                <h3><i class="fas fa-chart-bar me-2 text-primary-custom"></i> Plan Distribution</h3>
+                <div>
+                    <span class="subtitle" id="dashboardDistributionSubtitle">distributed by plan</span>
+                    <i class="fas fa-chevron-down toggle-icon" id="distributionIcon"></i>
                 </div>
             </div>
+            <div class="panel-body expanded" id="distributionBody">
+                <div id="dashboardPlanDistributionList"></div>
+            </div>
+        </div>
 
-            <!-- Plan Distribution Card (TABLE STYLE - REFERENCE: Unit Sales.png) -->
-            <div class="panel" id="distributionPanel">
-                <div class="panel-header" onclick="togglePanel('distributionPanel')">
-                    <h3><i class="fas fa-chart-bar me-2 text-primary-custom"></i> Plan Distribution</h3>
-                    <div>
-                        <span class="subtitle" id="dashboardDistributionSubtitle">distributed by plan</span>
-                        <i class="fas fa-chevron-down toggle-icon" id="distributionIcon"></i>
-                    </div>
-                </div>
-                <div class="panel-body expanded" id="distributionBody">
-                    <div id="dashboardPlanDistributionList">
-                        <!-- Rendered by JS as a table -->
-                    </div>
+        <!-- Expiring Soon -->
+        <div class="panel" id="expiringSoonPanel">
+            <div class="panel-header" onclick="togglePanel('expiringSoonPanel')">
+                <h3><i class="fas fa-clock me-2 text-warning"></i> Expiring Soon</h3>
+                <div>
+                    <span class="subtitle">next 5 days</span>
+                    <i class="fas fa-chevron-down toggle-icon" id="expiringSoonIcon"></i>
                 </div>
             </div>
-
-            <!-- Expiring Soon (TABLE) -->
-            <div class="panel" id="expiringSoonPanel">
-                <div class="panel-header" onclick="togglePanel('expiringSoonPanel')">
-                    <h3><i class="fas fa-clock me-2 text-warning"></i> Expiring Soon</h3>
-                    <div>
-                        <span class="subtitle">next 5 days</span>
-                        <i class="fas fa-chevron-down toggle-icon" id="expiringSoonIcon"></i>
-                    </div>
-                </div>
-                <div class="panel-body expanded" id="expiringSoonBody">
-                    <div class="expiry-table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Customer</th>
-                                    <th>Plan</th>
-                                    <th>Expiry Date</th>
-                                    <th>Days Left</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="expiringSoonTableBody"></tbody>
-                        </table>
-                        <div id="expiringSoonEmpty" class="expiry-empty" style="display:none;">
-                            <i class="fas fa-check-circle"></i>
-                            <p>No customers expiring in the next 5 days.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Today's Expirations (TABLE) -->
-            <div class="panel" id="todayExpiredPanel">
-                <div class="panel-header" onclick="togglePanel('todayExpiredPanel')">
-                    <h3><i class="fas fa-calendar-times me-2 text-danger"></i> Today's Expirations</h3>
-                    <div>
-                        <span class="subtitle"><span id="todayDate"></span></span>
-                        <i class="fas fa-chevron-down toggle-icon" id="todayExpiredIcon"></i>
-                    </div>
-                </div>
-                <div class="panel-body expanded" id="todayExpiredBody">
-                    <div class="expiry-table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Customer</th>
-                                    <th>Plan</th>
-                                    <th>Expiry Date</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="todayExpiredTableBody"></tbody>
-                        </table>
-                        <div id="todayExpiredEmpty" class="expiry-empty" style="display:none;">
-                            <i class="fas fa-check-circle"></i>
-                            <p>No expirations today.</p>
-                        </div>
+            <div class="panel-body expanded" id="expiringSoonBody">
+                <div class="expiry-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Plan</th>
+                                <th>Expiry Date</th>
+                                <th>Days Left</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expiringSoonTableBody"></tbody>
+                    </table>
+                    <div id="expiringSoonEmpty" class="expiry-empty" style="display:none;">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No customers expiring in the next 5 days.</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ==========================================================
-             PAGE: CUSTOMERS (placeholder)
-             ========================================================== -->
-        <div id="page-customer" class="page-content">
-            <div class="page-header">
-                <h2>Customers</h2>
-                <p>Manage your customers.</p>
-            </div>
-            <div class="placeholder-page">
-                <i class="fas fa-user-friends"></i>
-                <h3>Customer List</h3>
-                <p>Customer data will appear here.</p>
-            </div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: INCOME PROJECTION (FULLY BUILT)
-             ========================================================== -->
-        <div id="page-income-projection" class="page-content">
-            <div class="page-header">
-                <h2>Income Projection</h2>
-                <p>Create and view projected income for each plan across different timeframes.</p>
-            </div>
-
-            <div class="add-projection-card">
-                <div class="card-header">
-                    <h3><i class="fas fa-plus-circle"></i> Create New Projection</h3>
-                    <button class="toggle-form-btn" id="toggleFormBtn"><i class="fas fa-chevron-down"></i> Open Form</button>
-                </div>
-                <div class="projection-form" id="projectionForm">
-                    <div class="form-group">
-                        <label for="projDate">Date</label>
-                        <input type="date" id="projDate" />
-                    </div>
-                    <div class="form-group">
-                        <label for="projPlan">Plan</label>
-                        <select id="projPlan"></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="proj3Days">3-Day Projection (₦)</label>
-                        <input type="number" id="proj3Days" placeholder="e.g. 150000" min="0" step="1000" />
-                        <span class="input-hint">Expected revenue in the next 3 days</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="proj1Week">1-Week Projection (₦)</label>
-                        <input type="number" id="proj1Week" placeholder="e.g. 350000" min="0" step="1000" />
-                        <span class="input-hint">Expected revenue in the next week</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="proj1Month">1-Month Projection (₦)</label>
-                        <input type="number" id="proj1Month" placeholder="e.g. 1500000" min="0" step="1000" />
-                        <span class="input-hint">Expected revenue in the next month</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="proj1Year">1-Year Projection (₦)</label>
-                        <input type="number" id="proj1Year" placeholder="e.g. 18000000" min="0" step="1000" />
-                        <span class="input-hint">Expected revenue in the next year</span>
-                    </div>
-                    <div class="form-actions">
-                        <button class="cancel-btn" id="cancelFormBtn">Cancel</button>
-                        <button class="save-btn" id="saveProjectionBtn"><i class="fas fa-save"></i> Save Projection</button>
-                    </div>
+        <!-- Today's Expirations -->
+        <div class="panel" id="todayExpiredPanel">
+            <div class="panel-header" onclick="togglePanel('todayExpiredPanel')">
+                <h3><i class="fas fa-calendar-times me-2 text-danger"></i> Today's Expirations</h3>
+                <div>
+                    <span class="subtitle"><span id="todayDate"></span></span>
+                    <i class="fas fa-chevron-down toggle-icon" id="todayExpiredIcon"></i>
                 </div>
             </div>
-
-            <div class="view-projection-section">
-                <div class="section-header" id="projectionToggleHeader">
-                    <h3><i class="fas fa-filter"></i> Stored Projections <span class="projection-count" id="projectionCount">(0 entries)</span></h3>
-                    <div>
-                        <i class="fas fa-chevron-down toggle-icon" id="projectionToggleIcon"></i>
-                    </div>
-                </div>
-                <div class="view-projection-body expanded" id="projectionBody">
-                    <div class="filter-tabs" id="filterTabs">
-                        <button class="filter-btn active" data-filter="daily">Daily (3-day)</button>
-                        <button class="filter-btn" data-filter="weekly">Weekly</button>
-                        <button class="filter-btn" data-filter="monthly">Monthly</button>
-                        <button class="filter-btn" data-filter="annually">Annually</button>
-                    </div>
-                    <div class="projection-table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Plan</th>
-                                    <th id="projectionHeader">Projected Amount (₦)</th>
-                                    <th style="text-align:center;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="projectionTableBody"></tbody>
-                        </table>
-                        <div id="noProjection" class="no-projection" style="display:none;">
-                            <i class="fas fa-chart-simple"></i>
-                            <p>No projections found. Create your first projection above!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: PAYMENTS (FULLY BUILT)
-             ========================================================== -->
-        <div id="page-payments" class="page-content">
-            <div class="page-header">
-                <h2>Process Payment</h2>
-                <p>Find a customer and extend their subscription by multiple months.</p>
-            </div>
-            <div class="payment-grid">
-                <div class="payment-card">
-                    <h3><i class="fas fa-user-check"></i> Customer & Payment</h3>
-                    <div class="search-area">
-                        <input type="text" id="searchInput" placeholder="Search by name or ID..." />
-                        <button class="search-btn" id="searchBtn"><i class="fas fa-search"></i> Search</button>
-                    </div>
-                    <div id="customerInfo" class="customer-info">
-                        <div class="row"><span class="label">Customer</span><span class="value" id="displayName">—</span></div>
-                        <div class="row"><span class="label">Plan</span><span class="value" id="displayPlan">—</span></div>
-                        <div class="row"><span class="label">Status</span><span class="value" id="displayStatus">—</span></div>
-                        <div class="row"><span class="label">Expiry</span><span class="value" id="displayExpiry">—</span></div>
-                    </div>
-                    <div class="payment-form">
-                        <div class="form-row"><label>Months to extend</label><input type="number" id="monthsInput" value="1" min="1" step="1" /></div>
-                        <div class="form-row"><label>Amount</label><span class="amount-display" id="amountDisplay">₦0</span></div>
-                        <div class="hint"><i class="fas fa-info-circle"></i> Extending by multiple months updates expiry and total amount.</div>
-                        <button class="confirm-btn" id="confirmPaymentBtn"><i class="fas fa-check-circle"></i> Confirm Payment</button>
-                    </div>
-                </div>
-                <div class="payment-card">
-                    <h3><i class="fas fa-history"></i> Recent Payments</h3>
-                    <div class="table-wrap">
-                        <table>
-                            <thead><tr><th>Customer</th><th>Plan</th><th>Amount</th><th>New Expiry</th><th>Date</th></tr></thead>
-                            <tbody id="recentPaymentsBody"></tbody>
-                        </table>
-                    </div>
-                    <div id="noRecent" class="no-result" style="display:none;">
-                        <i class="fas fa-receipt"></i>
-                        <p>No recent payments recorded.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: MONTHLY INCOME (placeholder)
-             ========================================================== -->
-        <div id="page-monthly-income" class="page-content">
-            <div class="page-header"><h2>Monthly Income</h2><p>Monthly breakdown.</p></div>
-            <div class="placeholder-page"><i class="fas fa-calendar-alt"></i><h3>Monthly Income</h3><p>Monthly data will appear here.</p></div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: PROJECTION VS ACTUAL (FULLY BUILT)
-             ========================================================== -->
-        <div id="page-projection-vs-actual" class="page-content">
-            <div class="page-header"><h2>Projection vs Actual</h2><p>Compare your projected income against actual results across all plans.</p></div>
-            <div class="pa-summary-grid" id="paSummaryGrid">
-                <div class="card"><div class="label">Total Projected</div><div class="value" id="paTotalProjected">₦0</div></div>
-                <div class="card"><div class="label">Total Actual</div><div class="value" id="paTotalActual">₦0</div></div>
-                <div class="card"><div class="label">Variance</div><div class="value" id="paTotalVariance">₦0</div><div class="sub" id="paVarianceSub">—</div></div>
-                <div class="card"><div class="label">Accuracy</div><div class="value" id="paAccuracy">0%</div></div>
-            </div>
-            <div class="pa-filter-area">
-                <label style="font-weight:500;color:var(--text-secondary);font-size:0.85rem;">Timeframe:</label>
-                <select id="paTimeframeFilter"><option value="daily">Daily (3-day)</option><option value="weekly">Weekly</option><option value="monthly" selected>Monthly</option><option value="annually">Annually</option></select>
-                <label style="font-weight:500;color:var(--text-secondary);font-size:0.85rem;margin-left:8px;">Plan:</label>
-                <select id="paPlanFilter"><option value="all">All Plans</option></select>
-            </div>
-            <div class="pa-chart-container" id="paChartContainer"></div>
-            <div class="pa-chart-legend"><span><span class="dot projection"></span> Projection</span><span><span class="dot actual"></span> Actual</span></div>
-            <div class="pa-table-wrap">
-                <table><thead><tr><th>Period</th><th>Plan</th><th>Projection (₦)</th><th>Actual (₦)</th><th>Variance (₦)</th><th>Status</th></tr></thead><tbody id="paTableBody"></tbody></table>
-            </div>
-            <div id="paNoData" class="no-projection" style="display:none;"><i class="fas fa-chart-simple"></i><p>No projection data available. Create projections in the Income Projection page first.</p></div>
-        </div>
-
-        <!-- ==========================================================
-             PAGE: SETTINGS (connected to all)
-             ========================================================== -->
-        <div id="page-settings" class="page-content">
-            <div class="page-header"><h2>Settings</h2><p>Configure your workspace, manage plans, and adjust preferences.</p></div>
-            <div class="settings-container">
-                <div class="settings-body">
-                    <nav class="settings-sidebar">
-                        <button class="nav-item active" data-settings-page="general"><i class="fas fa-sliders-h"></i> General</button>
-                        <button class="nav-item" data-settings-page="plans"><i class="fas fa-cubes"></i> Plans</button>
-                    </nav>
-                    <div class="settings-content" id="settingsContent">
-                        <div id="settings-page-general" class="settings-page-content active">
-                            <div class="settings-page-header"><h2>General Settings</h2><p>Manage your workspace preferences and defaults.</p></div>
-                            <div class="general-settings">
-                                <div class="setting-row"><div class="setting-label">Workspace Name <small>Your workspace display name</small></div><div class="setting-control"><input type="text" value="Prontox Inc." style="padding:6px 12px;border:1px solid var(--border);border-radius:var(--radius-xs);font-size:0.85rem;background:var(--surface);color:var(--text-primary);min-width:180px;transition:background var(--transition),color var(--transition),border-color var(--transition);" /></div></div>
-                                <div class="setting-row"><div class="setting-label">Dark Mode <small>Toggle dark theme across the app</small></div><div class="setting-control"><div class="toggle" id="settingsDarkToggle"></div></div></div>
-                                <div class="setting-row"><div class="setting-label">Default Language <small>Interface language</small></div><div class="setting-control"><select class="select-input"><option>English (US)</option><option>Spanish</option><option>French</option><option>German</option></select></div></div>
-                                <div class="setting-row"><div class="setting-label">Notifications <small>Email and in-app notifications</small></div><div class="setting-control"><div class="toggle active" id="notifToggle"></div></div></div>
-                                <div class="setting-row"><div class="setting-label">Currency <small>Default currency for plans and billing</small></div><div class="setting-control"><span style="font-weight:600;color:var(--accent);font-size:0.95rem;">₦ Naira</span></div></div>
-                            </div>
-                        </div>
-                        <div id="settings-page-plans" class="settings-page-content">
-                            <div class="settings-page-header"><h2>Plans &amp; Pricing</h2><p>Manage your subscription plans and pricing tiers.</p></div>
-                            <div class="plan-settings-header">
-                                <span style="font-size:0.85rem;color:var(--text-secondary);transition:color var(--transition);"><i class="fas fa-cubes" style="color:var(--accent);margin-right:6px;"></i><span id="settingsPlanCountLabel">9 plans</span> configured</span>
-                                <button id="openPlanEditorBtn" style="padding:8px 20px;background:var(--accent);color:#fff;border-radius:var(--radius-xs);font-weight:600;font-size:0.85rem;transition:background 0.2s;"><i class="fas fa-edit"></i> Edit Plans</button>
-                            </div>
-                            <div class="plan-preview-grid" id="settingsPlanPreviewGrid"></div>
-                        </div>
-                        <div class="settings-inner-overlay" id="planEditorOverlay">
-                            <div class="settings-inner-header"><h3><i class="fas fa-cubes"></i> Edit Plans</h3><button class="back-btn" id="closePlanEditorBtn"><i class="fas fa-arrow-left"></i> Back to Plans</button></div>
-                            <div class="plan-list" id="planListContainer"></div>
-                            <div class="add-plan-area"><input type="text" id="newPlanName" placeholder="Plan name (e.g. Silver)" /><input type="text" id="newPlanPrice" placeholder="Price (e.g. ₦5,000/mo)" /><button class="add-btn" id="addPlanBtn"><i class="fas fa-plus"></i> Add Plan</button></div>
-                        </div>
+            <div class="panel-body expanded" id="todayExpiredBody">
+                <div class="expiry-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Plan</th>
+                                <th>Expiry Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="todayExpiredTableBody"></tbody>
+                    </table>
+                    <div id="todayExpiredEmpty" class="expiry-empty" style="display:none;">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No expirations today.</p>
                     </div>
                 </div>
             </div>
@@ -2981,99 +1317,233 @@
 
     </main>
 
-    <!-- ===== JAVASCRIPT ===== -->
+    <!-- ─── JAVASCRIPT ─── -->
     <script>
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  COMPLETE PLATFORM LOGIC
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
         (function() {
             'use strict';
 
-            // ─── SHARED DATA ───
+            // ============================================================
+            // CONSTANTS & DATA KEYS
+            // ============================================================
+            const CUSTOMER_KEY = 'prontox_customers_v1';
+            const PAYMENT_KEY = 'prontox_payments_v1';
+            const PLAN_KEY = 'prontoxPlans';
+            const PROJ_KEY = 'incomeProjections';
+            const ACTUAL_KEY = 'actualRevenueData';
+
             const DEFAULT_PLANS = [
                 'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
-                'SME silver', 'SME gold', 'SME platinum', 'SME platinum+'
+                'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
             ];
 
             const PLAN_PRICES = {
-                'Silver': '₦5,000/mo',
-                'Gold': '₦10,000/mo',
-                'Platinum': '₦20,000/mo',
-                'Premium': '₦35,000/mo',
-                'Premium+': '₦50,000/mo',
-                'SME silver': '₦7,500/mo',
-                'SME gold': '₦15,000/mo',
-                'SME platinum': '₦30,000/mo',
-                'SME platinum+': '₦60,000/mo'
+                'Silver': 5000,
+                'Gold': 10000,
+                'Platinum': 20000,
+                'Premium': 35000,
+                'Premium+': 50000,
+                'SME Silver': 7500,
+                'SME Gold': 15000,
+                'SME Platinum': 30000,
+                'SME Platinum+': 60000
             };
 
-            const PLAN_STORAGE_KEY = 'prontoxPlans';
-            const PROJ_STORAGE_KEY = 'incomeProjections';
-            const ACTUAL_STORAGE_KEY = 'actualRevenueData';
-
-            let planList = [];
-            let projections = [];
-            let actualData = [];
-            let nextId = 1;
-            let currentFilter = 'daily';
-            let dashboardFilter = 'monthly';
-
-            // ─── PAYMENT DATA ───
-            let paymentCustomers = [];
-            let recentPayments = [];
-
-            // ─── LOAD / SAVE PLANS ───
-            function loadPlans() {
+            // ============================================================
+            // DATA ACCESS
+            // ============================================================
+            function getCustomers() {
                 try {
-                    const stored = localStorage.getItem(PLAN_STORAGE_KEY);
-                    if (stored) {
-                        const parsed = JSON.parse(stored);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            planList = parsed;
-                            return;
-                        }
+                    const raw = localStorage.getItem(CUSTOMER_KEY);
+                    if (!raw) return [];
+                    const parsed = JSON.parse(raw);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) { return []; }
+            }
+
+            function getPayments() {
+                try {
+                    const raw = localStorage.getItem(PAYMENT_KEY);
+                    if (!raw) return [];
+                    const parsed = JSON.parse(raw);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) { return []; }
+            }
+
+            function savePayments(list) {
+                try {
+                    localStorage.setItem(PAYMENT_KEY, JSON.stringify(list));
+                    return true;
+                } catch (e) { return false; }
+            }
+
+            function getPlans() {
+                try {
+                    const raw = localStorage.getItem(PLAN_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
                     }
-                } catch (_) {}
-                planList = DEFAULT_PLANS.map((name, index) => ({
-                    id: index + 1,
+                } catch (e) {}
+                // default
+                const plans = DEFAULT_PLANS.map((name, idx) => ({
+                    id: idx + 1,
                     name: name,
-                    price: PLAN_PRICES[name] || '₦0/mo'
+                    price: Object.values(PLAN_PRICES)[idx] + '/mo'
                 }));
-                savePlans();
+                localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
+                return plans;
             }
 
-            function savePlans() {
-                localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(planList));
-                populatePlanDropdown();
-                renderSettingsPlanPreview();
-                updatePaPlanFilter();
-                renderAll();
+            function getPlanNames() {
+                return getPlans().map(p => p.name);
             }
 
-            function getPlanNames() { return planList.map(p => p.name); }
-
-            function getPlanPrice(name) {
-                const plan = planList.find(p => p.name === name);
-                return plan ? plan.price : '₦0/mo';
+            function getPlanNumericPrice(name) {
+                return PLAN_PRICES[name] || 0;
             }
 
-            // ─── LOAD / SAVE PROJECTIONS ───
-            function loadProjections() {
+            function getProjections() {
                 try {
-                    const data = localStorage.getItem(PROJ_STORAGE_KEY);
-                    if (data) {
-                        projections = JSON.parse(data);
-                        let maxId = 0;
-                        projections.forEach(p => { if (p.id > maxId) maxId = p.id; });
-                        nextId = maxId + 1;
-                        return;
-                    }
-                } catch (_) {}
-                const today = new Date().toISOString().split('T')[0];
-                const samplePlans = getPlanNames();
-                if (samplePlans.length === 0) return;
-                projections = samplePlans.map((name, idx) => ({
+                    const raw = localStorage.getItem(PROJ_KEY);
+                    if (!raw) return [];
+                    const parsed = JSON.parse(raw);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) { return []; }
+            }
+
+            function getActuals() {
+                try {
+                    const raw = localStorage.getItem(ACTUAL_KEY);
+                    if (!raw) return [];
+                    const parsed = JSON.parse(raw);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) { return []; }
+            }
+
+            // ============================================================
+            // HELPERS
+            // ============================================================
+            function parseLocalDate(dateStr) {
+                return new Date(dateStr + 'T00:00:00');
+            }
+
+            function calculateStatus(customer) {
+                if (!customer || customer.deactivated) return 'Inactive';
+                const expiry = parseLocalDate(customer.expiryDate);
+                if (isNaN(expiry.getTime())) return 'Inactive';
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (today < expiry) return 'Active';
+                const twoMonthsAfter = new Date(expiry);
+                twoMonthsAfter.setMonth(twoMonthsAfter.getMonth() + 2);
+                if (today <= twoMonthsAfter) return 'Expired';
+                return 'Inactive';
+            }
+
+            function formatCurrency(amount) {
+                const n = Number(amount) || 0;
+                try {
+                    return new Intl.NumberFormat('en-NG', {
+                        style: 'currency',
+                        currency: 'NGN',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    }).format(n);
+                } catch (e) {
+                    return '₦' + n.toLocaleString('en-US');
+                }
+            }
+
+            function formatDate(dateStr) {
+                const d = parseLocalDate(dateStr);
+                if (isNaN(d.getTime())) return '—';
+                return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+
+            function daysUntil(dateStr) {
+                const now = new Date();
+                now.setHours(0, 0, 0, 0);
+                const d = new Date(dateStr);
+                d.setHours(0, 0, 0, 0);
+                return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+            }
+
+            function getInitials(name) {
+                if (!name) return '?';
+                const parts = name.trim().split(/\s+/);
+                const initials = parts.slice(0, 2).map(p => p.charAt(0).toUpperCase());
+                return initials.join('') || '?';
+            }
+
+            function getProjectionByPeriod(period) {
+                const customers = getCustomers();
+                let total = 0;
+                const planTotals = {};
+                customers.forEach(c => {
+                    const price = getPlanNumericPrice(c.plan);
+                    let multiplier = 1;
+                    if (period === 'daily') multiplier = 1 / 30;
+                    else if (period === 'weekly') multiplier = 1 / 4;
+                    else multiplier = 1;
+                    const amount = price * multiplier;
+                    total += amount;
+                    if (!planTotals[c.plan]) planTotals[c.plan] = 0;
+                    planTotals[c.plan] += amount;
+                });
+                return { total, planTotals };
+            }
+
+            function getReceivedForMonth(year, month) {
+                const payments = getPayments();
+                return payments.filter(p => {
+                    const d = new Date(p.date);
+                    return d.getFullYear() === year && d.getMonth() === month;
+                }).reduce((sum, p) => sum + p.amount, 0);
+            }
+
+            // ============================================================
+            // SEED DATA (if empty)
+            // ============================================================
+            function seedPayments() {
+                const existing = getPayments();
+                if (existing.length > 0) return;
+
+                const customers = getCustomers();
+                if (customers.length === 0) return;
+
+                const methods = ['Bank Transfer', 'Cash', 'POS'];
+                const now = new Date();
+                const records = [];
+                for (let i = 0; i < 30; i++) {
+                    const cust = customers[i % customers.length];
+                    const date = new Date(now);
+                    date.setDate(date.getDate() - Math.floor(Math.random() * 90));
+                    const dateStr = date.toISOString().slice(0, 10);
+                    const amount = getPlanNumericPrice(cust.plan) * (1 + Math.floor(Math.random() * 2));
+                    records.push({
+                        id: i + 1,
+                        date: dateStr,
+                        customer: cust.name,
+                        plan: cust.plan,
+                        amount: amount,
+                        method: methods[Math.floor(Math.random() * methods.length)],
+                        reference: 'TRX' + String(i + 1).padStart(5, '0')
+                    });
+                }
+                records.sort((a, b) => b.date.localeCompare(a.date));
+                savePayments(records);
+            }
+
+            function seedProjectionsAndActuals() {
+                let proj = getProjections();
+                let actual = getActuals();
+                if (proj.length > 0) return;
+
+                const plans = getPlanNames();
+                if (plans.length === 0) return;
+                const today = new Date().toISOString().slice(0, 10);
+
+                proj = plans.map((name, idx) => ({
                     id: idx + 1,
                     date: today,
                     plan: name,
@@ -3082,36 +1552,8 @@
                     projection1Month: (idx + 1) * 500000,
                     projection1Year: (idx + 1) * 6000000
                 }));
-                nextId = projections.length + 1;
-                saveProjections();
-            }
 
-            function saveProjections() {
-                localStorage.setItem(PROJ_STORAGE_KEY, JSON.stringify(projections));
-                renderAll();
-            }
-
-            function deleteProjection(id) {
-                if (!confirm('Are you sure you want to delete this projection?')) return;
-                projections = projections.filter(p => p.id !== id);
-                saveProjections();
-                renderAll();
-                alert('✅ Projection deleted successfully!');
-            }
-
-            // ─── LOAD / SAVE ACTUAL DATA ───
-            function loadActualData() {
-                try {
-                    const data = localStorage.getItem(ACTUAL_STORAGE_KEY);
-                    if (data) {
-                        actualData = JSON.parse(data);
-                        return;
-                    }
-                } catch (_) {}
-                const today = new Date().toISOString().split('T')[0];
-                const samplePlans = getPlanNames();
-                if (samplePlans.length === 0) return;
-                actualData = samplePlans.map((name, idx) => {
+                actual = plans.map((name, idx) => {
                     const base = (idx + 1) * 500000;
                     const variation = Math.floor(Math.random() * 200000) - 100000;
                     return {
@@ -3123,253 +1565,320 @@
                         actual1Year: base * 12 + variation * 0.8
                     };
                 });
-                saveActualData();
+
+                localStorage.setItem(PROJ_KEY, JSON.stringify(proj));
+                localStorage.setItem(ACTUAL_KEY, JSON.stringify(actual));
             }
 
-            function saveActualData() {
-                localStorage.setItem(ACTUAL_STORAGE_KEY, JSON.stringify(actualData));
-                renderAll();
-            }
+            // ============================================================
+            // RENDER FUNCTIONS
+            // ============================================================
+            function renderDashboard() {
+                const customers = getCustomers();
+                const total = customers.length;
+                const active = customers.filter(c => calculateStatus(c) === 'Active').length;
 
-            // ─── GENERATE MOCK DATA ───
-            function generateMockCustomers() {
-                const FIRST_NAMES = ['James', 'Maria', 'Alex', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'Daniel',
-                    'Lisa',
-                    'Robert', 'Emma', 'William', 'Olivia', 'Joseph', 'Sophia', 'Thomas', 'Mia', 'Charles', 'Charlotte'
-                ];
-                const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis',
-                    'Rodriguez',
-                    'Martinez', 'Hernandez', 'Lopez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson',
-                    'Martin',
-                    'Lee'
-                ];
-                const planNames = getPlanNames();
-                const customers = [];
+                const proj = getProjectionByPeriod('monthly');
+                const received = getReceivedForMonth(new Date().getFullYear(), new Date().getMonth());
+                const diff = proj.total > 0 ? ((received - proj.total) / proj.total * 100) : 0;
 
-                for (let i = 0; i < 40; i++) {
-                    const firstName = FIRST_NAMES[i % FIRST_NAMES.length];
-                    const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
-                    const plan = planNames[Math.floor(Math.random() * planNames.length)];
-                    const price = parseInt(getPlanPrice(plan).replace(/[₦,]/g, '')) || 0;
-                    const expDays = Math.floor(Math.random() * 60) - 15;
-                    const expiry = new Date();
-                    expiry.setDate(expiry.getDate() + expDays);
-                    const expiryStr = expiry.toISOString().slice(0, 10);
-                    const status = expDays < 0 ? 'expired' : (Math.random() > 0.08 ? 'active' : 'inactive');
-                    const finalStatus = (expDays < 0) ? 'expired' : status;
-                    const joinDate = new Date();
-                    joinDate.setDate(joinDate.getDate() - Math.floor(Math.random() * 120) - 10);
-                    customers.push({
-                        id: 'CUST-' + String(1001 + i),
-                        name: firstName + ' ' + lastName,
-                        plan: plan,
-                        status: finalStatus,
-                        expiry: expiryStr,
-                        joinDate: joinDate.toISOString().slice(0, 10),
-                        amount: price,
-                        paidHistory: []
+                document.getElementById('statTotal').textContent = total;
+                document.getElementById('statActiveCount').textContent = active;
+                document.getElementById('statProjection').textContent = formatCurrency(proj.total);
+                document.getElementById('statReceived').textContent = formatCurrency(received);
+                document.getElementById('statReceivedDiff').textContent = (diff >= 0 ? '+' : '') + diff.toFixed(1) +
+                    '% vs projection';
+
+                // Avg speed
+                const payments = getPayments();
+                let speeds = [];
+                if (payments.length > 0) {
+                    // approximate: average days between payments per customer
+                    const custMap = {};
+                    payments.forEach(p => {
+                        if (!custMap[p.customer]) custMap[p.customer] = [];
+                        custMap[p.customer].push(new Date(p.date));
+                    });
+                    Object.values(custMap).forEach(dates => {
+                        if (dates.length > 1) {
+                            dates.sort((a, b) => a - b);
+                            for (let i = 1; i < dates.length; i++) {
+                                const diffDays = (dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24);
+                                speeds.push(diffDays);
+                            }
+                        }
                     });
                 }
+                const avgSpeed = speeds.length > 0 ? speeds.reduce((a, b) => a + b, 0) / speeds.length : 0;
+                document.getElementById('statAvgSpeed').textContent = avgSpeed > 0 ? Math.round(avgSpeed) + 'd' : '—';
 
-                for (let i = 0; i < 6; i++) {
-                    const idx = i % customers.length;
-                    const d = new Date();
-                    d.setDate(d.getDate() + (i + 1));
-                    customers[idx].expiry = d.toISOString().slice(0, 10);
-                    customers[idx].status = 'active';
+                renderPlanSummaryTable();
+                renderDashboardProjection();
+                renderExpiringSoonTable();
+                renderTodayExpiredTable();
+            }
+
+            function renderPlanSummaryTable() {
+                const customers = getCustomers();
+                const payments = getPayments();
+                const planNames = getPlanNames();
+                const tbody = document.getElementById('planSummaryTableBody');
+                let html = '';
+
+                planNames.forEach(plan => {
+                    const total = customers.filter(c => c.plan === plan).length;
+                    const paid = payments.filter(p => p.plan === plan).length;
+                    const unpaid = total - paid;
+                    const rate = total > 0 ? (paid / total * 100) : 0;
+                    const color = rate >= 80 ? '#22c55e' : (rate >= 50 ? '#f59e0b' : '#ef4444');
+                    html += `
+                            <tr>
+                                <td><span class="plan-tag ${plan.toLowerCase().replace(/[+ ]/g, '-')}">${plan}</span></td>
+                                <td><strong>${total}</strong></td>
+                                <td><span class="status-badge paid">${paid}</span></td>
+                                <td><span class="status-badge unpaid">${unpaid}</span></td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <div class="progress-bar-custom" style="flex:1;min-width:60px;">
+                                            <div class="fill" style="width:${rate}%;background:${color};"></div>
+                                        </div>
+                                        <span class="fs-small fw-600">${rate.toFixed(0)}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                });
+
+                if (!html) {
+                    html =
+                        `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">No plans available.</td></tr>`;
                 }
+                tbody.innerHTML = html;
+            }
+
+            function renderDashboardProjection() {
+                const filter = document.getElementById('dashboardProjectionFilter');
+                const period = filter.value;
+                const data = getProjectionByPeriod(period);
+                document.getElementById('dashboardTotalProjection').textContent = formatCurrency(data.total);
+
+                const labels = {
+                    daily: 'Projected for next 3 days (daily)',
+                    weekly: 'Projected for next 7 days (weekly)',
+                    monthly: 'Projected for current month (monthly)'
+                };
+                document.getElementById('dashboardProjectionPeriodLabel').textContent = labels[period] ||
+                    'Projected for current period';
+
+                renderDashboardPlanDistribution(data.planTotals, period);
+            }
+
+            function renderDashboardPlanDistribution(planTotals, period) {
+                const sorted = Object.entries(planTotals).sort((a, b) => b[1] - a[1]);
+                const container = document.getElementById('dashboardPlanDistributionList');
+
+                if (sorted.length === 0) {
+                    container.innerHTML =
+                        `<div class="distribution-empty"><i class="fas fa-chart-bar"></i><p>No active customers.</p></div>`;
+                    return;
+                }
+
+                const total = sorted.reduce((sum, [_, val]) => sum + val, 0);
+                const periodLabels = { daily: 'per day', weekly: 'per week', monthly: 'per month' };
+                document.getElementById('dashboardDistributionSubtitle').textContent =
+                    `distributed by plan (${periodLabels[period] || 'per month'})`;
+
+                const barColors = ['#00AFEF', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8', '#22D3EE', '#06B6D4', '#0891B2',
+                    '#0E7490'
+                ];
+                const customers = getCustomers();
+
+                let html = `
+                        <table class="distribution-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:22%;">Service Plan</th>
+                                    <th style="width:8%;">Customers</th>
+                                    <th style="width:45%;">Distribution</th>
+                                    <th style="width:15%;text-align:right;">Amount</th>
+                                    <th style="width:10%;text-align:right;">%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                sorted.forEach(([plan, amount], idx) => {
+                    const count = customers.filter(c => c.plan === plan && calculateStatus(c) === 'Active')
+                    .length;
+                    const pct = total > 0 ? (amount / total * 100) : 0;
+                    const color = barColors[idx % barColors.length];
+
+                    html += `
+                            <tr>
+                                <td>
+                                    <span class="plan-label-cell">
+                                        <span class="color-dot" style="background:${color};"></span>
+                                        <span class="plan-tag ${plan.toLowerCase().replace(/[+ ]/g, '-')}">${plan}</span>
+                                    </span>
+                                </td>
+                                <td>${count}</td>
+                                <td class="bar-cell">
+                                    <div class="bar-track">
+                                        <div class="bar-fill" style="width:${Math.max(pct, 2)}%;background:${color};">
+                                            <span class="bar-value-label">${pct.toFixed(0)}%</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="amount-cell">${formatCurrency(amount)}</td>
+                                <td class="percent-cell">${pct.toFixed(0)}%</td>
+                            </tr>
+                        `;
+                });
+
+                const totalActive = customers.filter(c => calculateStatus(c) === 'Active').length;
+                html += `
+                        <tr class="total-row">
+                            <td><span class="plan-label-cell" style="font-weight:700;color:var(--accent);">TOTAL</span></td>
+                            <td style="font-weight:700;">${totalActive}</td>
+                            <td>
+                                <div class="bar-track" style="background:var(--accent-light);border-color:var(--accent);display:flex;align-items:center;justify-content:center;height:24px;">
+                                    <span class="total-label">${formatCurrency(total)}</span>
+                                </div>
+                            </td>
+                            <td class="amount-cell" style="color:var(--accent);font-size:0.95rem;">${formatCurrency(total)}</td>
+                            <td class="percent-cell" style="color:var(--accent);">100%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                `;
+
+                container.innerHTML = html;
+            }
+
+            function renderExpiringSoonTable() {
+                const customers = getCustomers();
+                const soon = customers.filter(c => {
+                    const d = daysUntil(c.expiryDate);
+                    return d >= 0 && d <= 5 && calculateStatus(c) === 'Active';
+                }).sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate));
+
+                const tbody = document.getElementById('expiringSoonTableBody');
+                const empty = document.getElementById('expiringSoonEmpty');
+
+                if (soon.length === 0) {
+                    tbody.innerHTML = '';
+                    empty.style.display = 'block';
+                    return;
+                }
+                empty.style.display = 'none';
+
+                let html = '';
+                soon.forEach(c => {
+                    const d = daysUntil(c.expiryDate);
+                    const initials = getInitials(c.name);
+                    let statusClass, statusText;
+                    if (d <= 1) { statusClass = 'critical';
+                        statusText = '⚠️ Critical'; } else if (d <= 3) { statusClass = 'warning';
+                        statusText = '⚡ Warning'; } else { statusClass = 'info';
+                        statusText = 'ℹ️ Soon'; }
+
+                    html += `
+                            <tr>
+                                <td>
+                                    <div class="expiry-customer">
+                                        <span class="avatar-sm">${initials}</span>
+                                        ${c.name}
+                                    </div>
+                                </td>
+                                <td><span class="plan-tag ${c.plan.toLowerCase().replace(/[+ ]/g, '-')}">${c.plan}</span></td>
+                                <td>${formatDate(c.expiryDate)}</td>
+                                <td><span class="expiry-countdown ${d <= 1 ? 'critical' : d <= 3 ? 'warning' : 'safe'}">${d} day${d > 1 ? 's' : ''}</span></td>
+                                <td><span class="expiry-status ${statusClass}">${statusText}</span></td>
+                            </tr>
+                        `;
+                });
+                tbody.innerHTML = html;
+            }
+
+            function renderTodayExpiredTable() {
                 const today = new Date().toISOString().slice(0, 10);
-                for (let i = 0; i < 3; i++) {
-                    const idx = 12 + i;
-                    if (idx < customers.length) {
-                        customers[idx].expiry = today;
-                        customers[idx].status = 'expired';
-                    }
-                }
+                document.getElementById('todayDate').textContent = formatDate(today);
 
-                window._mockCustomers = customers;
-                return customers;
+                const customers = getCustomers();
+                const expired = customers.filter(c => c.expiryDate === today);
+
+                const tbody = document.getElementById('todayExpiredTableBody');
+                const empty = document.getElementById('todayExpiredEmpty');
+
+                if (expired.length === 0) {
+                    tbody.innerHTML = '';
+                    empty.style.display = 'block';
+                    return;
+                }
+                empty.style.display = 'none';
+
+                let html = '';
+                expired.forEach(c => {
+                    const initials = getInitials(c.name);
+                    html += `
+                            <tr>
+                                <td>
+                                    <div class="expiry-customer">
+                                        <span class="avatar-sm">${initials}</span>
+                                        ${c.name}
+                                    </div>
+                                </td>
+                                <td><span class="plan-tag ${c.plan.toLowerCase().replace(/[+ ]/g, '-')}">${c.plan}</span></td>
+                                <td>${formatDate(c.expiryDate)}</td>
+                                <td><span class="expiry-status critical">🔴 Expired</span></td>
+                            </tr>
+                        `;
+                });
+                tbody.innerHTML = html;
             }
 
-            function generatePaymentCustomers() {
-                const FIRST_NAMES = ['James', 'Maria', 'Alex', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'Daniel',
-                    'Lisa',
-                    'Robert', 'Emma', 'William', 'Olivia', 'Joseph', 'Sophia', 'Thomas', 'Mia', 'Charles', 'Charlotte'
-                ];
-                const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis',
-                    'Rodriguez',
-                    'Martinez', 'Hernandez', 'Lopez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson',
-                    'Martin',
-                    'Lee'
-                ];
-                const planNames = getPlanNames();
-
-                for (let i = 0; i < 12; i++) {
-                    const firstName = FIRST_NAMES[i % FIRST_NAMES.length];
-                    const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
-                    const plan = planNames[Math.floor(Math.random() * planNames.length)];
-                    const price = parseInt(getPlanPrice(plan).replace(/[₦,]/g, '')) || 0;
-                    const expDays = Math.floor(Math.random() * 60) - 10;
-                    const expiry = new Date();
-                    expiry.setDate(expiry.getDate() + expDays);
-                    const expiryStr = expiry.toISOString().slice(0, 10);
-                    const status = expDays < 0 ? 'expired' : (Math.random() > 0.1 ? 'active' : 'inactive');
-                    paymentCustomers.push({
-                        id: i + 1,
-                        name: firstName + ' ' + lastName,
-                        plan: plan,
-                        status: status,
-                        price: price,
-                        expiry: expiryStr
-                    });
+            // ============================================================
+            // PANEL TOGGLE
+            // ============================================================
+            window.togglePanel = function(panelId) {
+                const panel = document.getElementById(panelId);
+                if (!panel) return;
+                const body = panel.querySelector('.panel-body');
+                const icon = panel.querySelector('.toggle-icon');
+                if (!body || !icon) return;
+                if (body.classList.contains('expanded')) {
+                    body.classList.remove('expanded');
+                    body.classList.add('collapsed');
+                    icon.classList.add('collapsed');
+                } else {
+                    body.classList.remove('collapsed');
+                    body.classList.add('expanded');
+                    icon.classList.remove('collapsed');
                 }
-            }
+            };
 
-            function generateRecentPayments() {
-                const customers = paymentCustomers;
-                const now = new Date();
-                for (let i = 0; i < 7; i++) {
-                    const cust = customers[i % customers.length];
-                    const months = Math.floor(Math.random() * 3) + 1;
-                    const amount = cust.price * months;
-                    const newExpiry = new Date(cust.expiry);
-                    newExpiry.setMonth(newExpiry.getMonth() + months);
-                    const payDate = new Date(now);
-                    payDate.setDate(payDate.getDate() - Math.floor(Math.random() * 30) - 1);
-                    recentPayments.push({
-                        customer: cust.name,
-                        plan: cust.plan,
-                        amount: amount,
-                        newExpiry: newExpiry.toISOString().slice(0, 10),
-                        date: payDate.toISOString().slice(0, 10)
-                    });
-                }
-                recentPayments.sort((a, b) => b.date.localeCompare(a.date));
-            }
+            // ============================================================
+            // EVENT LISTENERS
+            // ============================================================
+            document.getElementById('dashboardApplyFilter').addEventListener('click', renderDashboardProjection);
+            document.getElementById('dashboardProjectionFilter').addEventListener('change', renderDashboardProjection);
 
-            // ─── DOM REFS ───
+            document.getElementById('dashRefreshBtn').addEventListener('click', function() {
+                renderDashboard();
+            });
+
+            document.getElementById('dashNewCustomerBtn').addEventListener('click', function() {
+                window.location.href = 'customer.html';
+            });
+
+            // ============================================================
+            // SIDEBAR & THEME (shared across pages)
+            // ============================================================
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             const hamburgerBtn = document.getElementById('hamburgerBtn');
             const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-            const navItems = document.querySelectorAll('.sidebar-nav .nav-item:not(.logout)');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            const avatarBtn = document.getElementById('avatarBtn');
 
-            const statTotal = document.getElementById('statTotal');
-            const statActiveCount = document.getElementById('statActiveCount');
-            const statProjection = document.getElementById('statProjection');
-            const statReceived = document.getElementById('statReceived');
-            const statReceivedDiff = document.getElementById('statReceivedDiff');
-            const statAvgSpeed = document.getElementById('statAvgSpeed');
-            const planSummaryTableBody = document.getElementById('planSummaryTableBody');
-            const dashboardTotalProjection = document.getElementById('dashboardTotalProjection');
-            const dashboardProjectionPeriodLabel = document.getElementById('dashboardProjectionPeriodLabel');
-            const dashboardProjectionFilter = document.getElementById('dashboardProjectionFilter');
-            const dashboardApplyFilter = document.getElementById('dashboardApplyFilter');
-            const dashboardPlanDistributionList = document.getElementById('dashboardPlanDistributionList');
-            const dashboardDistributionSubtitle = document.getElementById('dashboardDistributionSubtitle');
-            const expiringSoonTableBody = document.getElementById('expiringSoonTableBody');
-            const expiringSoonEmpty = document.getElementById('expiringSoonEmpty');
-            const todayExpiredTableBody = document.getElementById('todayExpiredTableBody');
-            const todayExpiredEmpty = document.getElementById('todayExpiredEmpty');
-            const todayDate = document.getElementById('todayDate');
-
-            const searchInput = document.getElementById('searchInput');
-            const searchBtn = document.getElementById('searchBtn');
-            const displayName = document.getElementById('displayName');
-            const displayPlan = document.getElementById('displayPlan');
-            const displayStatus = document.getElementById('displayStatus');
-            const displayExpiry = document.getElementById('displayExpiry');
-            const monthsInput = document.getElementById('monthsInput');
-            const amountDisplay = document.getElementById('amountDisplay');
-            const confirmBtn = document.getElementById('confirmPaymentBtn');
-            const recentBody = document.getElementById('recentPaymentsBody');
-            const noRecent = document.getElementById('noRecent');
-
-            const projDate = document.getElementById('projDate');
-            const projPlan = document.getElementById('projPlan');
-            const proj3Days = document.getElementById('proj3Days');
-            const proj1Week = document.getElementById('proj1Week');
-            const proj1Month = document.getElementById('proj1Month');
-            const proj1Year = document.getElementById('proj1Year');
-            const toggleFormBtn = document.getElementById('toggleFormBtn');
-            const cancelFormBtn = document.getElementById('cancelFormBtn');
-            const saveBtn = document.getElementById('saveProjectionBtn');
-            const projectionForm = document.getElementById('projectionForm');
-            const tableBody = document.getElementById('projectionTableBody');
-            const noProjection = document.getElementById('noProjection');
-            const projectionCount = document.getElementById('projectionCount');
-            const projectionHeader = document.getElementById('projectionHeader');
-            const filterTabs = document.getElementById('filterTabs');
-            const projectionToggleHeader = document.getElementById('projectionToggleHeader');
-            const projectionToggleIcon = document.getElementById('projectionToggleIcon');
-            const projectionBody = document.getElementById('projectionBody');
-
-            const paTotalProjected = document.getElementById('paTotalProjected');
-            const paTotalActual = document.getElementById('paTotalActual');
-            const paTotalVariance = document.getElementById('paTotalVariance');
-            const paVarianceSub = document.getElementById('paVarianceSub');
-            const paAccuracy = document.getElementById('paAccuracy');
-            const paTimeframeFilter = document.getElementById('paTimeframeFilter');
-            const paPlanFilter = document.getElementById('paPlanFilter');
-            const paChartContainer = document.getElementById('paChartContainer');
-            const paTableBody = document.getElementById('paTableBody');
-            const paNoData = document.getElementById('paNoData');
-
-            const settingsSidebarItems = document.querySelectorAll('.settings-sidebar .nav-item');
-            const settingsPages = {
-                general: document.getElementById('settings-page-general'),
-                plans: document.getElementById('settings-page-plans'),
-            };
-            const settingsPlanPreviewGrid = document.getElementById('settingsPlanPreviewGrid');
-            const settingsPlanCountLabel = document.getElementById('settingsPlanCountLabel');
-            const openPlanEditorBtn = document.getElementById('openPlanEditorBtn');
-            const closePlanEditorBtn = document.getElementById('closePlanEditorBtn');
-            const planEditorOverlay = document.getElementById('planEditorOverlay');
-            const planListContainer = document.getElementById('planListContainer');
-            const addPlanBtn = document.getElementById('addPlanBtn');
-            const newPlanName = document.getElementById('newPlanName');
-            const newPlanPrice = document.getElementById('newPlanPrice');
-            const settingsDarkToggle = document.getElementById('settingsDarkToggle');
-            const notifToggle = document.getElementById('notifToggle');
-
-            // ─── THEME ───
-            let darkMode = false;
-
-            function applyTheme(isDark) {
-                if (isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    themeIcon.className = 'fas fa-sun';
-                    if (settingsDarkToggle) settingsDarkToggle.classList.add('active');
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    themeIcon.className = 'fas fa-moon';
-                    if (settingsDarkToggle) settingsDarkToggle.classList.remove('active');
-                }
-                darkMode = isDark;
-                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
-            }
-
-            try {
-                const saved = localStorage.getItem('prontox-theme');
-                if (saved === 'dark') applyTheme(true);
-                else if (saved === 'light') applyTheme(false);
-                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-                else applyTheme(false);
-            } catch (_) { applyTheme(false); }
-
-            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
-
-            if (settingsDarkToggle) {
-                settingsDarkToggle.addEventListener('click', function() {
-                    applyTheme(!darkMode);
-                });
-            }
-
-            // ─── SIDEBAR TOGGLE ───
             function openSidebar() {
                 sidebar.classList.add('open');
                 sidebarOverlay.classList.add('open');
@@ -3391,1035 +1900,72 @@
             closeSidebarBtn.addEventListener('click', closeSidebar);
             sidebarOverlay.addEventListener('click', closeSidebar);
 
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
-                    closeSidebar();
-                }
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
             });
 
-            // ─── NAVIGATION ───
-            function navigateTo(pageId) {
-                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-                const target = document.getElementById('page-' + pageId);
-                if (target) target.classList.add('active');
+            // Theme toggle
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            let darkMode = false;
 
-                navItems.forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.page === pageId) item.classList.add('active');
-                });
-
-                closeSidebar();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-
-                if (pageId === 'settings') {
-                    renderSettingsPlanPreview();
-                    renderPlanList();
-                    showSettingsPage('general');
+            function applyTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeIcon.className = 'fas fa-sun';
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeIcon.className = 'fas fa-moon';
                 }
-                renderAll();
+                darkMode = isDark;
+                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
             }
 
-            navItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const page = this.dataset.page;
-                    if (page) navigateTo(page);
-                });
-            });
+            try {
+                const saved = localStorage.getItem('prontox-theme');
+                if (saved === 'dark') applyTheme(true);
+                else if (saved === 'light') applyTheme(false);
+                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+                else applyTheme(false);
+            } catch (_) { applyTheme(false); }
 
-            logoutBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (confirm('Logout?')) alert('Logging out...');
-            });
+            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
 
-            avatarBtn.addEventListener('click', function() {
-                alert('User profile');
-            });
-
+            // Logo link (stay on dashboard)
             document.getElementById('logoLink').addEventListener('click', function(e) {
                 e.preventDefault();
-                navigateTo('dashboard');
+                window.location.href = 'dashboard.html';
             });
 
-            // ─── SETTINGS SUB-NAVIGATION ───
-            function showSettingsPage(pageId) {
-                Object.keys(settingsPages).forEach(key => {
-                    settingsPages[key].classList.remove('active');
-                });
-                if (settingsPages[pageId]) {
-                    settingsPages[pageId].classList.add('active');
-                }
-                settingsSidebarItems.forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.settingsPage === pageId) {
-                        item.classList.add('active');
-                    }
-                });
-                planEditorOverlay.classList.remove('open');
-                if (pageId === 'plans') {
-                    renderSettingsPlanPreview();
-                }
-            }
-
-            settingsSidebarItems.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const page = this.dataset.settingsPage;
-                    if (page) showSettingsPage(page);
-                });
+            // Avatar click
+            document.getElementById('avatarBtn').addEventListener('click', function() {
+                alert('👤 User profile – would open user settings.');
             });
 
-            // ─── POPULATE PLAN DROPDOWN ───
-            function populatePlanDropdown() {
-                if (!projPlan) return;
-                const currentVal = projPlan.value;
-                const names = getPlanNames();
-                projPlan.innerHTML = names.map(name => `<option value="${name}">${name}</option>`).join('');
-                if (names.includes(currentVal)) {
-                    projPlan.value = currentVal;
-                } else if (names.length > 0) {
-                    projPlan.value = names[0];
-                }
-            }
-
-            function updatePaPlanFilter() {
-                if (!paPlanFilter) return;
-                const currentVal = paPlanFilter.value;
-                const names = getPlanNames();
-                paPlanFilter.innerHTML = `<option value="all">All Plans</option>` + names.map(name =>
-                    `<option value="${name}">${name}</option>`).join('');
-                if (names.includes(currentVal)) {
-                    paPlanFilter.value = currentVal;
-                }
-            }
-
-            // ─── DATA HELPERS ───
-            function getActiveCustomers() { return window._mockCustomers || []; }
-
-            function getProjectionByPeriod(period) {
-                const active = getActiveCustomers();
-                let total = 0;
-                const planTotals = {};
-                active.forEach(c => {
-                    const price = parseInt(getPlanPrice(c.plan).replace(/[₦,]/g, '')) || 0;
-                    let multiplier = 1;
-                    if (period === 'daily') multiplier = 1 / 30;
-                    else if (period === 'weekly') multiplier = 1 / 4;
-                    else multiplier = 1;
-                    const amount = price * multiplier;
-                    total += amount;
-                    if (!planTotals[c.plan]) planTotals[c.plan] = 0;
-                    planTotals[c.plan] += amount;
-                });
-                return { total, planTotals };
-            }
-
-            function getReceivedForMonth(year, month) {
-                const proj = getProjectionByPeriod('monthly');
-                return proj.total * (0.7 + Math.random() * 0.4);
-            }
-
-            function getPlanSummary() {
-                const planNames = getPlanNames();
-                const result = {};
-                const customers = getActiveCustomers();
-                planNames.forEach(p => {
-                    const total = customers.filter(c => c.plan === p).length;
-                    const paid = Math.floor(total * (0.5 + Math.random() * 0.4));
-                    const unpaid = total - paid;
-                    const rate = total > 0 ? (paid / total * 100) : 0;
-                    result[p] = { total, paid, unpaid, rate };
-                });
-                return result;
-            }
-
-            function formatCurrency(amount) { return '₦' + amount.toLocaleString(); }
-
-            function formatDate(dateStr) {
-                const d = new Date(dateStr);
-                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            }
-
-            function daysUntil(dateStr) {
-                const now = new Date();
-                now.setHours(0, 0, 0, 0);
-                const d = new Date(dateStr);
-                d.setHours(0, 0, 0, 0);
-                return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
-            }
-
-            function addMonths(dateStr, months) {
-                const d = new Date(dateStr);
-                d.setMonth(d.getMonth() + months);
-                return d.toISOString().split('T')[0];
-            }
-
-            // ─── RENDER FUNCTIONS ───
-            function renderDashboard() {
-                const customers = generateMockCustomers();
-                const total = customers.length;
-                const active = customers.filter(c => c.status === 'active').length;
-                const proj = getProjectionByPeriod('monthly');
-                const received = getReceivedForMonth(new Date().getFullYear(), new Date().getMonth());
-                const diff = proj.total > 0 ? ((received - proj.total) / proj.total * 100) : 0;
-
-                statTotal.textContent = total;
-                statActiveCount.textContent = active;
-                statProjection.textContent = '₦' + proj.total.toLocaleString();
-                statReceived.textContent = '₦' + received.toLocaleString();
-                statReceivedDiff.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(1) + '% vs projection';
-
-                let speeds = [];
-                getPlanNames().forEach(p => {
-                    const relevant = customers.filter(c => c.plan === p && c.paidHistory.length > 0);
-                    if (relevant.length > 0) speeds.push(relevant.length * 0.5);
-                });
-                const avgSpeed = speeds.length > 0 ? speeds.reduce((a, b) => a + b, 0) / speeds.length : 0;
-                statAvgSpeed.textContent = avgSpeed > 0 ? Math.round(avgSpeed) + 'd' : '—';
-
-                renderPlanSummaryTable();
-                renderDashboardProjection();
-                renderExpiringSoonTable();
-                renderTodayExpiredTable();
-            }
-
-            function renderPlanSummaryTable() {
-                const summary = getPlanSummary();
-                let html = '';
-                const planNames = getPlanNames();
-                planNames.forEach(p => {
-                    const s = summary[p];
-                    if (!s) return;
-                    const rate = s.rate || 0;
-                    const color = rate >= 80 ? '#22c55e' : (rate >= 50 ? '#f59e0b' : '#ef4444');
-                    html += `<tr>
-                                <td><span class="plan-tag ${p.toLowerCase().replace(/[+ ]/g, '-')}">${p}</span></td>
-                                <td><strong>${s.total}</strong></td>
-                                <td><span class="status-badge paid">${s.paid}</span></td>
-                                <td><span class="status-badge unpaid">${s.unpaid}</span></td>
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="progress-bar-custom" style="flex:1;min-width:60px;">
-                                            <div class="fill" style="width:${rate}%;background:${color};"></div>
-                                        </div>
-                                        <span class="fs-small fw-600">${rate.toFixed(0)}%</span>
-                                    </div>
-                                </td>
-                            </tr>`;
-                });
-                if (!html) html =
-                    `<tr><td colspan="5" class="text-center text-muted py-4">No plans available.</td></tr>`;
-                planSummaryTableBody.innerHTML = html;
-            }
-
-            function renderDashboardProjection() {
-                const period = dashboardProjectionFilter.value;
-                dashboardFilter = period;
-                const data = getProjectionByPeriod(period);
-
-                dashboardTotalProjection.textContent = '₦' + data.total.toLocaleString();
-
-                const labels = {
-                    daily: 'Projected for next 3 days (daily)',
-                    weekly: 'Projected for next 7 days (weekly)',
-                    monthly: 'Projected for current month (monthly)'
-                };
-                dashboardProjectionPeriodLabel.textContent = labels[period] || 'Projected for current period';
-
-                renderDashboardPlanDistribution(data.planTotals, period);
-            }
-
-            // ─── PLAN DISTRIBUTION (TABLE STYLE - REFERENCE: Unit Sales.png) ───
-            function renderDashboardPlanDistribution(planTotals, period) {
-                const sorted = Object.entries(planTotals).sort((a, b) => b[1] - a[1]);
-
-                if (sorted.length === 0) {
-                    dashboardPlanDistributionList.innerHTML =
-                        `<div class="distribution-empty"><i class="fas fa-chart-bar"></i><p>No active customers.</p></div>`;
-                    return;
-                }
-
-                const total = sorted.reduce((sum, [_, val]) => sum + val, 0);
-                const periodLabels = {
-                    daily: 'per day',
-                    weekly: 'per week',
-                    monthly: 'per month'
-                };
-                dashboardDistributionSubtitle.textContent = `distributed by plan (${periodLabels[period] || 'per month'})`;
-
-                const barColors = ['#00AFEF', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8',
-                    '#22D3EE', '#06B6D4', '#0891B2', '#0E7490'
-                ];
-
-                let html = `
-                    <table class="distribution-table">
-                        <thead>
-                            <tr>
-                                <th style="width:22%;">Service Plan</th>
-                                <th style="width:8%;">Customers</th>
-                                <th style="width:45%;">Distribution</th>
-                                <th style="width:15%;text-align:right;">Amount</th>
-                                <th style="width:10%;text-align:right;">%</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-
-                sorted.forEach(([plan, amount], idx) => {
-                    const count = window._mockCustomers ? window._mockCustomers.filter(c => c.plan === plan && c
-                        .status === 'active').length : 0;
-                    const pct = total > 0 ? (amount / total * 100) : 0;
-                    const color = barColors[idx % barColors.length];
-
-                    html += `
-                        <tr>
-                            <td>
-                                <span class="plan-label-cell">
-                                    <span class="color-dot" style="background:${color};"></span>
-                                    <span class="plan-tag ${plan.toLowerCase().replace(/[+ ]/g, '-')}">${plan}</span>
-                                </span>
-                            </td>
-                            <td>${count}</td>
-                            <td class="bar-cell">
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width:${Math.max(pct, 2)}%;background:${color};">
-                                        <span class="bar-value-label">${pct.toFixed(0)}%</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="amount-cell">${formatCurrency(amount)}</td>
-                            <td class="percent-cell">${pct.toFixed(0)}%</td>
-                        </tr>
-                    `;
-                });
-
-                // Total row
-                const totalActive = window._mockCustomers ? window._mockCustomers.filter(c => c.status === 'active')
-                .length : 0;
-                html += `
-                        <tr class="total-row">
-                            <td><span class="plan-label-cell" style="font-weight:700;color:var(--accent);">TOTAL</span></td>
-                            <td style="font-weight:700;">${totalActive}</td>
-                            <td>
-                                <div class="bar-track" style="background:var(--accent-light);border-color:var(--accent);display:flex;align-items:center;justify-content:center;height:24px;">
-                                    <span class="total-label">${formatCurrency(total)}</span>
-                                </div>
-                            </td>
-                            <td class="amount-cell" style="color:var(--accent);font-size:0.95rem;">${formatCurrency(total)}</td>
-                            <td class="percent-cell" style="color:var(--accent);">100%</td>
-                        </tr>
-                    </tbody>
-                </table>
-                `;
-
-                dashboardPlanDistributionList.innerHTML = html;
-            }
-
-            function renderExpiringSoonTable() {
-                const customers = window._mockCustomers || [];
-                const soon = customers.filter(c => {
-                    const d = daysUntil(c.expiry);
-                    return d >= 0 && d <= 5 && c.status === 'active';
-                }).sort((a, b) => daysUntil(a.expiry) - daysUntil(b.expiry));
-
-                if (soon.length === 0) {
-                    expiringSoonTableBody.innerHTML = '';
-                    expiringSoonEmpty.style.display = 'block';
-                    return;
-                }
-                expiringSoonEmpty.style.display = 'none';
-
-                let html = '';
-                soon.forEach(c => {
-                    const d = daysUntil(c.expiry);
-                    const initials = c.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-                    let statusClass, statusText;
-                    if (d <= 1) { statusClass = 'critical';
-                        statusText = '⚠️ Critical'; } else if (d <= 3) { statusClass = 'warning';
-                        statusText = '⚡ Warning'; } else { statusClass = 'info';
-                        statusText = 'ℹ️ Soon'; }
-
-                    html += `
-                        <tr>
-                            <td>
-                                <div class="expiry-customer">
-                                    <span class="avatar-sm">${initials}</span>
-                                    ${c.name}
-                                </div>
-                            </td>
-                            <td><span class="plan-tag ${c.plan.toLowerCase().replace(/[+ ]/g, '-')}">${c.plan}</span></td>
-                            <td>${formatDate(c.expiry)}</td>
-                            <td><span class="expiry-countdown ${d <= 1 ? 'critical' : d <= 3 ? 'warning' : 'safe'}">${d} day${d > 1 ? 's' : ''}</span></td>
-                            <td><span class="expiry-status ${statusClass}">${statusText}</span></td>
-                        </tr>
-                    `;
-                });
-                expiringSoonTableBody.innerHTML = html;
-            }
-
-            function renderTodayExpiredTable() {
-                const today = new Date().toISOString().slice(0, 10);
-                todayDate.textContent = formatDate(today);
-
-                const customers = window._mockCustomers || [];
-                const expired = customers.filter(c => c.expiry === today);
-
-                if (expired.length === 0) {
-                    todayExpiredTableBody.innerHTML = '';
-                    todayExpiredEmpty.style.display = 'block';
-                    return;
-                }
-                todayExpiredEmpty.style.display = 'none';
-
-                let html = '';
-                expired.forEach(c => {
-                    const initials = c.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-                    html += `
-                        <tr>
-                            <td>
-                                <div class="expiry-customer">
-                                    <span class="avatar-sm">${initials}</span>
-                                    ${c.name}
-                                </div>
-                            </td>
-                            <td><span class="plan-tag ${c.plan.toLowerCase().replace(/[+ ]/g, '-')}">${c.plan}</span></td>
-                            <td>${formatDate(c.expiry)}</td>
-                            <td><span class="expiry-status critical">🔴 Expired</span></td>
-                        </tr>
-                    `;
-                });
-                todayExpiredTableBody.innerHTML = html;
-            }
-
-            // ─── PAYMENT FUNCTIONS ───
-            let selectedCustomer = null;
-
-            function updatePaymentForm() {
-                if (!selectedCustomer) {
-                    displayName.textContent = '—';
-                    displayPlan.textContent = '—';
-                    displayStatus.textContent = '—';
-                    displayExpiry.textContent = '—';
-                    amountDisplay.textContent = '₦0';
-                    return;
-                }
-                displayName.textContent = selectedCustomer.name;
-                displayPlan.textContent = selectedCustomer.plan;
-                const statusBadge = selectedCustomer.status === 'active' ?
-                    '<span class="badge">Active</span>' :
-                    '<span class="badge inactive">Inactive</span>';
-                displayStatus.innerHTML = statusBadge;
-                displayExpiry.textContent = formatDate(selectedCustomer.expiry);
-                updateAmount();
-            }
-
-            function updateAmount() {
-                if (!selectedCustomer) {
-                    amountDisplay.textContent = '₦0';
-                    return;
-                }
-                const months = parseInt(monthsInput.value) || 1;
-                const total = selectedCustomer.price * months;
-                amountDisplay.textContent = formatCurrency(total);
-            }
-
-            function searchCustomer(query) {
-                if (!query.trim()) {
-                    selectedCustomer = null;
-                    updatePaymentForm();
-                    return;
-                }
-                const lower = query.toLowerCase().trim();
-                const found = paymentCustomers.find(c =>
-                    c.name.toLowerCase().includes(lower) ||
-                    c.id.toString() === lower
-                );
-                if (found) {
-                    selectedCustomer = found;
-                } else {
-                    selectedCustomer = null;
-                    alert('Customer not found. Please try again.');
-                }
-                updatePaymentForm();
-            }
-
-            function confirmPayment() {
-                if (!selectedCustomer) {
-                    alert('Please search and select a customer first.');
-                    return;
-                }
-                const months = parseInt(monthsInput.value) || 1;
-                if (months < 1) {
-                    alert('Months must be at least 1.');
-                    return;
-                }
-                const amount = selectedCustomer.price * months;
-                const newExpiry = addMonths(selectedCustomer.expiry, months);
-
-                const today = new Date().toISOString().split('T')[0];
-                recentPayments.unshift({
-                    customer: selectedCustomer.name,
-                    plan: selectedCustomer.plan,
-                    amount: amount,
-                    newExpiry: newExpiry,
-                    date: today
-                });
-
-                selectedCustomer.expiry = newExpiry;
-
-                renderRecent();
-                updatePaymentForm();
-                renderAll();
-                alert(`✅ Payment confirmed for ${selectedCustomer.name}.\nNew expiry: ${formatDate(newExpiry)}`);
-            }
-
-            function renderRecent() {
-                if (recentPayments.length === 0) {
-                    recentBody.innerHTML = '';
-                    noRecent.style.display = 'block';
-                    return;
-                }
-                noRecent.style.display = 'none';
-                let html = '';
-                recentPayments.forEach(p => {
-                    html += `
-                        <tr>
-                            <td>${p.customer}</td>
-                            <td>${p.plan}</td>
-                            <td>${formatCurrency(p.amount)}</td>
-                            <td>${formatDate(p.newExpiry)}</td>
-                            <td>${formatDate(p.date)}</td>
-                        </tr>
-                    `;
-                });
-                recentBody.innerHTML = html;
-            }
-
-            // ─── PROJECTION FUNCTIONS ───
-            function resetForm() {
-                const names = getPlanNames();
-                projDate.value = new Date().toISOString().split('T')[0];
-                projPlan.value = names[0] || 'Silver';
-                proj3Days.value = '';
-                proj1Week.value = '';
-                proj1Month.value = '';
-                proj1Year.value = '';
-                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Projection';
-            }
-
-            toggleFormBtn.addEventListener('click', function() {
-                if (projectionForm.classList.contains('open')) {
-                    projectionForm.classList.remove('open');
-                    toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
-                } else {
-                    projectionForm.classList.add('open');
-                    toggleFormBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Close Form';
-                    resetForm();
-                }
-            });
-
-            cancelFormBtn.addEventListener('click', function() {
-                projectionForm.classList.remove('open');
-                toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
-            });
-
-            function handleSaveProjection() {
-                const date = projDate.value;
-                const plan = projPlan.value;
-                const p3d = parseInt(proj3Days.value) || 0;
-                const p1w = parseInt(proj1Week.value) || 0;
-                const p1m = parseInt(proj1Month.value) || 0;
-                const p1y = parseInt(proj1Year.value) || 0;
-
-                if (!date) { alert('Please select a date.'); return; }
-                if (p3d === 0 && p1w === 0 && p1m === 0 && p1y === 0) {
-                    alert('Please enter at least one projection value.');
-                    return;
-                }
-
-                const existing = projections.find(p => p.date === date && p.plan === plan);
-                if (existing) {
-                    if (!confirm(`A projection for ${plan} on ${date} already exists. Overwrite?`)) return;
-                    existing.projection3Days = p3d;
-                    existing.projection1Week = p1w;
-                    existing.projection1Month = p1m;
-                    existing.projection1Year = p1y;
-                } else {
-                    projections.push({ id: nextId++, date: date, plan: plan, projection3Days: p3d,
-                        projection1Week: p1w, projection1Month: p1m, projection1Year: p1y });
-                }
-
-                const actualEntry = actualData.find(a => a.date === date && a.plan === plan);
-                if (!actualEntry) {
-                    actualData.push({ plan: plan, date: date, actual3Days: 0, actual1Week: 0, actual1Month: 0,
-                        actual1Year: 0 });
-                    saveActualData();
-                }
-
-                saveProjections();
-                projectionForm.classList.remove('open');
-                toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
-                renderAll();
-                alert('✅ Projection saved successfully!');
-            }
-
-            saveBtn.addEventListener('click', handleSaveProjection);
-
-            function renderProjectionTable() {
-                if (!tableBody) return;
-
-                const filterMap = {
-                    daily: { key: 'projection3Days', label: '3-Day Projection (₦)' },
-                    weekly: { key: 'projection1Week', label: '1-Week Projection (₦)' },
-                    monthly: { key: 'projection1Month', label: '1-Month Projection (₦)' },
-                    annually: { key: 'projection1Year', label: '1-Year Projection (₦)' },
-                };
-                const current = filterMap[currentFilter];
-                if (!current) return;
-
-                projectionHeader.textContent = current.label;
-
-                const grouped = {};
-                projections.forEach(p => {
-                    if (!grouped[p.date]) grouped[p.date] = [];
-                    grouped[p.date].push(p);
-                });
-
-                const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
-
-                if (sortedDates.length === 0) {
-                    tableBody.innerHTML = '';
-                    noProjection.style.display = 'block';
-                    projectionCount.textContent = '(0 entries)';
-                    return;
-                }
-
-                noProjection.style.display = 'none';
-                projectionCount.textContent = `(${projections.length} entries)`;
-
-                let html = '';
-                sortedDates.forEach(date => {
-                    const items = grouped[date];
-                    items.sort((a, b) => a.plan.localeCompare(b.plan));
-
-                    let total = 0;
-                    items.forEach(item => { total += item[current.key] || 0; });
-
-                    items.forEach(item => {
-                        const amount = item[current.key] || 0;
-                        html += `
-                            <tr>
-                                <td>${date}</td>
-                                <td>${item.plan}</td>
-                                <td>₦${amount.toLocaleString()}</td>
-                                <td style="text-align:center;">
-                                    <button class="delete-btn" data-id="${item.id}">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-
-                    html += `
-                        <tr class="total-row">
-                            <td colspan="2" style="text-align:right; font-weight:700;">Total (${date})</td>
-                            <td style="font-weight:700;">₦${total.toLocaleString()}</td>
-                            <td></td>
-                        </tr>
-                    `;
-                });
-
-                tableBody.innerHTML = html;
-
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const id = parseInt(this.dataset.id);
-                        deleteProjection(id);
-                    });
-                });
-            }
-
-            projectionToggleHeader.addEventListener('click', function() {
-                if (projectionBody.classList.contains('expanded')) {
-                    projectionBody.classList.remove('expanded');
-                    projectionBody.classList.add('collapsed');
-                    projectionToggleIcon.classList.add('collapsed');
-                } else {
-                    projectionBody.classList.remove('collapsed');
-                    projectionBody.classList.add('expanded');
-                    projectionToggleIcon.classList.remove('collapsed');
-                }
-            });
-
-            filterTabs.addEventListener('click', function(e) {
-                const btn = e.target.closest('.filter-btn');
-                if (!btn) return;
-                const filter = btn.dataset.filter;
-                if (!filter) return;
-                filterTabs.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = filter;
-                renderProjectionTable();
-            });
-
-            // ─── PROJECTION VS ACTUAL ───
-            function renderProjectionVsActual() {
-                if (!paTableBody) return;
-
-                const timeframe = paTimeframeFilter.value;
-                const planFilter = paPlanFilter.value;
-
-                const filterMap = {
-                    daily: { key: 'projection3Days', actualKey: 'actual3Days', label: '3-Day' },
-                    weekly: { key: 'projection1Week', actualKey: 'actual1Week', label: 'Weekly' },
-                    monthly: { key: 'projection1Month', actualKey: 'actual1Month', label: 'Monthly' },
-                    annually: { key: 'projection1Year', actualKey: 'actual1Year', label: 'Annually' },
-                };
-                const current = filterMap[timeframe];
-                if (!current) return;
-
-                let filteredProjections = [...projections];
-                if (planFilter !== 'all') {
-                    filteredProjections = filteredProjections.filter(p => p.plan === planFilter);
-                }
-
-                if (filteredProjections.length === 0) {
-                    paTableBody.innerHTML = '';
-                    paNoData.style.display = 'block';
-                    paChartContainer.innerHTML = '';
-                    paTotalProjected.textContent = '₦0';
-                    paTotalActual.textContent = '₦0';
-                    paTotalVariance.textContent = '₦0';
-                    paVarianceSub.textContent = '—';
-                    paAccuracy.textContent = '0%';
-                    return;
-                }
-
-                paNoData.style.display = 'none';
-
-                const grouped = {};
-                filteredProjections.forEach(p => {
-                    if (!grouped[p.date]) grouped[p.date] = [];
-                    grouped[p.date].push(p);
-                });
-
-                const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
-
-                let totalProjected = 0;
-                let totalActual = 0;
-
-                let tableHtml = '';
-                const chartData = [];
-
-                sortedDates.forEach(date => {
-                    const items = grouped[date];
-                    items.sort((a, b) => a.plan.localeCompare(b.plan));
-
-                    let dateProjected = 0;
-                    let dateActual = 0;
-
-                    items.forEach(item => {
-                        const projVal = item[current.key] || 0;
-                        const actualEntry = actualData.find(a => a.date === date && a.plan === item.plan);
-                        const actualVal = actualEntry ? (actualEntry[current.actualKey] || 0) : 0;
-
-                        dateProjected += projVal;
-                        dateActual += actualVal;
-                        totalProjected += projVal;
-                        totalActual += actualVal;
-
-                        const variance = actualVal - projVal;
-                        const pct = projVal > 0 ? ((variance / projVal) * 100).toFixed(1) : 0;
-                        let statusClass, statusText;
-                        if (variance > 0) { statusClass = 'positive';
-                            statusText = '✅ +' + pct + '%'; } else if (variance < 0) { statusClass = 'negative';
-                            statusText = '⚠️ ' + pct + '%'; } else { statusClass = 'neutral';
-                            statusText = '➖ 0%'; }
-
-                        tableHtml += `
-                            <tr>
-                                <td>${date}</td>
-                                <td>${item.plan}</td>
-                                <td>₦${projVal.toLocaleString()}</td>
-                                <td>₦${actualVal.toLocaleString()}</td>
-                                <td>${(variance >= 0 ? '+' : '') + variance.toLocaleString()}</td>
-                                <td><span class="variance-badge ${statusClass}">${statusText}</span></td>
-                            </tr>
-                        `;
-                    });
-
-                    const dateVariance = dateActual - dateProjected;
-                    const datePct = dateProjected > 0 ? ((dateVariance / dateProjected) * 100).toFixed(1) : 0;
-                    let dateStatusClass = 'neutral';
-                    if (dateVariance > 0) dateStatusClass = 'positive';
-                    else if (dateVariance < 0) dateStatusClass = 'negative';
-
-                    tableHtml += `
-                        <tr class="total-row">
-                            <td colspan="2" style="text-align:right; font-weight:700;">Total (${date})</td>
-                            <td style="font-weight:700;">₦${dateProjected.toLocaleString()}</td>
-                            <td style="font-weight:700;">₦${dateActual.toLocaleString()}</td>
-                            <td style="font-weight:700;">${(dateVariance >= 0 ? '+' : '') + dateVariance.toLocaleString()}</td>
-                            <td><span class="variance-badge ${dateStatusClass}">${dateVariance > 0 ? '✅ +' : dateVariance < 0 ? '⚠️ ' : '➖ '}${datePct}%</span></td>
-                        </tr>
-                    `;
-
-                    chartData.push({ period: date, projection: dateProjected, actual: dateActual });
-                });
-
-                paTableBody.innerHTML = tableHtml;
-
-                paTotalProjected.textContent = '₦' + totalProjected.toLocaleString();
-                paTotalActual.textContent = '₦' + totalActual.toLocaleString();
-                const variance = totalActual - totalProjected;
-                paTotalVariance.textContent = (variance >= 0 ? '+' : '') + '₦' + variance.toLocaleString();
-
-                let statusText, statusClass;
-                if (variance > 0) { statusText = '✅ Over performing';
-                    statusClass = 'positive'; } else if (variance < 0) { statusText = '⚠️ Under performing';
-                    statusClass = 'negative'; } else { statusText = '➖ On target';
-                    statusClass = 'neutral'; }
-                paVarianceSub.textContent = statusText;
-                paVarianceSub.className = 'sub ' + statusClass;
-
-                const accuracy = totalProjected > 0 ? Math.round((totalActual / totalProjected) * 100) : 0;
-                paAccuracy.textContent = accuracy + '%';
-
-                renderPaChart(chartData);
-            }
-
-            function renderPaChart(data) {
-                if (!paChartContainer) return;
-                if (data.length === 0) {
-                    paChartContainer.innerHTML =
-                        '<div style="text-align:center;color:var(--text-muted);padding:40px 0;">No data to display</div>';
-                    return;
-                }
-
-                const maxVal = Math.max(...data.flatMap(d => [d.projection, d.actual]), 1);
-
-                let html = '';
-                data.forEach(item => {
-                    const projPct = Math.max((item.projection / maxVal) * 100, 3);
-                    const actPct = Math.max((item.actual / maxVal) * 100, 3);
-
-                    html += `
-                        <div class="pa-chart-column">
-                            <div class="pa-chart-bars">
-                                <div class="pa-bar-group">
-                                    <div class="bar-value">₦${(item.projection/1000).toFixed(0)}K</div>
-                                    <div class="bar projection" style="height: ${projPct}%;"></div>
-                                </div>
-                                <div class="pa-bar-group">
-                                    <div class="bar-value">₦${(item.actual/1000).toFixed(0)}K</div>
-                                    <div class="bar actual" style="height: ${actPct}%;"></div>
-                                </div>
-                            </div>
-                            <div class="pa-period-label">${item.period}</div>
-                        </div>
-                    `;
-                });
-
-                paChartContainer.innerHTML = html;
-            }
-
-            // ─── SETTINGS PLAN RENDER ───
-            function renderSettingsPlanPreview() {
-                if (!settingsPlanPreviewGrid) return;
-                if (planList.length === 0) {
-                    settingsPlanPreviewGrid.innerHTML =
-                        `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);">No plans configured.</div>`;
-                    settingsPlanCountLabel.textContent = '0 plans';
-                    return;
-                }
-                let html = '';
-                planList.forEach(p => {
-                    html += `
-                        <div class="plan-card">
-                            <div class="name">${p.name}</div>
-                            <div class="price">${p.price}</div>
-                        </div>
-                    `;
-                });
-                settingsPlanPreviewGrid.innerHTML = html;
-                settingsPlanCountLabel.textContent = `${planList.length} plans`;
-            }
-
-            function renderPlanList() {
-                if (!planListContainer) return;
-                if (planList.length === 0) {
-                    planListContainer.innerHTML =
-                        `<div class="empty-plans"><i class="fas fa-cube"></i><p>No plans yet. Add your first plan below.</p></div>`;
-                    return;
-                }
-                let html = '';
-                planList.forEach(p => {
-                    html += `
-                        <div class="plan-item" data-id="${p.id}">
-                            <div class="plan-info">
-                                <span class="plan-name">${p.name}</span>
-                                <div class="plan-price-wrap">
-                                    <label>Price</label>
-                                    <input type="text" class="plan-price-input" value="${p.price}" data-id="${p.id}" />
-                                </div>
-                            </div>
-                            <div class="plan-actions">
-                                <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
-                                <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-trash"></i> Remove</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                planListContainer.innerHTML = html;
-
-                document.querySelectorAll('.save-price-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const id = parseInt(this.dataset.id);
-                        const input = document.querySelector(`.plan-price-input[data-id="${id}"]`);
-                        if (!input) return;
-                        const newPrice = input.value.trim();
-                        const plan = planList.find(p => p.id === id);
-                        if (plan) {
-                            plan.price = newPrice || plan.price;
-                            savePlans();
-                            renderPlanList();
-                            renderSettingsPlanPreview();
-                            populatePlanDropdown();
-                            updatePaPlanFilter();
-                        }
-                    });
-                });
-
-                document.querySelectorAll('.remove-plan-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const id = parseInt(this.dataset.id);
-                        if (!confirm('Remove this plan?')) return;
-                        const planName = planList.find(p => p.id === id)?.name;
-                        if (planName) {
-                            projections = projections.filter(p => p.plan !== planName);
-                            saveProjections();
-                            actualData = actualData.filter(a => a.plan !== planName);
-                            saveActualData();
-                        }
-                        planList = planList.filter(p => p.id !== id);
-                        savePlans();
-                        renderPlanList();
-                        renderSettingsPlanPreview();
-                        populatePlanDropdown();
-                        updatePaPlanFilter();
-                        renderAll();
-                    });
-                });
-
-                document.querySelectorAll('.plan-price-input').forEach(inp => {
-                    inp.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
-                            const id = parseInt(this.dataset.id);
-                            const btn = document.querySelector(`.save-price-btn[data-id="${id}"]`);
-                            if (btn) btn.click();
-                        }
-                    });
-                });
-            }
-
-            function handleAddPlan() {
-                const name = newPlanName.value.trim();
-                const price = newPlanPrice.value.trim();
-                if (!name) { alert('Please enter a plan name.'); return; }
-                if (!price) { alert('Please enter a price.'); return; }
-                if (planList.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-                    alert('A plan with this name already exists.');
-                    return;
-                }
-                const maxId = planList.reduce((max, p) => p.id > max ? p.id : max, 0);
-                planList.push({ id: maxId + 1, name, price });
-                savePlans();
-                newPlanName.value = '';
-                newPlanPrice.value = '';
-                renderPlanList();
-                renderSettingsPlanPreview();
-                populatePlanDropdown();
-                updatePaPlanFilter();
-            }
-
-            addPlanBtn.addEventListener('click', handleAddPlan);
-            newPlanName.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
-            newPlanPrice.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
-
-            openPlanEditorBtn.addEventListener('click', function() {
-                renderPlanList();
-                planEditorOverlay.classList.add('open');
-            });
-
-            closePlanEditorBtn.addEventListener('click', function() {
-                planEditorOverlay.classList.remove('open');
-            });
-
-            // ─── EVENT LISTENERS ───
-            searchBtn.addEventListener('click', function() { searchCustomer(searchInput.value); });
-            searchInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') { e.preventDefault();
-                    searchCustomer(searchInput.value); }
-            });
-            monthsInput.addEventListener('input', updateAmount);
-            confirmBtn.addEventListener('click', confirmPayment);
-
-            dashboardApplyFilter.addEventListener('click', renderDashboardProjection);
-            dashboardProjectionFilter.addEventListener('change', renderDashboardProjection);
-
-            paTimeframeFilter.addEventListener('change', renderProjectionVsActual);
-            paPlanFilter.addEventListener('change', renderProjectionVsActual);
-
-            if (notifToggle) {
-                notifToggle.addEventListener('click', function() { this.classList.toggle('active'); });
-            }
-
-            window.togglePanel = function(panelId) {
-                const panel = document.getElementById(panelId);
-                if (!panel) return;
-                const body = panel.querySelector('.panel-body');
-                const icon = panel.querySelector('.toggle-icon');
-                if (!body || !icon) return;
-                if (body.classList.contains('expanded')) {
-                    body.classList.remove('expanded');
-                    body.classList.add('collapsed');
-                    icon.classList.add('collapsed');
-                } else {
-                    body.classList.remove('collapsed');
-                    body.classList.add('expanded');
-                    icon.classList.remove('collapsed');
-                }
-            };
-
-            // ─── RENDER ALL ───
-            function renderAll() {
-                renderDashboard();
-                renderProjectionTable();
-                renderProjectionVsActual();
-                renderRecent();
-                renderSettingsPlanPreview();
-            }
-
-            // ─── INIT ───
-            loadPlans();
-            loadProjections();
-            loadActualData();
-            populatePlanDropdown();
-            updatePaPlanFilter();
-            resetForm();
-            generateMockCustomers();
-            generatePaymentCustomers();
-            generateRecentPayments();
-            renderAll();
-
-            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-            document.getElementById('page-dashboard').classList.add('active');
-
-            console.log('✅ Prontox platform ready - Plan Distribution now uses table style from Unit Sales.png!');
+        // ─── LOGOUT ───
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+        // Clear session from localStorage
+        localStorage.removeItem('prontox_session');
+        // Redirect to login page
+        window.location.href = 'login.html';
+    }
+}); 
+
+            // ============================================================
+            // INIT
+            // ============================================================
+            // Seed data if needed
+            seedPayments();
+            seedProjectionsAndActuals();
+
+            // Render dashboard
+            renderDashboard();
+
+            console.log('✅ Dashboard ready.');
         })();
     </script>
+
 </body>
 </html>
