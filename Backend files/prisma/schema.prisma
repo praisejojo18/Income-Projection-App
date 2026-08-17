@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// USER — colleague's ownership (dependency)
+model User {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  settings    Settings?
+  plans       Plan[]
+  customers   Customer[]
+  payments    Payment[]
+  projections Projection[]
+
+  @@map("users")
+}
+
+// SETTINGS — your page
+model Settings {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workspaceName String   @default("My Workspace")
+  darkMode      Boolean  @default(false)
+  language      String   @default("en-US")
+  notifications Boolean  @default(true)
+  currency      String   @default("NGN")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// PLAN — your page (Plans & Pricing)
+model Plan {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name         String
+  price        Decimal    @db.Decimal(12, 2)
+  durationDays Int
+  status       PlanStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customers   Customer[]
+  payments    Payment[]
+  projections Projection[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("plans")
+}
+
+enum PlanStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+// CUSTOMER — colleague's ownership (dependency)
+model Customer {
+  id            String         @id @default(uuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name          String
+  email         String?
+  phone         String?
+  planId        String
+  plan          Plan           @relation(fields: [planId], references: [id])
+  expiryDate    DateTime
+  status        CustomerStatus @default(ACTIVE)
+  customerSince DateTime       @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments Payment[]
+
+  @@index([userId])
+  @@index([expiryDate])
+  @@map("customers")
+}
+
+enum CustomerStatus {
+  ACTIVE
+  EXPIRED
+  INACTIVE
+}
+
+// PAYMENT — your page
+model Payment {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  customerId  String
+  customer    Customer      @relation(fields: [customerId], references: [id])
+  planId      String
+  plan        Plan          @relation(fields: [planId], references: [id])
+
+  amount      Decimal       @db.Decimal(12, 2)
+  paymentDate DateTime      @default(now())
+  method      PaymentMethod
+  reference   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, reference])
+  @@index([userId, paymentDate])
+  @@index([userId, planId])
+  @@index([customerId])
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CASH
+  POS
+}
+
+// PROJECTION — your page
+model Projection {
+  id       String   @id @default(uuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  planId   String
+  plan     Plan     @relation(fields: [planId], references: [id])
+  date     DateTime @db.Date
+
+  threeDay Decimal? @db.Decimal(12, 2)
+  oneWeek  Decimal? @db.Decimal(12, 2)
+  oneMonth Decimal? @db.Decimal(12, 2)
+  oneYear  Decimal? @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, planId, date])
+  @@index([userId, date])
+  @@map("projections")
+}

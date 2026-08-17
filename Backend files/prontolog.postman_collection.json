@@ -1,0 +1,310 @@
+{
+  "info": {
+    "_postman_id": "prontolog-api-collection",
+    "name": "ProntoLog API",
+    "description": "Complete API collection for the ProntoLog ISP Finance Platform backend. Auth is set at collection level using the {{token}} environment variable.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5001" }
+  ],
+  "item": [
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings"]
+            }
+          }
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workspaceName\": \"Prontox ISP\",\n  \"darkMode\": true,\n  \"notifications\": true,\n  \"language\": \"en-US\",\n  \"currency\": \"NGN\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "settings"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Plans",
+      "item": [
+        {
+          "name": "List Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "plans"]
+            }
+          }
+        },
+        {
+          "name": "Create Plan",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Daily (3 Days)\",\n  \"price\": 300,\n  \"durationDays\": 3\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "plans"]
+            }
+          }
+        },
+        {
+          "name": "Update Plan",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 350\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/plans/{{planId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "plans", "{{planId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Plan",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/plans/{{planId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "plans", "{{planId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Payment Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "stats"]
+            }
+          }
+        },
+        {
+          "name": "List Payments (All)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"]
+            }
+          }
+        },
+        {
+          "name": "List Payments (This Month)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments?range=month",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"],
+              "query": [ { "key": "range", "value": "month" } ]
+            }
+          }
+        },
+        {
+          "name": "List Payments (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments?range=today&method=BANK_TRANSFER&planId={{planId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"],
+              "query": [
+                { "key": "range", "value": "today" },
+                { "key": "method", "value": "BANK_TRANSFER" },
+                { "key": "planId", "value": "{{planId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Record Payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"planId\": \"{{planId}}\",\n  \"amount\": 1500,\n  \"method\": \"Bank Transfer\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"]
+            }
+          }
+        },
+        {
+          "name": "Update Payment",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1600,\n  \"method\": \"POS\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/{{paymentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "{{paymentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/{{paymentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "{{paymentId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projections",
+      "item": [
+        {
+          "name": "Projection Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projections/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projections", "summary"]
+            }
+          }
+        },
+        {
+          "name": "List Projections (Daily)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projections?timeframe=daily",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projections"],
+              "query": [ { "key": "timeframe", "value": "daily" } ]
+            }
+          }
+        },
+        {
+          "name": "List Projections (Monthly)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projections?timeframe=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projections"],
+              "query": [ { "key": "timeframe", "value": "monthly" } ]
+            }
+          }
+        },
+        {
+          "name": "Create Projection",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"{{planId}}\",\n  \"date\": \"2026-08-14\",\n  \"threeDay\": 4500,\n  \"oneWeek\": 12000,\n  \"oneMonth\": 48000,\n  \"oneYear\": 576000\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/projections",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projections"]
+            }
+          }
+        },
+        {
+          "name": "Update Projection",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"threeDay\": 5000\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/projections/{{projectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projections", "{{projectionId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Projection",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/projections/{{projectionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "projections", "{{projectionId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

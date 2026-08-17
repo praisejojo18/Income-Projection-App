@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProntoLog · Login</title>
+
+    <!-- Google Fonts: Inter, EB Garamond, Unbounded -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Inter:wght@300;400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bgMain: '#F0F4F8',
+                        surface: '#FFFFFF',
+                        surfaceSec: '#F8FAFC',
+                        textPrimary: '#1A2332',
+                        textSecondary: '#475569',
+                        textMuted: '#94A3B8',
+                        borderColor: '#E2E8F0',
+                        accent: '#00AFEF',
+                        accentHover: '#0099D3',
+                        accentDark: '#0088CC',
+                        accentLight: '#E6F6FE',
+                        accentMid: '#B3E5FC'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        garamond: ['"EB Garamond"', 'Georgia', 'serif'],
+                        unbounded: ['Unbounded', 'sans-serif']
+                    },
+                    borderRadius: {
+                        'card': '14px'
+                    },
+                    boxShadow: {
+                        'auth-card': '0 12px 40px rgba(0,0,0,0.08), 0 4px 20px rgba(0,0,0,0.04)',
+                        'auth-subtle': '0 4px 20px rgba(0,0,0,0.04)',
+                        'logo-badge': '0 4px 16px rgba(0, 175, 239, 0.18), 0 2px 6px rgba(0,0,0,0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome (for icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <style>
+        /* Override Tailwind for custom fonts */
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #F0F4F8;
+            color: #1A2332;
+        }
+        .font-garamond {
+            font-family: 'EB Garamond', Georgia, serif;
+        }
+        .font-unbounded {
+            font-family: 'Unbounded', sans-serif;
+        }
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            20%,
+            60% {
+                transform: translateX(-4px);
+            }
+            40%,
+            80% {
+                transform: translateX(4px);
+            }
+        }
+        .animate-shake {
+            animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        /* Dark mode overrides for login page */
+        [data-theme="dark"] body {
+            background-color: #0E0F11;
+        }
+        [data-theme="dark"] .bg-surface {
+            background-color: #1A1E21 !important;
+        }
+        [data-theme="dark"] .bg-surface-2 {
+            background-color: #24292E !important;
+        }
+        [data-theme="dark"] .text-primary {
+            color: #E7E9EB !important;
+        }
+        [data-theme="dark"] .text-secondary {
+            color: #AAB0B6 !important;
+        }
+        [data-theme="dark"] .text-muted {
+            color: #888E99 !important;
+        }
+        [data-theme="dark"] .border-border {
+            border-color: #353E46 !important;
+        }
+        [data-theme="dark"] input,
+        [data-theme="dark"] .input-bg {
+            background-color: #1A1E21 !important;
+            color: #E7E9EB !important;
+            border-color: #353E46 !important;
+        }
+        [data-theme="dark"] .bg-white {
+            background-color: #1A1E21 !important;
+        }
+        [data-theme="dark"] .bg-gray-50 {
+            background-color: #24292E !important;
+        }
+        [data-theme="dark"] .bg-rose-50 {
+            background-color: #4a1a1a !important;
+        }
+        [data-theme="dark"] .text-rose-700 {
+            color: #f87171 !important;
+        }
+        [data-theme="dark"] .border-rose-200 {
+            border-color: #5a2a2a !important;
+        }
+        [data-theme="dark"] .left-illustration {
+            background: linear-gradient(to bottom right, #1a2a3a, #0a1a2a) !important;
+        }
+        [data-theme="dark"] .left-illustration .bg-white\/90 {
+            background-color: rgba(26, 30, 33, 0.9) !important;
+        }
+        [data-theme="dark"] .left-illustration .text-\[\#1A2332\] {
+            color: #E7E9EB !important;
+        }
+        [data-theme="dark"] .left-illustration .text-\[\#475569\] {
+            color: #AAB0B6 !important;
+        }
+        [data-theme="dark"] .left-illustration .border-\[\#E2E8F0\] {
+            border-color: #353E46 !important;
+        }
+        [data-theme="dark"] .shadow-auth-card {
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+        [data-theme="dark"] .shadow-auth-subtle {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+        [data-theme="dark"] .shadow-logo-badge {
+            box-shadow: 0 4px 16px rgba(96, 165, 250, 0.25), 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+        }
+        [data-theme="dark"] .bg-\[\#F8FAFC\] {
+            background-color: #24292E !important;
+        }
+        [data-theme="dark"] .bg-\[\#E6F6FE\] {
+            background-color: #1a3a5a !important;
+        }
+        [data-theme="dark"] .text-\[\#0088CC\] {
+            color: #60A5FA !important;
+        }
+        [data-theme="dark"] .text-\[\#00AFEF\] {
+            color: #60A5FA !important;
+        }
+        [data-theme="dark"] .border-\[\#E2E8F0\] {
+            border-color: #353E46 !important;
+        }
+        [data-theme="dark"] .border-\[\#B3E5FC\] {
+            border-color: #2a4a6a !important;
+        }
+        [data-theme="dark"] .hover\:bg-\[\#0099D3\]:hover {
+            background-color: #3B82F6 !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== MAIN CONTAINER ===== -->
+    <div class="min-h-screen w-full bg-[#F0F4F8] text-[#1A2332] flex flex-col" id="app">
+        <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10 flex items-center">
+            <div class="w-full grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-6 lg:gap-8 items-stretch">
+
+                <!-- ─── Left Illustration ─── -->
+                <section class="relative w-full min-h-[460px] lg:min-h-[600px] overflow-hidden rounded-[22px] bg-gradient-to-br from-[#071B2B] via-[#08324A] to-[#006A9A] p-7 sm:p-9 lg:p-10 text-white shadow-auth-card left-illustration">
+                    <div class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[#00AFEF]/20 blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-[#00AFEF]/15 blur-3xl pointer-events-none"></div>
+
+                    <div class="relative z-10 flex h-full flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 mb-10">
+                                <div class="w-11 h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-sm">
+                                    <i class="fas fa-landmark text-[#63D7FF] text-xl"></i>
+                                </div>
+                                <div>
+                                    <div class="text-lg font-bold tracking-tight">ProntoLog</div>
+                                    <div class="text-[10px] uppercase tracking-[0.2em] text-white/55">ISP Finance Platform</div>
+                                </div>
+                            </div>
+                            <div class="max-w-xl">
+                                <div class="inline-flex items-center gap-2 rounded-full border border-[#63D7FF]/25 bg-white/10 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#B9ECFF]">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                                    Built for Internet Service Providers
+                                </div>
+                                <h2 class="mt-5 text-4xl sm:text-5xl lg:text-[3.35rem] leading-[1.02] font-semibold tracking-tight">Know where your ISP money is going.</h2>
+                                <p class="mt-5 max-w-lg text-sm sm:text-base leading-7 text-white/70">ProntoLog brings subscriber revenue, billing, expenses, reconciliations and financial reporting into one clear workspace for modern ISP teams.</p>
+                            </div>
+                            <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+                                <div class="rounded-2xl border border-white/10 bg-white/[0.07] p-4 backdrop-blur-sm">
+                                    <div class="text-lg font-semibold">Revenue</div>
+                                    <div class="mt-1 text-[11px] text-white/55">Track collections & subscriptions</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/[0.07] p-4 backdrop-blur-sm">
+                                    <div class="text-lg font-semibold">Control</div>
+                                    <div class="mt-1 text-[11px] text-white/55">Monitor costs & cash movement</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/[0.07] p-4 backdrop-blur-sm">
+                                    <div class="text-lg font-semibold">Insight</div>
+                                    <div class="mt-1 text-[11px] text-white/55">Make faster finance decisions</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-10 rounded-2xl border border-white/10 bg-black/10 p-5 backdrop-blur-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <div class="text-[10px] uppercase tracking-wider text-white/45">Monthly ISP Revenue</div>
+                                    <div class="mt-1 text-2xl font-semibold">₦48.6M</div>
+                                </div>
+                                <div class="rounded-full bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">+14.8%</div>
+                            </div>
+                            <div class="flex items-end gap-1.5 h-14">
+                                <div class="w-full rounded-t bg-white/15 h-[35%]"></div>
+                                <div class="w-full rounded-t bg-white/20 h-[48%]"></div>
+                                <div class="w-full rounded-t bg-white/25 h-[42%]"></div>
+                                <div class="w-full rounded-t bg-[#63D7FF]/55 h-[64%]"></div>
+                                <div class="w-full rounded-t bg-[#63D7FF]/70 h-[58%]"></div>
+                                <div class="w-full rounded-t bg-[#63D7FF] h-[86%]"></div>
+                                <div class="w-full rounded-t bg-[#8DE5FF] h-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ─── Right Panel (Login / Signup) ─── -->
+                <div class="w-full bg-white rounded-[22px] border border-[#E2E8F0] shadow-auth-card p-6 sm:p-10 lg:p-12 flex items-center bg-surface">
+                    <div class="w-full flex flex-col justify-center">
+
+                        <!-- ========== LOGIN FORM ========== -->
+                        <div id="loginForm" class="w-full max-w-md mx-auto">
+                            <div class="flex justify-center mb-5">
+                                <div class="inline-flex flex-col items-center justify-center">
+                                    <div class="p-[3px] rounded-full bg-gradient-to-tr from-[#00AFEF] via-[#B3E5FC] to-[#0088CC] shadow-logo-badge hover:scale-105 transition-transform duration-300">
+                                        <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center border border-[#E2E8F0] relative group">
+                                            <div class="absolute inset-0 rounded-full bg-[#E6F6FE] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            <i class="fas fa-landmark text-2xl text-[#00AFEF] relative z-10"></i>
+                                            <div class="absolute -bottom-1 -right-1 bg-[#00AFEF] text-white p-0.5 rounded-full border-2 border-white shadow-sm">
+                                                <i class="fas fa-shield-alt text-[10px]"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mb-6">
+                                <h1 class="text-3xl font-normal text-[#1A2332] font-garamond tracking-tight">Welcome Back!</h1>
+                                <p class="mt-1.5 text-xs sm:text-sm text-[#475569]">Sign in to access your enterprise financial ledger and reports.</p>
+                            </div>
+
+                            <div id="loginError" class="hidden mb-4 p-3 rounded-[10px] bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium animate-shake"></div>
+
+                            <form id="loginFormElement" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-[#1A2332] uppercase tracking-wider mb-1.5">Email Address</label>
+                                    <div class="relative rounded-[14px]">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
+                                            <i class="fas fa-envelope text-sm"></i>
+                                        </div>
+                                        <input
+                                        type="email"
+                                        id="loginEmail"
+                                        value="controller@enterprise-accounting.com"
+                                        required
+                                        class="w-full pl-10 pr-4 py-3 bg-white text-[#1A2332] text-sm rounded-[14px] border border-[#E2E8F0] placeholder-[#94A3B8] focus:outline-none focus:border-[#00AFEF] focus:ring-4 focus:ring-[#E6F6FE] transition-all input-bg"
+                                        placeholder="name@company.com"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-xs font-semibold text-[#1A2332] uppercase tracking-wider">Password</label>
+                                        <button type="button" id="forgotPasswordBtn" class="text-xs font-semibold text-[#0088CC] hover:text-[#00AFEF] hover:underline focus:outline-none">Forgot Password?</button>
+                                    </div>
+                                    <div class="relative rounded-[14px]">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
+                                            <i class="fas fa-lock text-sm"></i>
+                                        </div>
+                                        <input
+                                        type="password"
+                                        id="loginPassword"
+                                        value="Password123!"
+                                        required
+                                        class="w-full pl-10 pr-11 py-3 bg-white text-[#1A2332] text-sm rounded-[14px] border border-[#E2E8F0] placeholder-[#94A3B8] focus:outline-none focus:border-[#00AFEF] focus:ring-4 focus:ring-[#E6F6FE] transition-all input-bg"
+                                        placeholder="••••••••••••"
+                                        />
+                                        <button type="button" id="togglePasswordBtn" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#94A3B8] hover:text-[#475569] focus:outline-none">
+                                            <i class="fas fa-eye" id="passwordIcon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between pt-1">
+                                    <label class="flex items-center space-x-2.5 cursor-pointer group">
+                                        <input type="checkbox" id="rememberMe" checked class="w-4 h-4 text-[#00AFEF] border-[#E2E8F0] rounded focus:ring-[#00AFEF]" />
+                                        <span class="text-xs text-[#475569] font-medium group-hover:text-[#1A2332]">Remember Me</span>
+                                    </label>
+                                    <span class="text-[11px] text-[#94A3B8] flex items-center gap-1">
+                                        <i class="fas fa-shield-alt text-[#00AFEF]"></i> Encrypted
+                                    </span>
+                                </div>
+
+                                <button type="submit" id="loginSubmitBtn" class="w-full py-3.5 px-6 rounded-[14px] bg-[#00AFEF] hover:bg-[#0099D3] active:bg-[#0088CC] text-white text-sm font-semibold shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#B3E5FC] disabled:opacity-70 flex items-center justify-center space-x-2 transition-all cursor-pointer">
+                                    <span>Log In to Workspace</span>
+                                    <i class="fas fa-arrow-right text-xs"></i>
+                                </button>
+                            </form>
+
+                            <div class="mt-8 pt-6 border-t border-[#E2E8F0] text-center">
+                                <p class="text-xs sm:text-sm text-[#475569]">
+                                    Don't have an account? <button id="goToSignupBtn" class="font-semibold text-[#0088CC] hover:text-[#00AFEF] hover:underline focus:outline-none">Sign Up</button>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- ========== SIGNUP FORM ========== -->
+                        <div id="signupForm" class="w-full max-w-md mx-auto hidden">
+                            <div class="flex items-center justify-between mb-4">
+                                <button type="button" id="backToLoginBtn" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-[#475569] hover:text-[#00AFEF] bg-[#F8FAFC] px-3 py-1.5 rounded-full border border-[#E2E8F0] transition-colors">
+                                    <i class="fas fa-arrow-left text-xs"></i>
+                                    <span>Back to Login</span>
+                                </button>
+                            </div>
+
+                            <div class="flex justify-center mb-3">
+                                <div class="inline-flex flex-col items-center justify-center">
+                                    <div class="p-[3px] rounded-full bg-gradient-to-tr from-[#00AFEF] via-[#B3E5FC] to-[#0088CC] shadow-logo-badge">
+                                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-[#E2E8F0]">
+                                            <i class="fas fa-landmark text-[#00AFEF]"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mb-5">
+                                <h1 class="text-2xl sm:text-3xl font-normal text-[#1A2332] font-garamond tracking-tight">Create Account</h1>
+                            </div>
+
+                            <div id="signupError" class="hidden mb-4 p-3 rounded-[10px] bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium animate-shake"></div>
+
+                            <form id="signupFormElement" class="space-y-3.5">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-[#1A2332] uppercase tracking-wider mb-1">First Name</label>
+                                        <input type="text" id="signupFirstName" required placeholder="Sarah" class="w-full px-3 py-2.5 bg-white text-[#1A2332] text-xs rounded-[14px] border border-[#E2E8F0] placeholder-[#94A3B8] focus:outline-none focus:border-[#00AFEF] focus:ring-4 focus:ring-[#E6F6FE] input-bg" />
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-[#1A2332] uppercase tracking-wider mb-1">Last Name</label>
+                                        <input type="text" id="signupLastName" required placeholder="Jenkins" class="w-full px-3 py-2.5 bg-white text-[#1A2332] text-xs rounded-[14px] border border-[#E2E8F0] placeholder-[#94A3B8] focus:outline-none focus:border-[#00AFEF] focus:ring-4 focus:ring-[#E6F6FE] input-bg" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-[#1A2332] uppercase tracking-wider mb-1">Work Email Address</label>
+                                    <div class="relative rounded-[14px]">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                                            <i class="fas fa-envelope text-sm"></i>
+                                        </div>
+                                        <input type="email" id="signupEmail" required placeholder="sarah.j@company.com" class="w-full pl-9 pr-3 py-2.5 bg-white text-[#1A2332] text-xs rounded-[14px] border border-[#E2E8F0] placeholder-[#94A3B8] focus:outline-none focus:border-[#00AFEF] focus:ring-4 focus:ring-[#E6F6FE] input-bg" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-[#1A2332] uppercase tracking-wider mb-1">Password</label>
+                                    <div class="relative rounded-[14px]">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                                            <i class="fas fa-lock text-sm"></i>
+                                        </div>
+                                        <input type="password" id="signupPassword" required placeholder="At least 8 characters" class="w-full pl-9 pr-10 py-2.5 bg-white text-[#1A2332] text-xs rounded-[14px] border border-[#E2E8F0] placeholder-[#94A3B8] focus:outline-none focus:border-[#00AFEF] focus:ring-4 focus:ring-[#E6F6FE] input-bg" />
+                                        <button type="button" id="signupTogglePasswordBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#94A3B8]">
+                                            <i class="fas fa-eye" id="signupPasswordIcon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-[#1A2332] uppercase tracking-wider mb-1">Confirm Password</label>
+                                    <div class="relative rounded-[14px]">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                                            <i class="fas fa-lock text-sm"></i>
+                                        </div>
+                                        <input type="password" id="signupConfirmPassword" required placeholder="Re-enter password" class="w-full pl-9 pr-10 py-2.5 bg-white text-[#1A2332] text-xs rounded-[14px] border border-[#E2E8F0] placeholder-[#94A3B8] focus:outline-none focus:border-[#00AFEF] focus:ring-4 focus:ring-[#E6F6FE] input-bg" />
+                                        <button type="button" id="signupToggleConfirmBtn" class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#94A3B8]">
+                                            <i class="fas fa-eye" id="signupConfirmIcon"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="pt-1">
+                                    <label class="flex items-start space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="signupTerms" class="mt-0.5 w-4 h-4 text-[#00AFEF] border-[#E2E8F0] rounded" />
+                                        <span class="text-xs text-[#475569]">
+                                            I agree to the <button type="button" id="openTermsBtn" class="font-semibold text-[#0088CC] hover:underline">Terms and Conditions</button>
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <button type="submit" id="signupSubmitBtn" class="w-full py-3 px-6 rounded-[14px] bg-[#00AFEF] hover:bg-[#0099D3] text-white text-xs font-semibold shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#B3E5FC] disabled:opacity-70 flex items-center justify-center space-x-2 transition-all cursor-pointer">
+                                    <span>Create Account</span>
+                                    <i class="fas fa-arrow-right text-xs"></i>
+                                </button>
+                            </form>
+
+                            <div class="mt-4 pt-4 border-t border-[#E2E8F0] text-center">
+                                <p class="text-xs text-[#475569]">
+                                    Already have an account? <button id="backToLoginFromSignupBtn" class="font-semibold text-[#0088CC] hover:underline">Log In</button>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- ========== FORGOT PASSWORD ========== -->
+                        <div id="forgotForm" class="w-full max-w-md mx-auto text-center space-y-4 hidden">
+                            <button id="backToLoginFromForgotBtn" class="inline-flex items-center space-x-1.5 text-xs text-[#475569] bg-[#F8FAFC] px-3 py-1.5 rounded-full border border-[#E2E8F0]">
+                                <i class="fas fa-arrow-left text-xs"></i>
+                                <span>Return to Sign In</span>
+                            </button>
+                            <h2 class="text-2xl font-garamond text-[#1A2332]">Password Reset Requested</h2>
+                            <p class="text-xs text-[#475569]">Instructions will be dispatched to your corporate email.</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-5 text-center text-xs text-[#94A3B8]">
+            © 2026 ProntoLog. ISP Accounting & Financial Operations Platform.
+        </footer>
+    </div>
+
+    <!-- ===== TERMS MODAL ===== -->
+    <div id="termsModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-[14px] p-6 max-w-md w-full border border-[#E2E8F0] shadow-auth-card space-y-4">
+            <h3 class="text-base font-bold text-[#1A2332]">Enterprise Terms of Service</h3>
+            <p class="text-xs text-[#475569] leading-relaxed">
+                Access to this accounting portal requires adherence to standard general ledger reconciliations and corporate data protection rules.
+            </p>
+            <button id="closeTermsBtn" class="w-full py-2.5 bg-[#00AFEF] text-white text-xs font-semibold rounded-[10px]">Close & Accept</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  JAVASCRIPT – LOGIN / SIGNUP / FORGOT / THEME
+        // ============================================================
+
+        (function() {
+            'use strict';
+
+            // ─── DOM REFS ───
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+            const forgotForm = document.getElementById('forgotForm');
+
+            const loginEmail = document.getElementById('loginEmail');
+            const loginPassword = document.getElementById('loginPassword');
+            const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+            const loginError = document.getElementById('loginError');
+
+            const signupFirstName = document.getElementById('signupFirstName');
+            const signupLastName = document.getElementById('signupLastName');
+            const signupEmail = document.getElementById('signupEmail');
+            const signupPassword = document.getElementById('signupPassword');
+            const signupConfirmPassword = document.getElementById('signupConfirmPassword');
+            const signupTerms = document.getElementById('signupTerms');
+            const signupSubmitBtn = document.getElementById('signupSubmitBtn');
+            const signupError = document.getElementById('signupError');
+
+            const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+            const passwordIcon = document.getElementById('passwordIcon');
+            const signupTogglePasswordBtn = document.getElementById('signupTogglePasswordBtn');
+            const signupPasswordIcon = document.getElementById('signupPasswordIcon');
+            const signupToggleConfirmBtn = document.getElementById('signupToggleConfirmBtn');
+            const signupConfirmIcon = document.getElementById('signupConfirmIcon');
+
+            const goToSignupBtn = document.getElementById('goToSignupBtn');
+            const backToLoginBtn = document.getElementById('backToLoginBtn');
+            const backToLoginFromSignupBtn = document.getElementById('backToLoginFromSignupBtn');
+            const backToLoginFromForgotBtn = document.getElementById('backToLoginFromForgotBtn');
+            const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+
+            const openTermsBtn = document.getElementById('openTermsBtn');
+            const closeTermsBtn = document.getElementById('closeTermsBtn');
+            const termsModal = document.getElementById('termsModal');
+
+            // ─── THEME (shared with other pages) ───
+            function applyTheme(isDark) {
+                if (isDark) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+            }
+
+            // Load saved theme
+            try {
+                const saved = localStorage.getItem('prontox-theme');
+                if (saved === 'dark') applyTheme(true);
+                else if (saved === 'light') applyTheme(false);
+                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+                else applyTheme(false);
+            } catch (_) { applyTheme(false); }
+
+            // ─── TOGGLE PASSWORD VISIBILITY ───
+            togglePasswordBtn.addEventListener('click', function() {
+                const input = loginPassword;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    passwordIcon.className = 'fas fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    passwordIcon.className = 'fas fa-eye';
+                }
+            });
+
+            signupTogglePasswordBtn.addEventListener('click', function() {
+                const input = signupPassword;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    signupPasswordIcon.className = 'fas fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    signupPasswordIcon.className = 'fas fa-eye';
+                }
+            });
+
+            signupToggleConfirmBtn.addEventListener('click', function() {
+                const input = signupConfirmPassword;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    signupConfirmIcon.className = 'fas fa-eye-slash';
+                } else {
+                    input.type = 'password';
+                    signupConfirmIcon.className = 'fas fa-eye';
+                }
+            });
+
+            // ─── SHOW / HIDE FORMS ───
+            function showLogin() {
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                forgotForm.classList.add('hidden');
+                loginError.classList.add('hidden');
+                signupError.classList.add('hidden');
+            }
+
+            function showSignup() {
+                loginForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                forgotForm.classList.add('hidden');
+                loginError.classList.add('hidden');
+                signupError.classList.add('hidden');
+            }
+
+            function showForgot() {
+                loginForm.classList.add('hidden');
+                signupForm.classList.add('hidden');
+                forgotForm.classList.remove('hidden');
+                loginError.classList.add('hidden');
+                signupError.classList.add('hidden');
+            }
+
+            goToSignupBtn.addEventListener('click', showSignup);
+            backToLoginBtn.addEventListener('click', showLogin);
+            backToLoginFromSignupBtn.addEventListener('click', showLogin);
+            forgotPasswordBtn.addEventListener('click', showForgot);
+            backToLoginFromForgotBtn.addEventListener('click', showLogin);
+
+            // ─── TERMS MODAL ───
+            openTermsBtn.addEventListener('click', function() {
+                termsModal.classList.remove('hidden');
+                termsModal.style.display = 'flex';
+            });
+            closeTermsBtn.addEventListener('click', function() {
+                termsModal.style.display = 'none';
+                termsModal.classList.add('hidden');
+            });
+            termsModal.addEventListener('click', function(e) {
+                if (e.target === termsModal) {
+                    termsModal.style.display = 'none';
+                    termsModal.classList.add('hidden');
+                }
+            });
+
+            // ─── LOGIN HANDLER ───
+            function handleLogin(e) {
+                e.preventDefault();
+                const email = loginEmail.value.trim();
+                const password = loginPassword.value.trim();
+
+                loginError.classList.add('hidden');
+
+                if (!email || !email.includes('@')) {
+                    loginError.textContent = 'Please enter a valid work email address.';
+                    loginError.classList.remove('hidden');
+                    return;
+                }
+                if (!password || password.length < 6) {
+                    loginError.textContent = 'Password must be at least 6 characters.';
+                    loginError.classList.remove('hidden');
+                    return;
+                }
+
+                // Simulate loading
+                loginSubmitBtn.disabled = true;
+                loginSubmitBtn.innerHTML = '<span>Authenticating...</span>';
+
+                setTimeout(() => {
+                    // Success – set session flag and redirect
+                    try {
+                        localStorage.setItem('prontox_session', JSON.stringify({
+                            email: email,
+                            name: email.split('@')[0],
+                            loggedIn: true
+                        }));
+                    } catch (_) {}
+
+                    // Redirect to dashboard
+                    window.location.href = 'dashboard.html';
+                }, 800);
+            }
+
+            loginForm.addEventListener('submit', handleLogin);
+
+            // Also allow Enter key on password field
+            loginPassword.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleLogin(e);
+                }
+            });
+
+            // ─── SIGNUP HANDLER ───
+            function handleSignup(e) {
+                e.preventDefault();
+                const firstName = signupFirstName.value.trim();
+                const lastName = signupLastName.value.trim();
+                const email = signupEmail.value.trim();
+                const password = signupPassword.value;
+                const confirm = signupConfirmPassword.value;
+                const terms = signupTerms.checked;
+
+                signupError.classList.add('hidden');
+
+                if (!firstName || !lastName) {
+                    signupError.textContent = 'Please enter your first and last name.';
+                    signupError.classList.remove('hidden');
+                    return;
+                }
+                if (!email || !email.includes('@')) {
+                    signupError.textContent = 'Please enter a valid work email address.';
+                    signupError.classList.remove('hidden');
+                    return;
+                }
+                if (password.length < 8) {
+                    signupError.textContent = 'Password must be at least 8 characters.';
+                    signupError.classList.remove('hidden');
+                    return;
+                }
+                if (password !== confirm) {
+                    signupError.textContent = 'Passwords do not match.';
+                    signupError.classList.remove('hidden');
+                    return;
+                }
+                if (!terms) {
+                    signupError.textContent = 'You must accept the terms and conditions.';
+                    signupError.classList.remove('hidden');
+                    return;
+                }
+
+                signupSubmitBtn.disabled = true;
+                signupSubmitBtn.innerHTML = '<span>Creating Account...</span>';
+
+                setTimeout(() => {
+                    // Store session
+                    try {
+                        localStorage.setItem('prontox_session', JSON.stringify({
+                            email: email,
+                            name: firstName + ' ' + lastName,
+                            loggedIn: true
+                        }));
+                    } catch (_) {}
+
+                    window.location.href = 'dashboard.html';
+                }, 800);
+            }
+
+            signupForm.addEventListener('submit', handleSignup);
+
+            // Allow Enter key on signup fields
+            signupFirstName.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSignup(e); });
+            signupLastName.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSignup(e); });
+            signupEmail.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSignup(e); });
+            signupPassword.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSignup(e); });
+            signupConfirmPassword.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSignup(e); });
+
+            // ─── CHECK IF ALREADY LOGGED IN ───
+            function checkSession() {
+                try {
+                    const session = localStorage.getItem('prontox_session');
+                    if (session) {
+                        const data = JSON.parse(session);
+                        if (data && data.loggedIn === true) {
+                            // Already logged in – redirect to dashboard
+                            window.location.href = 'dashboard.html';
+                            return true;
+                        }
+                    }
+                } catch (_) {}
+                return false;
+            }
+
+            // If already logged in, skip login page
+            if (checkSession()) {
+                // The redirect will happen, but we stop execution
+                return;
+            }
+
+            // ─── INIT ───
+            showLogin();
+            console.log('✅ Login page ready.');
+        })();
+    </script>
+</body>
+</html>
