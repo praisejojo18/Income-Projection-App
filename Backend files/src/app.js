@@ -5,7 +5,7 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 const app = express();
 
-app.use(cors()); // frontend will call from a different origin/port
+app.use(cors()); 
 app.use(express.json()); // parse JSON bodies
 
 // Health check

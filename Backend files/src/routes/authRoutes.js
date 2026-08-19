@@ -1,8 +1,9 @@
 const router = require('express').Router();
+const { authenticate } = require('../middleware/auth');
+const { register, login, getMe } = require('../controllers/authController');
 
-// TODO: Colleague needs to implement login/register here
-router.get('/status', (req, res) => {
-  res.json({ success: true, message: 'Auth routes are stubbed for now.' });
-});
+router.post('/register', register);
+router.post('/login', login);
+router.get('/me', authenticate, getMe);
 
 module.exports = router;

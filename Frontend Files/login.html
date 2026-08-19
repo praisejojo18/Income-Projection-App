@@ -464,7 +464,8 @@
         (function() {
             'use strict';
 
-            // ─── DOM REFS ───
+            // ─── API CONFIGURATION ───
+            const API_BASE_URL = 'http://127.0.0.1:5001/api';
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
             const forgotForm = document.getElementById('forgotForm');
@@ -600,42 +601,35 @@
                 }
             });
 
-            // ─── LOGIN HANDLER ───
-            function handleLogin(e) {
+            // ─── LOGIN HANDLER (REAL API) ───
+            async function handleLogin(e) {
                 e.preventDefault();
                 const email = loginEmail.value.trim();
-                const password = loginPassword.value.trim();
-
+                const password = loginPassword.value;
                 loginError.classList.add('hidden');
-
-                if (!email || !email.includes('@')) {
-                    loginError.textContent = 'Please enter a valid work email address.';
-                    loginError.classList.remove('hidden');
-                    return;
-                }
-                if (!password || password.length < 6) {
-                    loginError.textContent = 'Password must be at least 6 characters.';
-                    loginError.classList.remove('hidden');
-                    return;
-                }
-
-                // Simulate loading
+                if (!email || !email.includes('@')) { loginError.textContent = 'Invalid email.'; loginError.classList.remove('hidden'); return; }
+                if (!password) { loginError.textContent = 'Password required.'; loginError.classList.remove('hidden'); return; }
                 loginSubmitBtn.disabled = true;
                 loginSubmitBtn.innerHTML = '<span>Authenticating...</span>';
-
-                setTimeout(() => {
-                    // Success – set session flag and redirect
-                    try {
-                        localStorage.setItem('prontox_session', JSON.stringify({
-                            email: email,
-                            name: email.split('@')[0],
-                            loggedIn: true
-                        }));
-                    } catch (_) {}
-
-                    // Redirect to dashboard
-                    window.location.href = 'dashboard.html';
-                }, 800);
+                try {
+                    const res = await fetch(`${API_BASE_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        localStorage.setItem('prontox_token', data.data.token);
+                        localStorage.setItem('prontox_session', JSON.stringify({ email: data.data.user.email, name: data.data.user.fullName, loggedIn: true }));
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        loginError.textContent = data.message || 'Login failed.';
+                        loginError.classList.remove('hidden');
+                        loginSubmitBtn.disabled = false;
+                        loginSubmitBtn.innerHTML = '<span>Log In to Workspace</span> <i class="fas fa-arrow-right text-xs"></i>';
+                    }
+                } catch (err) {
+                    loginError.textContent = 'Cannot reach server.';
+                    loginError.classList.remove('hidden');
+                    loginSubmitBtn.disabled = false;
+                    loginSubmitBtn.innerHTML = '<span>Log In to Workspace</span> <i class="fas fa-arrow-right text-xs"></i>';
+                }
             }
 
             loginForm.addEventListener('submit', handleLogin);
@@ -648,8 +642,8 @@
                 }
             });
 
-            // ─── SIGNUP HANDLER ───
-            function handleSignup(e) {
+            // ─── SIGNUP HANDLER (REAL API) ───
+            async function handleSignup(e) {
                 e.preventDefault();
                 const firstName = signupFirstName.value.trim();
                 const lastName = signupLastName.value.trim();
@@ -657,50 +651,29 @@
                 const password = signupPassword.value;
                 const confirm = signupConfirmPassword.value;
                 const terms = signupTerms.checked;
-
                 signupError.classList.add('hidden');
-
-                if (!firstName || !lastName) {
-                    signupError.textContent = 'Please enter your first and last name.';
-                    signupError.classList.remove('hidden');
-                    return;
-                }
-                if (!email || !email.includes('@')) {
-                    signupError.textContent = 'Please enter a valid work email address.';
-                    signupError.classList.remove('hidden');
-                    return;
-                }
-                if (password.length < 8) {
-                    signupError.textContent = 'Password must be at least 8 characters.';
-                    signupError.classList.remove('hidden');
-                    return;
-                }
-                if (password !== confirm) {
-                    signupError.textContent = 'Passwords do not match.';
-                    signupError.classList.remove('hidden');
-                    return;
-                }
-                if (!terms) {
-                    signupError.textContent = 'You must accept the terms and conditions.';
-                    signupError.classList.remove('hidden');
-                    return;
-                }
-
+                if (!firstName || !lastName || !email.includes('@') || password.length < 8 || password !== confirm || !terms) { signupError.textContent = 'Please fill all fields correctly and accept terms.'; signupError.classList.remove('hidden'); return; }
                 signupSubmitBtn.disabled = true;
                 signupSubmitBtn.innerHTML = '<span>Creating Account...</span>';
-
-                setTimeout(() => {
-                    // Store session
-                    try {
-                        localStorage.setItem('prontox_session', JSON.stringify({
-                            email: email,
-                            name: firstName + ' ' + lastName,
-                            loggedIn: true
-                        }));
-                    } catch (_) {}
-
-                    window.location.href = 'dashboard.html';
-                }, 800);
+                try {
+                    const res = await fetch(`${API_BASE_URL}/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ firstName, lastName, email, password }) });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                        localStorage.setItem('prontox_token', data.data.token);
+                        localStorage.setItem('prontox_session', JSON.stringify({ email: data.data.user.email, name: data.data.user.fullName, loggedIn: true }));
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        signupError.textContent = data.message || 'Signup failed.';
+                        signupError.classList.remove('hidden');
+                        signupSubmitBtn.disabled = false;
+                        signupSubmitBtn.innerHTML = '<span>Create Account</span> <i class="fas fa-arrow-right text-xs"></i>';
+                    }
+                } catch (err) {
+                    signupError.textContent = 'Cannot reach server.';
+                    signupError.classList.remove('hidden');
+                    signupSubmitBtn.disabled = false;
+                    signupSubmitBtn.innerHTML = '<span>Create Account</span> <i class="fas fa-arrow-right text-xs"></i>';
+                }
             }
 
             signupForm.addEventListener('submit', handleSignup);
@@ -712,18 +685,11 @@
             signupPassword.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSignup(e); });
             signupConfirmPassword.addEventListener('keydown', function(e) { if (e.key === 'Enter') handleSignup(e); });
 
-            // ─── CHECK IF ALREADY LOGGED IN ───
+            // ─── CHECK IF ALREADY LOGGED IN (real token) ───
             function checkSession() {
                 try {
-                    const session = localStorage.getItem('prontox_session');
-                    if (session) {
-                        const data = JSON.parse(session);
-                        if (data && data.loggedIn === true) {
-                            // Already logged in – redirect to dashboard
-                            window.location.href = 'dashboard.html';
-                            return true;
-                        }
-                    }
+                    const token = localStorage.getItem('prontox_token');
+                    if (token) { window.location.href = 'dashboard.html'; return true; }
                 } catch (_) {}
                 return false;
             }

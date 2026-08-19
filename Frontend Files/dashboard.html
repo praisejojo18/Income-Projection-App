@@ -1113,7 +1113,18 @@
             <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
                 <i class="fas fa-moon" id="themeIcon"></i>
             </button>
-            <div class="avatar" id="avatarBtn" tabindex="0">JD</div>
+            <div class="avatar" id="avatarBtn" tabindex="0" onclick="
+            try {
+                const s = JSON.parse(localStorage.getItem('prontox_session') || '{}');
+                alert('👤 ' + (s.name || 'User') + '\n📧 ' + (s.email || 'No email'));
+            } catch(e) { alert('Profile'); }
+        "><script>
+            try {
+                const s = JSON.parse(localStorage.getItem('prontox_session') || '{}');
+                const n = s.name || 'U';
+                document.write(n.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase());
+            } catch(e) { document.write('U'); }
+        </script></div>
         </div>
     </header>
 
@@ -1931,27 +1942,28 @@
 
             themeToggle.addEventListener('click', () => applyTheme(!darkMode));
 
-            // Logo link (stay on dashboard)
-            document.getElementById('logoLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = 'dashboard.html';
-            });
+            // Logo link (stay on dashboard) — null-safe so it never crashes
+            const logoLink = document.getElementById('logoLink');
+            if (logoLink) {
+                logoLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = 'dashboard.html';
+                });
+            }
 
-            // Avatar click
-            document.getElementById('avatarBtn').addEventListener('click', function() {
-                alert('👤 User profile – would open user settings.');
-            });
+            // Avatar click handled in HTML now
 
         // ─── LOGOUT ───
-        logoutBtn.addEventListener('click', function(e) {
-          e.preventDefault();
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
             if (confirm('Are you sure you want to log out?')) {
-        // Clear session from localStorage
-        localStorage.removeItem('prontox_session');
-        // Redirect to login page
-        window.location.href = 'login.html';
-    }
-}); 
+                // Burn the badge: clear BOTH the real token and the session
+                localStorage.removeItem('prontox_token');
+                localStorage.removeItem('prontox_session');
+                // Send them back to the login page
+                window.location.href = 'login.html';
+            }
+        });
 
             // ============================================================
             // INIT
