@@ -1,14 +1,35 @@
 const router = require('express').Router();
 
-// 🚧 Colleague's routes (Temporarily commented out because planRoutes.js has a missing schema error)
-// router.use('/settings', require('./settingsRoutes'));
- router.use('/auth', require('./authRoutes'))
- router.use('/plans', require('./planRoutes'));
-// router.use('/payments', require('./paymentRoutes'));
-// router.use('/projections', require('./projectionRoutes'));
+/*
+  SAFE ROUTE LOADER
+  - Healthy route file  → mounted with ✅
+  - Empty/broken file   → skipped with ⚠️ (server keeps running)
+  No more commenting/uncommenting lines ever again.
+*/
+const mount = (path, loader, name) => {
+  try {
+    const mod = loader();
+    if (typeof mod === "function") {
+      router.use(path, mod);
+      console.log(`✅ Mounted  ${path}  (${name})`);
+    } else {
+      console.warn(`⚠️  Skipped  ${path}  (${name}) — does not export a router (empty file?)`);
+    }
+  } catch (err) {
+    console.warn(`⚠️  Skipped  ${path}  (${name}) — load error: ${err.message}`);
+  }
+};
 
-// ✅ YOUR ROUTES
-router.use('/customers', require('./customerRoutes'));
-router.use('/actual', require('./actualRoutes')); // This powers the Monthly Income page
+// Colleague's routes
+mount("/auth", () => require("./authRoutes"), "authRoutes");
+mount("/plans", () => require("./planRoutes"), "planRoutes");
+mount("/settings", () => require("./settingsRoutes"), "settingsRoutes");
+mount("/payments", () => require("./paymentRoutes"), "paymentRoutes");
+mount("/projections", () => require("./projectionRoutes"), "projectionRoutes");
+
+// YOUR routes
+mount("/customers", () => require("./customerRoutes"), "customerRoutes");
+mount("/actual", () => require("./actualRoutes"), "actualRoutes");
+mount("/dashboard", () => require("./dashboardRoutes"), "dashboardRoutes");
 
 module.exports = router;
