@@ -1,192 +1,361 @@
-const prisma = require('../config/database');
-const Customer = require('../models/Customer');
-const { validateCustomerData } = require('../utils/validators');
+const prisma = require("../config/database");
+const Customer = require("../models/Customer");
+const {
+  validateCustomerData,
+  validateExtendData
+} = require("../utils/validators");
 
-// Helper to calculate the "Display Status" (Active, Expired, Inactive)
-const calculateStatus = (customer) => {
-  if (customer.status === 'INACTIVE') return 'Inactive';
-  const now = new Date();
-  const expiry = new Date(customer.expiryDate);
-  return expiry < now ? 'Expired' : 'Active';
+/*
+  Helper to get the current user ID.
+  For Postman testing, we use the "x-user-id" header.
+*/
+const getUserId = (req) => {
+  return (
+    req.user?.id ||
+    req.user?.userId ||
+    req.headers["x-user-id"] ||
+    process.env.DEFAULT_USER_ID
+  );
 };
 
-// 1. GET ALL CUSTOMERS (With Filters)
+/*
+  Display status for frontend: Active, Expired, Inactive
+*/
+const getDisplayStatus = (customer) => {
+  if (customer.status === "INACTIVE") return "Inactive";
+  const now = new Date();
+  const expiryDate = new Date(customer.expiryDate);
+  return expiryDate < now ? "Expired" : "Active";
+};
+
+/*
+  Stored status for database: ACTIVE, EXPIRED, INACTIVE
+*/
+const normalizeStoredStatus = (expiryDate, currentStatus) => {
+  if (currentStatus === "INACTIVE") return "INACTIVE";
+  const now = new Date();
+  const expiry = new Date(expiryDate);
+  return expiry < now ? "EXPIRED" : "ACTIVE";
+};
+
+/*
+  Format customer for response
+*/
+const formatCustomer = (customer) => {
+  return {
+    ...customer,
+    amount: customer.plan?.price || null, // Amount comes from the Plan!
+    displayStatus: getDisplayStatus(customer)
+  };
+};
+
+/*
+  GET /api/customers
+*/
 exports.getCustomers = async (req, res) => {
   try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required. Provide x-user-id header." });
+
     const { plan, status, search } = req.query;
-    let whereClause = {};
+    const where = { userId };
 
-    if (plan) whereClause.planId = parseInt(plan);
-    if (search) whereClause.name = { contains: search };
+    if (plan) where.planId = plan; // String UUID
+    if (search) where.name = { contains: search };
 
-    // Status filtering logic based on our previous agreement
-    if (status === 'Active') {
-      whereClause.status = 'ACTIVE';
-      whereClause.expiryDate = { gte: new Date() };
-    } else if (status === 'Expired') {
-      whereClause.status = 'ACTIVE';
-      whereClause.expiryDate = { lt: new Date() };
-    } else if (status === 'Inactive') {
-      whereClause.status = 'INACTIVE';
+    const now = new Date();
+    if (status) {
+      const normalizedStatus = status.toLowerCase();
+      if (normalizedStatus === "active") {
+        where.status = "ACTIVE";
+        where.expiryDate = { gte: now };
+      } else if (normalizedStatus === "expired") {
+        where.OR = [
+          { status: "EXPIRED" },
+          { status: "ACTIVE", expiryDate: { lt: now } }
+        ];
+      } else if (normalizedStatus === "inactive") {
+        where.status = "INACTIVE";
+      }
     }
 
     const customers = await Customer.findMany({
-      where: whereClause,
+      where,
       include: { plan: true },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: "desc" }
     });
 
-    // Format data for the frontend
-    const formatted = customers.map(c => ({ ...c, displayStatus: calculateStatus(c) }));
-    res.json(formatted);
+    res.json(customers.map(formatCustomer));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// 2. GET SINGLE CUSTOMER
+/*
+  GET /api/customers/:id
+*/
 exports.getCustomerById = async (req, res) => {
   try {
-    const customer = await Customer.findUnique({
-      where: { id: parseInt(req.params.id) },
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const customer = await Customer.findFirst({
+      where: { id: req.params.id, userId }, // String UUID
       include: { plan: true }
     });
-    if (!customer) return res.status(404).json({ error: 'Customer not found' });
-    
-    res.json({ ...customer, displayStatus: calculateStatus(customer) });
+
+    if (!customer) return res.status(404).json({ error: "Customer not found." });
+    res.json(formatCustomer(customer));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// 3. CREATE CUSTOMER
+/*
+  POST /api/customers
+*/
 exports.createCustomer = async (req, res) => {
   try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
     const { isValid, errors } = validateCustomerData(req.body);
     if (!isValid) return res.status(400).json({ errors });
 
+    const plan = await prisma.plan.findFirst({
+      where: { id: req.body.planId, userId, status: "ACTIVE" }
+    });
+
+    if (!plan) return res.status(404).json({ error: "Active plan not found." });
+
+    const expiryDate = new Date(req.body.expiryDate);
+    const status = normalizeStoredStatus(expiryDate, req.body.status || "ACTIVE");
+
     const newCustomer = await Customer.create({
       data: {
+        userId,             // 🔥 REQUIRED by your schema
         name: req.body.name,
         email: req.body.email || null,
         phone: req.body.phone || null,
-        address: req.body.address || null,
-        amount: parseFloat(req.body.amount),
-        expiryDate: new Date(req.body.expiryDate),
-        planId: parseInt(req.body.planId),
-        status: 'ACTIVE'
+        planId: req.body.planId, // 🔥 String UUID (no parseInt)
+        expiryDate,
+        status
+        // 🔥 Removed "amount" because it doesn't exist in the customers table
       },
       include: { plan: true }
     });
 
-    res.status(201).json({ ...newCustomer, displayStatus: calculateStatus(newCustomer) });
+    res.status(201).json(formatCustomer(newCustomer));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// 4. UPDATE CUSTOMER
+/*
+  PUT /api/customers/:id
+*/
 exports.updateCustomer = async (req, res) => {
   try {
-    const updated = await Customer.update({
-      where: { id: parseInt(req.params.id) },
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const { isValid, errors } = validateCustomerData(req.body, { isUpdate: true });
+    if (!isValid) return res.status(400).json({ errors });
+
+    const existingCustomer = await Customer.findFirst({
+      where: { id: req.params.id, userId }
+    });
+
+    if (!existingCustomer) return res.status(404).json({ error: "Customer not found." });
+
+    if (req.body.planId) {
+      const plan = await prisma.plan.findFirst({
+        where: { id: req.body.planId, userId, status: "ACTIVE" }
+      });
+      if (!plan) return res.status(404).json({ error: "Active plan not found." });
+    }
+
+    const updatedExpiryDate = req.body.expiryDate ? new Date(req.body.expiryDate) : existingCustomer.expiryDate;
+    const updatedStatus = normalizeStoredStatus(updatedExpiryDate, req.body.status || existingCustomer.status);
+
+    const updatedCustomer = await Customer.update({
+      where: { id: existingCustomer.id },
       data: {
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
-        address: req.body.address,
-        amount: req.body.amount ? parseFloat(req.body.amount) : undefined,
-        expiryDate: req.body.expiryDate ? new Date(req.body.expiryDate) : undefined,
-        planId: req.body.planId ? parseInt(req.body.planId) : undefined
+        planId: req.body.planId,
+        expiryDate: updatedExpiryDate,
+        status: updatedStatus
       },
       include: { plan: true }
     });
-    
-    res.json({ ...updated, displayStatus: calculateStatus(updated) });
+
+    res.json(formatCustomer(updatedCustomer));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// 5. EXTEND SERVICE (With optional Payment recording)
+/*
+  POST /api/customers/:id/extend
+
+  Matches the frontend "Extend Service" modal:
+  - The modal's quick buttons (+1/+3/+6/+12 months) update the date picker.
+  - The frontend then sends the FINAL date as `newExpiryDate`.
+  - We also keep extensionType/extensionValue for flexibility.
+  - Optional: recordPayment = true creates a payment in the same transaction.
+*/
 exports.extendService = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { extensionType, extensionValue, recordPayment, paymentMethod, paymentReference } = req.body;
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-    const customer = await Customer.findUnique({ where: { id: parseInt(id) }, include: { plan: true } });
-    if (!customer) return res.status(404).json({ error: 'Customer not found' });
+    const { isValid, errors } = validateExtendData(req.body);
+    if (!isValid) return res.status(400).json({ errors });
 
-    // Calculate new expiry date
-    let currentExpiry = new Date(customer.expiryDate);
-    if (currentExpiry < new Date()) currentExpiry = new Date(); // If expired, extend from today
+    const customer = await Customer.findFirst({
+      where: { id: req.params.id, userId },
+      include: { plan: true }
+    });
 
-    if (extensionType === 'days') currentExpiry.setDate(currentExpiry.getDate() + parseInt(extensionValue));
-    if (extensionType === 'weeks') currentExpiry.setDate(currentExpiry.getDate() + (parseInt(extensionValue) * 7));
-    if (extensionType === 'months') currentExpiry.setMonth(currentExpiry.getMonth() + parseInt(extensionValue));
+    if (!customer) return res.status(404).json({ error: "Customer not found." });
 
-    // Use transaction if recording payment
-    if (recordPayment) {
-       await prisma.$transaction(async (tx) => {
-          await tx.customer.update({ where: { id: parseInt(id) }, data: { expiryDate: currentExpiry } });
-          
-          // This relies on your colleague's Payment schema
-          await tx.payment.create({
-             data: {
-                amount: customer.plan.amount,
-                paymentDate: new Date(),
-                status: 'SUCCESS',
-                method: paymentMethod || 'Cash',
-                reference: paymentReference || `EXT-${Date.now()}`,
-                customerId: parseInt(id),
-                planId: customer.planId
-             }
-          });
-       });
-    } else {
-       await Customer.update({ where: { id: parseInt(id) }, data: { expiryDate: currentExpiry } });
+    if (customer.status === "INACTIVE") {
+      return res.status(400).json({
+        error: "Cannot extend an inactive customer. Reactivate first."
+      });
     }
 
-    const updatedCustomer = await Customer.findUnique({ where: { id: parseInt(id) }, include: { plan: true } });
-    res.json({ message: 'Service extended successfully', customer: { ...updatedCustomer, displayStatus: calculateStatus(updatedCustomer) } });
+    const {
+      newExpiryDate,
+      extensionType,
+      extensionValue,
+      recordPayment,
+      paymentMethod,
+      paymentReference,
+      paymentAmount
+    } = req.body;
 
+    /* 1) Determine the target expiry date */
+    let targetExpiry;
+
+    if (newExpiryDate) {
+      // Frontend modal sends the final picked date
+      targetExpiry = new Date(newExpiryDate);
+    } else {
+      // Fallback: add days/weeks/months (if expired, start from today)
+      const base = new Date(customer.expiryDate);
+      const now = new Date();
+      targetExpiry = base > now ? base : now;
+
+      const value = Number(extensionValue);
+      if (extensionType === "days") targetExpiry.setDate(targetExpiry.getDate() + value);
+      if (extensionType === "weeks") targetExpiry.setDate(targetExpiry.getDate() + value * 7);
+      if (extensionType === "months") targetExpiry.setMonth(targetExpiry.getMonth() + value);
+    }
+
+    /* 2) Apply update (+ optional payment in one transaction) */
+    const generatedReference =
+      paymentReference || `PAY-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const amountToCharge =
+      paymentAmount !== undefined ? Number(paymentAmount) : Number(customer.plan.price);
+
+    if (recordPayment) {
+      await prisma.$transaction([
+        prisma.customer.update({
+          where: { id: customer.id },
+          data: {
+            expiryDate: targetExpiry,
+            status: normalizeStoredStatus(targetExpiry, customer.status)
+          }
+        }),
+        prisma.payment.create({
+          data: {
+            userId,
+            customerId: customer.id,
+            planId: customer.planId,
+            amount: amountToCharge,
+            paymentDate: new Date(),
+            method: paymentMethod || "CASH",
+            reference: generatedReference
+          }
+        })
+      ]);
+    } else {
+      await prisma.customer.update({
+        where: { id: customer.id },
+        data: {
+          expiryDate: targetExpiry,
+          status: normalizeStoredStatus(targetExpiry, customer.status)
+        }
+      });
+    }
+
+    const updatedCustomer = await Customer.findFirst({
+      where: { id: customer.id },
+      include: { plan: true }
+    });
+
+    res.json({
+      message: "Customer service extended successfully.",
+      previousExpiry: customer.expiryDate,
+      newExpiry: updatedCustomer.expiryDate,
+      customer: formatCustomer(updatedCustomer)
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// 6. CHANGE PLAN
+/*
+  POST /api/customers/:id/change-plan
+*/
 exports.changePlan = async (req, res) => {
   try {
-    const { planId } = req.body;
-    const plan = await prisma.plan.findUnique({ where: { id: parseInt(planId) } });
-    if (!plan) return res.status(404).json({ error: 'New plan not found' });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-    const updated = await Customer.update({
-      where: { id: parseInt(req.params.id) },
-      data: {
-        planId: parseInt(planId),
-        amount: plan.amount // Update amount immediately as agreed
-      },
+    const { planId } = req.body;
+    if (!planId || typeof planId !== "string") return res.status(400).json({ error: "A valid planId is required." });
+
+    const customer = await Customer.findFirst({ where: { id: req.params.id, userId } });
+    if (!customer) return res.status(404).json({ error: "Customer not found." });
+
+    const newPlan = await prisma.plan.findFirst({ where: { id: planId, userId, status: "ACTIVE" } });
+    if (!newPlan) return res.status(404).json({ error: "Active plan not found." });
+
+    const updatedCustomer = await Customer.update({
+      where: { id: customer.id },
+      data: { planId: newPlan.id },
       include: { plan: true }
     });
 
-    res.json({ message: 'Plan changed successfully', customer: { ...updated, displayStatus: calculateStatus(updated) } });
+    res.json({ message: "Customer plan changed successfully.", customer: formatCustomer(updatedCustomer) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// 7. DEACTIVATE CUSTOMER
+/*
+  POST /api/customers/:id/deactivate
+*/
 exports.deactivateCustomer = async (req, res) => {
   try {
-    const updated = await Customer.update({
-      where: { id: parseInt(req.params.id) },
-      data: { status: 'INACTIVE' },
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const customer = await Customer.findFirst({ where: { id: req.params.id, userId } });
+    if (!customer) return res.status(404).json({ error: "Customer not found." });
+
+    const updatedCustomer = await Customer.update({
+      where: { id: customer.id },
+      data: { status: "INACTIVE" },
       include: { plan: true }
     });
 
-    res.json({ message: 'Customer deactivated', customer: { ...updated, displayStatus: calculateStatus(updated) } });
+    res.json({ message: "Customer deactivated successfully.", customer: formatCustomer(updatedCustomer) });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
