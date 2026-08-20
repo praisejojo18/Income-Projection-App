@@ -1257,928 +1257,477 @@
     </div>
 
     <!-- ─── JAVASCRIPT ─── -->
-    <script>
-        (function() {
-            'use strict';
-
-            // ============================================================
-            // CONSTANTS & STATE
-            // ============================================================
-            const STORAGE_KEY = 'prontox_customers_v1';
-            const SEEDED_FLAG_KEY = 'prontox_customers_seeded_v1';
-            const PAGE_SIZE = 50;
-
-            // Default plans and their prices (numeric)
-            const PLAN_NAMES = [
-                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
-                'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
-            ];
-            const PLAN_PRICES = {
-                'Silver': 5000,
-                'Gold': 10000,
-                'Platinum': 20000,
-                'Premium': 35000,
-                'Premium+': 50000,
-                'SME Silver': 7500,
-                'SME Gold': 15000,
-                'SME Platinum': 30000,
-                'SME Platinum+': 60000
-            };
-
-            let state = {
-                search: '',
-                plan: 'all',
-                status: 'all',
-                page: 1,
-                currentProfileId: null
-            };
-
-            // ============================================================
-            // DOM REFS
-            // ============================================================
-            const addCustomerBtn = document.getElementById('addCustomerBtn');
-            const customerListView = document.getElementById('customerListView');
-            const customerProfileView = document.getElementById('customerProfileView');
-            const customerSearchInput = document.getElementById('customerSearchInput');
-            const planFilterEl = document.getElementById('planFilter');
-            const statusFilterEl = document.getElementById('statusFilter');
-            const customerTableBody = document.getElementById('customerTableBody');
-            const customerEmptyState = document.getElementById('customerEmptyState');
-            const paginationBar = document.getElementById('paginationBar');
-            const paginationSummary = document.getElementById('paginationSummary');
-            const paginationControls = document.getElementById('paginationControls');
-            const backToCustomersBtn = document.getElementById('backToCustomersBtn');
-            const deactivateBtn = document.getElementById('deactivateBtn');
-            const profileExtendBtn = document.getElementById('profileExtendBtn');
-            const profileChangePlanBtn = document.getElementById('profileChangePlanBtn');
-            const modalOverlay = document.getElementById('modalOverlay');
-            const modalBox = document.getElementById('modalBox');
-
-            // ============================================================
-            // STORAGE HELPERS
-            // ============================================================
-            function getCustomers() {
-                try {
-                    const raw = localStorage.getItem(STORAGE_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) {
-                    console.error('Failed to read customers:', e);
-                    return [];
-                }
-            }
-
-            function saveCustomers(list) {
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-                    return true;
-                } catch (e) {
-                    console.error('Failed to save customers:', e);
-                    return false;
-                }
-            }
-
-            function addCustomerRecord(customer) {
-                const list = getCustomers();
-                list.push(customer);
-                saveCustomers(list);
-            }
-
-            function updateCustomerRecord(id, patch) {
-                const list = getCustomers();
-                const idx = list.findIndex(c => c.id === id);
-                if (idx === -1) return null;
-                list[idx] = Object.assign({}, list[idx], patch);
-                saveCustomers(list);
-                return list[idx];
-            }
-
-            function findCustomerById(id) {
-                const list = getCustomers();
-                return list.find(c => c.id === id) || null;
-            }
-
-            function generateId() {
-                if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-                    return window.crypto.randomUUID();
-                }
-                return 'cust_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
-            }
-
-            // ============================================================
-            // HELPERS
-            // ============================================================
-            function parseLocalDate(dateStr) {
-                return new Date(dateStr + 'T00:00:00');
-            }
-
-            function calculateStatus(customer) {
-                if (!customer || customer.deactivated) return 'Inactive';
-                const expiry = parseLocalDate(customer.expiryDate);
-                if (isNaN(expiry.getTime())) return 'Inactive';
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                if (today < expiry) return 'Active';
-                const twoMonthsAfter = new Date(expiry);
-                twoMonthsAfter.setMonth(twoMonthsAfter.getMonth() + 2);
-                if (today <= twoMonthsAfter) return 'Expired';
-                return 'Inactive';
-            }
-
-            function getPlanAmount(planName) {
-                return PLAN_PRICES[planName] || 0;
-            }
-
-            function formatCurrency(amount) {
-                const n = Number(amount) || 0;
-                try {
-                    return new Intl.NumberFormat('en-NG', {
-                        style: 'currency',
-                        currency: 'NGN',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                    }).format(n);
-                } catch (e) {
-                    return '₦' + n.toLocaleString('en-US');
-                }
-            }
-
-            function formatDate(dateStr) {
-                const d = parseLocalDate(dateStr);
-                if (isNaN(d.getTime())) return '—';
-                return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-            }
-
-            function formatDateTime(isoStr) {
-                const d = new Date(isoStr);
-                if (isNaN(d.getTime())) return '—';
-                return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-            }
-
-            function getInitials(name) {
-                if (!name) return '?';
-                const parts = name.trim().split(/\s+/);
-                const initials = parts.slice(0, 2).map(p => p.charAt(0).toUpperCase());
-                return initials.join('') || '?';
-            }
-
-            function escapeHtml(str) {
-                const div = document.createElement('div');
-                div.textContent = str == null ? '' : String(str);
-                return div.innerHTML;
-            }
-
-            function statusBadgeClass(status) {
-                if (status === 'Active') return 'status-active';
-                if (status === 'Expired') return 'status-expired';
-                return 'status-inactive';
-            }
-
-            // ============================================================
-            // FILTER & PAGINATION
-            // ============================================================
-            function getFilteredCustomers() {
-                let list = getCustomers();
-                list = list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                const search = state.search.trim().toLowerCase();
-                return list.filter(c => {
-                    if (search && (!c.name || c.name.toLowerCase().indexOf(search) === -1)) return false;
-                    if (state.plan !== 'all' && c.plan !== state.plan) return false;
-                    if (state.status !== 'all' && calculateStatus(c) !== state.status) return false;
-                    return true;
-                });
-            }
-
-            function paginate(list, page, pageSize) {
-                const totalCount = list.length;
-                const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-                const safePage = Math.min(Math.max(1, page), totalPages);
-                const start = (safePage - 1) * pageSize;
-                const pageItems = list.slice(start, start + pageSize);
-                return { pageItems, totalPages, totalCount, page: safePage, start };
-            }
-
-            function getPageNumberSequence(current, total) {
-                const delta = 1;
-                const range = [];
-                for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
-                    range.push(i);
-                }
-                let pages = [];
-                if (current - delta > 2) {
-                    pages.push(1, '...');
-                } else {
-                    pages.push(1);
-                }
-                pages = pages.concat(range);
-                if (current + delta < total - 1) {
-                    pages.push('...', total);
-                } else if (total > 1) {
-                    pages.push(total);
-                }
-                const seen = {};
-                return pages.filter(p => {
-                    if (p === '...') return true;
-                    if (seen[p]) return false;
-                    seen[p] = true;
-                    return true;
-                });
-            }
-
-            // ============================================================
-            // RENDER: LIST
-            // ============================================================
-            function renderCustomerList() {
-                const allCustomers = getCustomers();
-                const filtered = getFilteredCustomers();
-                const result = paginate(filtered, state.page, PAGE_SIZE);
-                state.page = result.page;
-
-                // Populate plan filter options
-                const currentPlan = planFilterEl.value;
-                planFilterEl.innerHTML = '<option value="all">All Plans</option>' +
-                    PLAN_NAMES.map(p => `<option value="${p}">${p}</option>`).join('');
-                planFilterEl.value = currentPlan;
-
-                if (allCustomers.length === 0) {
-                    customerTableBody.innerHTML = '';
-                    paginationBar.style.display = 'none';
-                    showEmptyState('no-customers');
-                    return;
-                }
-
-                if (filtered.length === 0) {
-                    customerTableBody.innerHTML = '';
-                    paginationBar.style.display = 'none';
-                    showEmptyState('no-matches');
-                    return;
-                }
-
-                hideEmptyState();
-
-                let rowsHtml = result.pageItems.map((customer, i) => {
-                    const rowNum = result.start + i + 1;
-                    const status = calculateStatus(customer);
-                    const safeName = escapeHtml(customer.name);
-                    const safePlan = escapeHtml(customer.plan);
-                    return `
-                            <tr data-id="${customer.id}" tabindex="0" role="button" aria-label="View profile for ${safeName}">
-                                <td class="row-num" data-label="#">${rowNum}</td>
-                                <td class="cust-name-cell" data-label="Customer">${safeName}</td>
-                                <td data-label="Plan">${safePlan}</td>
-                                <td data-label="Status"><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td>
-                                <td data-label="Expiry">${formatDate(customer.expiryDate)}</td>
-                                <td class="amount-cell" data-label="Amount">${formatCurrency(customer.amount)}</td>
-                                <td class="action-cell" data-label="Action">
-                                    <button type="button" class="icon-action-btn extend-btn" data-id="${customer.id}" title="Extend Service" aria-label="Extend service for ${safeName}"><i class="fas fa-calendar-plus"></i></button>
-                                    <button type="button" class="icon-action-btn change-plan-btn" data-id="${customer.id}" title="Change Plan" aria-label="Change plan for ${safeName}"><i class="fas fa-exchange-alt"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                }).join('');
-
-                customerTableBody.innerHTML = rowsHtml;
-                renderPagination(result);
-            }
-
-            function showEmptyState(kind) {
-                let html;
-                if (kind === 'no-customers') {
-                    html = `
-                            <i class="fas fa-user-friends"></i>
-                            <h3>No customers yet</h3>
-                            <p>Add your first customer to get started.</p>
-                            <button type="button" class="btn-primary" id="emptyAddCustomerBtn"><i class="fas fa-plus"></i> Add Customer</button>
-                        `;
-                } else {
-                    html = `
-                            <i class="fas fa-filter"></i>
-                            <h3>No customers match your current filters</h3>
-                            <p>Try adjusting your search or filters.</p>
-                            <button type="button" class="btn-secondary" id="clearFiltersBtn"><i class="fas fa-times"></i> Clear Filters</button>
-                        `;
-                }
-                customerEmptyState.innerHTML = html;
-                customerEmptyState.style.display = 'block';
-
-                const emptyAddBtn = document.getElementById('emptyAddCustomerBtn');
-                if (emptyAddBtn) emptyAddBtn.addEventListener('click', openAddCustomerModal);
-                const clearBtn = document.getElementById('clearFiltersBtn');
-                if (clearBtn) clearBtn.addEventListener('click', clearFilters);
-            }
-
-            function hideEmptyState() {
-                customerEmptyState.style.display = 'none';
-                customerEmptyState.innerHTML = '';
-            }
-
-            function clearFilters() {
-                state.search = '';
-                state.plan = 'all';
-                state.status = 'all';
-                state.page = 1;
-                customerSearchInput.value = '';
-                planFilterEl.value = 'all';
-                statusFilterEl.value = 'all';
-                renderCustomerList();
-            }
-
-            function renderPagination(result) {
-                if (result.totalCount <= PAGE_SIZE) {
-                    // still show summary
-                }
-                paginationBar.style.display = 'flex';
-                const startNum = result.totalCount === 0 ? 0 : result.start + 1;
-                const endNum = Math.min(result.start + PAGE_SIZE, result.totalCount);
-                paginationSummary.textContent = 'Showing ' + startNum + '\u2013' + endNum + ' of ' + result.totalCount
-                    .toLocaleString('en-US') + ' customers';
-
-                const page = result.page;
-                const totalPages = result.totalPages;
-                let html = '';
-                html += '<button type="button" class="page-btn" data-page="' + (page - 1) + '" ' + (page <= 1 ? 'disabled' :
-                    '') + ' aria-label="Previous page"><i class="fas fa-chevron-left"></i></button>';
-
-                const pages = getPageNumberSequence(page, totalPages);
-                pages.forEach(p => {
-                    if (p === '...') {
-                        html += '<span class="page-ellipsis">\u2026</span>';
-                    } else {
-                        html += '<button type="button" class="page-btn ' + (p === page ? 'active' : '') + '" data-page="' +
-                            p + '" aria-label="Page ' + p + '" ' + (p === page ? 'aria-current="page"' : '') + '>' + p +
-                            '</button>';
-                    }
-                });
-
-                html += '<button type="button" class="page-btn" data-page="' + (page + 1) + '" ' + (page >= totalPages ?
-                    'disabled' : '') + ' aria-label="Next page"><i class="fas fa-chevron-right"></i></button>';
-                paginationControls.innerHTML = html;
-            }
-
-            // ============================================================
-            // RENDER: PROFILE
-            // ============================================================
-            function showCustomerListView() {
-                state.currentProfileId = null;
-                customerProfileView.style.display = 'none';
-                customerListView.style.display = 'block';
-            }
-
-            function showCustomerProfileView(id) {
-                const customer = findCustomerById(id);
-                if (!customer) {
-                    showCustomerListView();
-                    renderCustomerList();
-                    return;
-                }
-                state.currentProfileId = id;
-                renderProfile(customer);
-                customerListView.style.display = 'none';
-                customerProfileView.style.display = 'block';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-
-            function renderProfile(customer) {
-                const status = calculateStatus(customer);
-                document.getElementById('profileAvatar').textContent = getInitials(customer.name);
-                document.getElementById('profileName').textContent = customer.name;
-
-                const badge = document.getElementById('profileStatusBadge');
-                badge.className = 'status-badge ' + statusBadgeClass(status);
-                badge.textContent = status;
-
-                document.getElementById('profilePlan').textContent = customer.plan;
-                document.getElementById('profileExpiry').textContent = formatDate(customer.expiryDate);
-                document.getElementById('profileAmount').textContent = formatCurrency(customer.amount);
-                document.getElementById('profileId').textContent = customer.id;
-                document.getElementById('profileCreatedAt').textContent = formatDateTime(customer.createdAt);
-
-                deactivateBtn.disabled = !!customer.deactivated;
-                deactivateBtn.innerHTML = customer.deactivated ?
-                    '<i class="fas fa-user-slash"></i> Already Deactivated' :
-                    '<i class="fas fa-user-slash"></i> Deactivate Customer';
-            }
-
-            // ============================================================
-            // MODAL
-            // ============================================================
-            function openModal(titleText, bodyHtml, footerHtml) {
-                modalBox.innerHTML = `
-                        <div class="modal-header">
-                            <h3>${titleText}</h3>
-                            <button type="button" class="modal-close-btn" id="modalCloseBtn" aria-label="Close"><i class="fas fa-times"></i></button>
-                        </div>
-                        <div class="modal-body">${bodyHtml}</div>
-                        ${footerHtml ? `<div class="modal-footer">${footerHtml}</div>` : ''}
-                    `;
-
-                modalOverlay.classList.add('open');
-                document.body.style.overflow = 'hidden';
-
-                document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-
-                const firstInput = modalBox.querySelector('input, select');
-                if (firstInput) setTimeout(() => firstInput.focus(), 50);
-            }
-
-            function closeModal() {
-                modalOverlay.classList.remove('open');
-                document.body.style.overflow = '';
-                modalBox.innerHTML = '';
-            }
-
-            modalOverlay.addEventListener('click', function(e) {
-                if (e.target === modalOverlay) closeModal();
-            });
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
-                    closeModal();
-                }
-            });
-
-            function planOptionsHtml(selectedPlan) {
-                return PLAN_NAMES.map(p =>
-                    `<option value="${p}" ${p === selectedPlan ? 'selected' : ''}>${p} (${formatCurrency(PLAN_PRICES[p])})</option>`
-                ).join('');
-            }
-
-            // ============================================================
-            // ADD CUSTOMER
-            // ============================================================
-            function openAddCustomerModal() {
-                const todayIso = new Date().toISOString().slice(0, 10);
-
-                const body = `
-                        <div class="form-field" id="addNameField">
-                            <label for="addCustomerName">Customer Name</label>
-                            <input type="text" id="addCustomerName" placeholder="e.g. Adaeze Okonkwo" autocomplete="off" />
-                            <div class="field-error">Please enter a customer name.</div>
-                        </div>
-                        <div class="form-field" id="addPlanField">
-                            <label for="addCustomerPlan">Plan</label>
-                            <select id="addCustomerPlan">${planOptionsHtml(PLAN_NAMES[0])}</select>
-                        </div>
-                        <div class="form-field" id="addExpiryField">
-                            <label for="addCustomerExpiry">Expiry Date</label>
-                            <input type="date" id="addCustomerExpiry" value="" min="${todayIso}" />
-                            <div class="field-error">Please choose a valid expiry date.</div>
-                        </div>
-                    `;
-
-                const footer = `
-                        <button type="button" class="btn-secondary" id="cancelAddCustomer">Cancel</button>
-                        <button type="button" class="btn-primary" id="confirmAddCustomer"><i class="fas fa-check"></i> Add Customer</button>
-                    `;
-
-                openModal('Add Customer', body, footer);
-
-                document.getElementById('cancelAddCustomer').addEventListener('click', closeModal);
-                document.getElementById('confirmAddCustomer').addEventListener('click', handleAddCustomer);
-
-                const nameInput = document.getElementById('addCustomerName');
-                nameInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') handleAddCustomer();
-                });
-            }
-
-            function handleAddCustomer() {
-                const nameInput = document.getElementById('addCustomerName');
-                const planSelect = document.getElementById('addCustomerPlan');
-                const expiryInput = document.getElementById('addCustomerExpiry');
-
-                const name = nameInput.value.trim();
-                const plan = planSelect.value;
-                const expiry = expiryInput.value;
-
-                const nameField = document.getElementById('addNameField');
-                const expiryField = document.getElementById('addExpiryField');
-                nameField.classList.remove('has-error');
-                expiryField.classList.remove('has-error');
-
-                let valid = true;
-                if (!name) {
-                    nameField.classList.add('has-error');
-                    valid = false;
-                }
-                if (!expiry || isNaN(parseLocalDate(expiry).getTime())) {
-                    expiryField.classList.add('has-error');
-                    valid = false;
-                }
-                if (!valid) return;
-
-                const customer = {
-                    id: generateId(),
-                    name: name,
-                    plan: plan,
-                    expiryDate: expiry,
-                    amount: getPlanAmount(plan),
-                    createdAt: new Date().toISOString(),
-                    deactivated: false
-                };
-
-                addCustomerRecord(customer);
-                closeModal();
-
-                // reset filters so the new customer is visible
-                clearFilters();
-            }
-
-            // ============================================================
-            // EXTEND SERVICE
-            // ============================================================
-            function openExtendServiceModal(id) {
-                const customer = findCustomerById(id);
-                if (!customer) return;
-
-                const currentExpiry = parseLocalDate(customer.expiryDate);
-                const baseDate = currentExpiry.getTime() > Date.now() ? currentExpiry : new Date();
-
-                const body = `
-                        <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px;">
-                            Current expiry: <strong style="color:var(--text-primary);">${formatDate(customer.expiryDate)}</strong>
-                        </p>
-                        <div class="quick-chips">
-                            <button type="button" class="quick-chip" data-months="1">+1 Month</button>
-                            <button type="button" class="quick-chip" data-months="3">+3 Months</button>
-                            <button type="button" class="quick-chip" data-months="6">+6 Months</button>
-                            <button type="button" class="quick-chip" data-months="12">+12 Months</button>
-                        </div>
-                        <div class="form-field" id="extendDateField">
-                            <label for="extendExpiryInput">New Expiry Date</label>
-                            <input type="date" id="extendExpiryInput" value="${customer.expiryDate}" />
-                            <div class="field-error">Please choose a valid date.</div>
-                        </div>
-                    `;
-
-                const footer = `
-                        <button type="button" class="btn-secondary" id="cancelExtend">Cancel</button>
-                        <button type="button" class="btn-primary" id="confirmExtend"><i class="fas fa-check"></i> Extend Service</button>
-                    `;
-
-                openModal('Extend Service', body, footer);
-
-                const dateInput = document.getElementById('extendExpiryInput');
-
-                document.querySelectorAll('.quick-chip').forEach(chip => {
-                    chip.addEventListener('click', function() {
-                        const months = parseInt(this.getAttribute('data-months'), 10);
-                        const d = new Date(baseDate);
-                        d.setMonth(d.getMonth() + months);
-                        dateInput.value = d.toISOString().slice(0, 10);
-                    });
-                });
-
-                document.getElementById('cancelExtend').addEventListener('click', closeModal);
-                document.getElementById('confirmExtend').addEventListener('click', function() {
-                    handleExtendService(id);
-                });
-            }
-
-            function handleExtendService(id) {
-                const dateInput = document.getElementById('extendExpiryInput');
-                const field = document.getElementById('extendDateField');
-                const newExpiry = dateInput.value;
-
-                field.classList.remove('has-error');
-                if (!newExpiry || isNaN(parseLocalDate(newExpiry).getTime())) {
-                    field.classList.add('has-error');
-                    return;
-                }
-
-                updateCustomerRecord(id, { expiryDate: newExpiry, deactivated: false });
-                closeModal();
-
-                if (state.currentProfileId === id) {
-                    renderProfile(findCustomerById(id));
-                }
-                renderCustomerList();
-            }
-
-            // ============================================================
-            // CHANGE PLAN
-            // ============================================================
-            function openChangePlanModal(id) {
-                const customer = findCustomerById(id);
-                if (!customer) return;
-
-                const body = `
-                        <div class="form-field">
-                            <label for="changePlanSelect">New Plan</label>
-                            <select id="changePlanSelect">${planOptionsHtml(customer.plan)}</select>
-                        </div>
-                        <div class="plan-amount-preview" id="planAmountPreview">
-                            New amount: ${formatCurrency(getPlanAmount(customer.plan))}
-                        </div>
-                    `;
-
-                const footer = `
-                        <button type="button" class="btn-secondary" id="cancelChangePlan">Cancel</button>
-                        <button type="button" class="btn-primary" id="confirmChangePlan"><i class="fas fa-check"></i> Change Plan</button>
-                    `;
-
-                openModal('Change Plan', body, footer);
-
-                const select = document.getElementById('changePlanSelect');
-                const preview = document.getElementById('planAmountPreview');
-                select.addEventListener('change', function() {
-                    preview.textContent = 'New amount: ' + formatCurrency(getPlanAmount(select.value));
-                });
-
-                document.getElementById('cancelChangePlan').addEventListener('click', closeModal);
-                document.getElementById('confirmChangePlan').addEventListener('click', function() {
-                    handleChangePlan(id);
-                });
-            }
-
-            function handleChangePlan(id) {
-                const select = document.getElementById('changePlanSelect');
-                const newPlan = select.value;
-
-                updateCustomerRecord(id, { plan: newPlan, amount: getPlanAmount(newPlan) });
-                closeModal();
-
-                if (state.currentProfileId === id) {
-                    renderProfile(findCustomerById(id));
-                }
-                renderCustomerList();
-            }
-
-            // ============================================================
-            // DEACTIVATE
-            // ============================================================
-            function openDeactivateConfirm(id) {
-                const customer = findCustomerById(id);
-                if (!customer || customer.deactivated) return;
-
-                const body = `
-                        <div class="confirm-icon"><i class="fas fa-user-slash"></i></div>
-                        <p class="confirm-text">Are you sure you want to deactivate <strong>${escapeHtml(customer.name)}</strong>?
-                        Their account status will permanently change to Inactive. This cannot be undone from here.</p>
-                    `;
-
-                const footer = `
-                        <button type="button" class="btn-secondary" id="cancelDeactivate">Cancel</button>
-                        <button type="button" class="btn-danger" id="confirmDeactivate"><i class="fas fa-user-slash"></i> Deactivate</button>
-                    `;
-
-                openModal('Deactivate Customer', body, footer);
-
-                document.getElementById('cancelDeactivate').addEventListener('click', closeModal);
-                document.getElementById('confirmDeactivate').addEventListener('click', function() {
-                    updateCustomerRecord(id, { deactivated: true });
-                    closeModal();
-                    if (state.currentProfileId === id) {
-                        renderProfile(findCustomerById(id));
-                    }
-                    renderCustomerList();
-                });
-            }
-
-            // ============================================================
-            // EVENT WIRING
-            // ============================================================
-            addCustomerBtn.addEventListener('click', openAddCustomerModal);
-
-            let searchDebounceTimer = null;
-            customerSearchInput.addEventListener('input', function() {
-                clearTimeout(searchDebounceTimer);
-                const value = this.value;
-                searchDebounceTimer = setTimeout(function() {
-                    state.search = value;
-                    state.page = 1;
-                    renderCustomerList();
-                }, 150);
-            });
-
-            planFilterEl.addEventListener('change', function() {
-                state.plan = this.value;
-                state.page = 1;
-                renderCustomerList();
-            });
-
-            statusFilterEl.addEventListener('change', function() {
-                state.status = this.value;
-                state.page = 1;
-                renderCustomerList();
-            });
-
-            customerTableBody.addEventListener('click', function(e) {
-                const extendBtn = e.target.closest('.extend-btn');
-                if (extendBtn) {
-                    e.stopPropagation();
-                    openExtendServiceModal(extendBtn.getAttribute('data-id'));
-                    return;
-                }
-                const changePlanBtn = e.target.closest('.change-plan-btn');
-                if (changePlanBtn) {
-                    e.stopPropagation();
-                    openChangePlanModal(changePlanBtn.getAttribute('data-id'));
-                    return;
-                }
-                const row = e.target.closest('tr[data-id]');
-                if (row) {
-                    showCustomerProfileView(row.getAttribute('data-id'));
-                }
-            });
-
-            customerTableBody.addEventListener('keydown', function(e) {
-                if (e.key !== 'Enter' && e.key !== ' ') return;
-                const row = e.target.closest('tr[data-id]');
-                if (row && e.target === row) {
-                    e.preventDefault();
-                    showCustomerProfileView(row.getAttribute('data-id'));
-                }
-            });
-
-            paginationControls.addEventListener('click', function(e) {
-                const btn = e.target.closest('.page-btn');
-                if (!btn || btn.disabled) return;
-                const page = parseInt(btn.getAttribute('data-page'), 10);
-                if (isNaN(page)) return;
-                state.page = page;
-                renderCustomerList();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-
-            backToCustomersBtn.addEventListener('click', function() {
-                showCustomerListView();
-                renderCustomerList();
-            });
-
-            deactivateBtn.addEventListener('click', function() {
-                if (state.currentProfileId) openDeactivateConfirm(state.currentProfileId);
-            });
-
-            profileExtendBtn.addEventListener('click', function() {
-                if (state.currentProfileId) openExtendServiceModal(state.currentProfileId);
-            });
-
-            profileChangePlanBtn.addEventListener('click', function() {
-                if (state.currentProfileId) openChangePlanModal(state.currentProfileId);
-            });
-
-            // ============================================================
-            // SEED DATA
-            // ============================================================
-            function seedInitialData() {
-                let alreadySeeded = false;
-                try { alreadySeeded = localStorage.getItem(SEEDED_FLAG_KEY) === 'true'; } catch (e) {}
-
-                if (alreadySeeded || getCustomers().length > 0) return;
-
-                const names = [
-                    'Adaeze Okonkwo', 'Chinedu Williams', 'Fatima Bello', 'Emeka Nwosu',
-                    'Ngozi Adeyemi', 'Tunde Balogun', 'Blessing Eze', 'Ibrahim Suleiman',
-                    'Chiamaka Obi', 'Segun Afolabi', 'Amaka Chukwu', 'David Okafor',
-                    'Halima Yusuf', 'Peter Ogunleye'
-                ];
-
-                function isoDateFromToday(offsetDays) {
-                    const d = new Date();
-                    d.setDate(d.getDate() + offsetDays);
-                    return d.toISOString().slice(0, 10);
-                }
-
-                const offsets = [45, 20, 5, -10, -25, -50, -70, 90, -3, 15, 60, -100, 30, -15];
-
-                const seeded = names.map((name, i) => {
-                    const plan = PLAN_NAMES[i % PLAN_NAMES.length];
-                    const expiryDate = isoDateFromToday(offsets[i % offsets.length]);
-                    const createdOffsetDays = Math.floor(Math.random() * 180) + 10;
-                    const createdAt = new Date(Date.now() - createdOffsetDays * 86400000).toISOString();
-                    return {
-                        id: generateId(),
-                        name: name,
-                        plan: plan,
-                        expiryDate: expiryDate,
-                        amount: getPlanAmount(plan),
-                        createdAt: createdAt,
-                        deactivated: false
-                    };
-                });
-
-                saveCustomers(seeded);
-                try { localStorage.setItem(SEEDED_FLAG_KEY, 'true'); } catch (e) {}
-            }
-
-            // Dev helper: generate N extra customers to stress-test pagination/perf.
-            window.seedTestCustomers = function(count) {
-                count = count || 1000;
-                const list = getCustomers();
-                for (let i = 0; i < count; i++) {
-                    const plan = PLAN_NAMES[i % PLAN_NAMES.length];
-                    const offsetDays = (i % 5 === 0) ? -80 : (i % 3 === 0) ? -20 : 60;
-                    const d = new Date();
-                    d.setDate(d.getDate() + offsetDays);
-                    list.push({
-                        id: generateId(),
-                        name: 'Test Customer ' + (i + 1),
-                        plan: plan,
-                        expiryDate: d.toISOString().slice(0, 10),
-                        amount: getPlanAmount(plan),
-                        createdAt: new Date().toISOString(),
-                        deactivated: false
-                    });
-                }
-                saveCustomers(list);
-                renderCustomerList();
-                console.log('Seeded ' + count + ' test customers. Total: ' + list.length);
-            };
-
-            seedInitialData();
-
-            // ============================================================
-            // SIDEBAR & THEME (shared across pages)
-            // ============================================================
-            // Sidebar toggle
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-
-            function openSidebar() {
-                sidebar.classList.add('open');
-                sidebarOverlay.classList.add('open');
-                hamburgerBtn.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('open');
-                hamburgerBtn.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-
-            hamburgerBtn.addEventListener('click', function() {
-                if (sidebar.classList.contains('open')) closeSidebar();
-                else openSidebar();
-            });
-            closeSidebarBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
-            });
-
-            // Theme toggle
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            let darkMode = false;
-
-            function applyTheme(isDark) {
-                if (isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    themeIcon.className = 'fas fa-sun';
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    themeIcon.className = 'fas fa-moon';
-                }
-                darkMode = isDark;
-                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
-            }
-
-            try {
-                const saved = localStorage.getItem('prontox-theme');
-                if (saved === 'dark') applyTheme(true);
-                else if (saved === 'light') applyTheme(false);
-                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-                else applyTheme(false);
-            } catch (_) { applyTheme(false); }
-
-            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
-
-            // Logo link (go to dashboard)
-            document.getElementById('logoLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = 'dashboard.html';
-            });
-
-            // Avatar click
-            document.getElementById('avatarBtn').addEventListener('click', function() {
-                alert('👤 User profile – would open user settings.');
-            });
-
-           // ─── LOGOUT ───
-logoutBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    if (confirm('Are you sure you want to log out?')) {
-        // Clear session from localStorage
-        localStorage.removeItem('prontox_session');
-        // Redirect to login page
-        window.location.href = 'login.html';
+   <script>
+(function() {
+    'use strict';
+
+    // ============================================================
+    // API CONFIG & STATE
+    // ============================================================
+    const API = 'http://localhost:5001/api';
+    const PAGE_SIZE = 50;
+
+    let allCustomers = [];
+    let allPlans = [];
+
+    let state = {
+        search: '',
+        plan: 'all',
+        status: 'all',
+        page: 1,
+        currentProfileId: null
+    };
+
+    const getHeaders = () => {
+        const h = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('prontolog_token');
+        if (token) h['Authorization'] = 'Bearer ' + token;
+        h['x-user-id'] = localStorage.getItem('prontolog_user_id') || 'af606104-2914-4b9c-9c1d-c3a103642103';
+        return h;
+    };
+
+    // ============================================================
+    // DOM REFS (Exact same IDs as his HTML)
+    // ============================================================
+    const addCustomerBtn = document.getElementById('addCustomerBtn');
+    const customerListView = document.getElementById('customerListView');
+    const customerProfileView = document.getElementById('customerProfileView');
+    const customerSearchInput = document.getElementById('customerSearchInput');
+    const planFilterEl = document.getElementById('planFilter');
+    const statusFilterEl = document.getElementById('statusFilter');
+    const customerTableBody = document.getElementById('customerTableBody');
+    const customerEmptyState = document.getElementById('customerEmptyState');
+    const paginationBar = document.getElementById('paginationBar');
+    const paginationSummary = document.getElementById('paginationSummary');
+    const paginationControls = document.getElementById('paginationControls');
+    const backToCustomersBtn = document.getElementById('backToCustomersBtn');
+    const deactivateBtn = document.getElementById('deactivateBtn');
+    const profileExtendBtn = document.getElementById('profileExtendBtn');
+    const profileChangePlanBtn = document.getElementById('profileChangePlanBtn');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalBox = document.getElementById('modalBox');
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    function formatCurrency(amount) {
+        const n = Number(amount) || 0;
+        try { return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n); } 
+        catch (e) { return '₦' + n.toLocaleString('en-US'); }
     }
-});
 
-            // ============================================================
-            // INIT
-            // ============================================================
+    function formatDate(dateStr) {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '—';
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function getInitials(name) {
+        if (!name) return '?';
+        const parts = name.trim().split(/\s+/);
+        return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('') || '?';
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str == null ? '' : String(str);
+        return div.innerHTML;
+    }
+
+    function statusBadgeClass(status) {
+        if (status === 'Active') return 'status-active';
+        if (status === 'Expired') return 'status-expired';
+        return 'status-inactive';
+    }
+
+    // Backend sends displayStatus ("Active", "Expired", "Inactive") directly!
+    function calculateStatus(customer) {
+        return customer.displayStatus || 'Inactive';
+    }
+
+    // ============================================================
+    // DATA LOADING (Replaces localStorage)
+    // ============================================================
+    async function loadInitialData() {
+        try {
+            const res = await fetch(`${API}/customers`, { headers: getHeaders() });
+            const data = await res.json();
+            allCustomers = Array.isArray(data) ? data : [];
+
+            // Fetch plans for dropdowns
+                      try {
+                // Fetch from our new, working endpoint instead of his broken one
+                const pRes = await fetch(`${API}/customers/plans`, { headers: getHeaders() });
+                if (pRes.ok) {
+                    const pData = await pRes.json();
+                    allPlans = Array.isArray(pData) ? pData : [];
+                }
+            } catch(e) { console.error("Failed to load plans", e); }
+
+            // Fallback: If /api/plans is blocked by his auth, extract unique plans from customers
+            if (allPlans.length === 0 && allCustomers.length > 0) {
+                const planMap = {};
+                allCustomers.forEach(c => {
+                    if (c.plan && c.plan.id) planMap[c.plan.id] = { id: c.plan.id, name: c.plan.name, price: c.plan.price };
+                });
+                allPlans = Object.values(planMap);
+            }
+
             renderCustomerList();
-            console.log('✅ Customer page ready.');
-        })();
-    </script>
+        } catch (err) {
+            console.error('Failed to load customers:', err);
+        }
+    }
+
+    // ============================================================
+    // FILTER & PAGINATION
+    // ============================================================
+    function getFilteredCustomers() {
+        let list = allCustomers.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const search = state.search.trim().toLowerCase();
+        return list.filter(c => {
+            if (search && (!c.name || c.name.toLowerCase().indexOf(search) === -1)) return false;
+            if (state.plan !== 'all' && c.planId !== state.plan) return false;
+            if (state.status !== 'all' && calculateStatus(c) !== state.status) return false;
+            return true;
+        });
+    }
+
+    function paginate(list, page, pageSize) {
+        const totalCount = list.length;
+        const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+        const safePage = Math.min(Math.max(1, page), totalPages);
+        const start = (safePage - 1) * pageSize;
+        return { pageItems: list.slice(start, start + pageSize), totalPages, totalCount, page: safePage, start };
+    }
+
+    function getPageNumberSequence(current, total) {
+        const delta = 1, range = [];
+        for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) range.push(i);
+        let pages = [];
+        if (current - delta > 2) pages.push(1, '...'); else pages.push(1);
+        pages = pages.concat(range);
+        if (current + delta < total - 1) pages.push('...', total); else if (total > 1) pages.push(total);
+        const seen = {};
+        return pages.filter(p => { if (p === '...') return true; if (seen[p]) return false; seen[p] = true; return true; });
+    }
+
+    // ============================================================
+    // RENDER: LIST
+    // ============================================================
+    function renderCustomerList() {
+        const filtered = getFilteredCustomers();
+        const result = paginate(filtered, state.page, PAGE_SIZE);
+        state.page = result.page;
+
+        const currentPlan = planFilterEl.value;
+        planFilterEl.innerHTML = '<option value="all">All Plans</option>' +
+            allPlans.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        planFilterEl.value = currentPlan || 'all';
+
+        if (allCustomers.length === 0) {
+            customerTableBody.innerHTML = '';
+            paginationBar.style.display = 'none';
+            showEmptyState('no-customers');
+            return;
+        }
+        if (filtered.length === 0) {
+            customerTableBody.innerHTML = '';
+            paginationBar.style.display = 'none';
+            showEmptyState('no-matches');
+            return;
+        }
+
+        hideEmptyState();
+
+        let rowsHtml = result.pageItems.map((c, i) => {
+            const rowNum = result.start + i + 1;
+            const status = calculateStatus(c);
+            const safeName = escapeHtml(c.name);
+            const safePlan = escapeHtml(c.plan?.name || 'Unknown');
+            return `
+                <tr data-id="${c.id}" tabindex="0" role="button">
+                    <td class="row-num">${rowNum}</td>
+                    <td class="cust-name-cell">${safeName}</td>
+                    <td>${safePlan}</td>
+                    <td><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td>
+                    <td>${formatDate(c.expiryDate)}</td>
+                    <td class="amount-cell">${formatCurrency(c.amount || c.plan?.price)}</td>
+                    <td class="action-cell">
+                        <button type="button" class="icon-action-btn extend-btn" data-id="${c.id}" title="Extend Service"><i class="fas fa-calendar-plus"></i></button>
+                        <button type="button" class="icon-action-btn change-plan-btn" data-id="${c.id}" title="Change Plan"><i class="fas fa-exchange-alt"></i></button>
+                    </td>
+                </tr>`;
+        }).join('');
+
+        customerTableBody.innerHTML = rowsHtml;
+        renderPagination(result);
+    }
+
+    function showEmptyState(kind) {
+        let html = kind === 'no-customers' 
+            ? `<i class="fas fa-user-friends"></i><h3>No customers yet</h3><p>Add your first customer to get started.</p><button type="button" class="btn-primary" id="emptyAddCustomerBtn"><i class="fas fa-plus"></i> Add Customer</button>`
+            : `<i class="fas fa-filter"></i><h3>No customers match your current filters</h3><p>Try adjusting your search or filters.</p><button type="button" class="btn-secondary" id="clearFiltersBtn"><i class="fas fa-times"></i> Clear Filters</button>`;
+        customerEmptyState.innerHTML = html;
+        customerEmptyState.style.display = 'block';
+        const emptyAddBtn = document.getElementById('emptyAddCustomerBtn');
+        if (emptyAddBtn) emptyAddBtn.addEventListener('click', openAddCustomerModal);
+        const clearBtn = document.getElementById('clearFiltersBtn');
+        if (clearBtn) clearBtn.addEventListener('click', clearFilters);
+    }
+
+    function hideEmptyState() { customerEmptyState.style.display = 'none'; customerEmptyState.innerHTML = ''; }
+
+    function clearFilters() {
+        state.search = ''; state.plan = 'all'; state.status = 'all'; state.page = 1;
+        customerSearchInput.value = ''; planFilterEl.value = 'all'; statusFilterEl.value = 'all';
+        renderCustomerList();
+    }
+
+    function renderPagination(result) {
+        paginationBar.style.display = 'flex';
+        const startNum = result.totalCount === 0 ? 0 : result.start + 1;
+        const endNum = Math.min(result.start + PAGE_SIZE, result.totalCount);
+        paginationSummary.textContent = `Showing ${startNum}–${endNum} of ${result.totalCount.toLocaleString('en-US')} customers`;
+        const page = result.page, totalPages = result.totalPages;
+        let html = `<button type="button" class="page-btn" data-page="${page - 1}" ${page <= 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+        getPageNumberSequence(page, totalPages).forEach(p => {
+            if (p === '...') html += `<span class="page-ellipsis">…</span>`;
+            else html += `<button type="button" class="page-btn ${p === page ? 'active' : ''}" data-page="${p}">${p}</button>`;
+        });
+        html += `<button type="button" class="page-btn" data-page="${page + 1}" ${page >= totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+        paginationControls.innerHTML = html;
+    }
+
+    // ============================================================
+    // RENDER: PROFILE
+    // ============================================================
+    function showCustomerListView() { state.currentProfileId = null; customerProfileView.style.display = 'none'; customerListView.style.display = 'block'; }
+    
+    function showCustomerProfileView(id) {
+        const customer = allCustomers.find(c => c.id === id);
+        if (!customer) return showCustomerListView();
+        state.currentProfileId = id;
+        renderProfile(customer);
+        customerListView.style.display = 'none';
+        customerProfileView.style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderProfile(c) {
+        const status = calculateStatus(c);
+        document.getElementById('profileAvatar').textContent = getInitials(c.name);
+        document.getElementById('profileName').textContent = c.name;
+        const badge = document.getElementById('profileStatusBadge');
+        badge.className = 'status-badge ' + statusBadgeClass(status);
+        badge.textContent = status;
+        document.getElementById('profilePlan').textContent = c.plan?.name || 'Unknown';
+        document.getElementById('profileExpiry').textContent = formatDate(c.expiryDate);
+        document.getElementById('profileAmount').textContent = formatCurrency(c.amount || c.plan?.price);
+        document.getElementById('profileId').textContent = c.id;
+        document.getElementById('profileCreatedAt').textContent = formatDate(c.createdAt);
+        
+        const isDeactivated = c.status === 'INACTIVE';
+        deactivateBtn.disabled = isDeactivated;
+        deactivateBtn.innerHTML = isDeactivated ? '<i class="fas fa-user-slash"></i> Already Deactivated' : '<i class="fas fa-user-slash"></i> Deactivate Customer';
+    }
+
+    // ============================================================
+    // MODAL SYSTEM
+    // ============================================================
+    function openModal(titleText, bodyHtml, footerHtml) {
+        modalBox.innerHTML = `<div class="modal-header"><h3>${titleText}</h3><button type="button" class="modal-close-btn" id="modalCloseBtn"><i class="fas fa-times"></i></button></div><div class="modal-body">${bodyHtml}</div>${footerHtml ? `<div class="modal-footer">${footerHtml}</div>` : ''}`;
+        modalOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+    }
+    function closeModal() { modalOverlay.classList.remove('open'); document.body.style.overflow = ''; modalBox.innerHTML = ''; }
+    modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOverlay.classList.contains('open')) closeModal(); });
+
+    function planOptionsHtml(selectedPlanId) {
+        return allPlans.map(p => `<option value="${p.id}" ${p.id === selectedPlanId ? 'selected' : ''}>${p.name} (${formatCurrency(p.price)})</option>`).join('');
+    }
+
+    // ============================================================
+    // ACTIONS (ADD, EXTEND, CHANGE PLAN, DEACTIVATE)
+    // ============================================================
+    function openAddCustomerModal() {
+        const todayIso = new Date().toISOString().slice(0, 10);
+        const body = `
+            <div class="form-field" id="addNameField"><label>Customer Name</label><input type="text" id="addCustomerName" /><div class="field-error">Please enter a name.</div></div>
+            <div class="form-field"><label>Plan</label><select id="addCustomerPlan">${planOptionsHtml(allPlans[0]?.id)}</select></div>
+            <div class="form-field" id="addExpiryField"><label>Expiry Date</label><input type="date" id="addCustomerExpiry" min="${todayIso}" /><div class="field-error">Choose a valid date.</div></div>`;
+        openModal('Add Customer', body, `<button type="button" class="btn-secondary" id="cancelAdd">Cancel</button><button type="button" class="btn-primary" id="confirmAdd"><i class="fas fa-check"></i> Add Customer</button>`);
+        
+        document.getElementById('cancelAdd').onclick = closeModal;
+        document.getElementById('confirmAdd').onclick = async () => {
+            const name = document.getElementById('addCustomerName').value.trim();
+            const planId = document.getElementById('addCustomerPlan').value;
+            const expiryDate = document.getElementById('addCustomerExpiry').value;
+                       if (!name || !expiryDate) return alert('Please fill all fields');
+            if (!planId) return alert('No plans available! Please create a plan in Prisma Studio first.');
+            
+            const res = await fetch(`${API}/customers`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ name, planId, expiryDate }) });
+            if (res.ok) {
+                const newC = await res.json();
+                allCustomers.unshift(newC);
+                closeModal(); clearFilters();
+            } else { alert((await res.json()).error || 'Failed to add'); }
+        };
+    }
+
+    function openExtendServiceModal(id) {
+        const c = allCustomers.find(x => x.id === id);
+        if (!c) return;
+        const body = `
+            <p style="margin-bottom:14px;">Current expiry: <strong>${formatDate(c.expiryDate)}</strong></p>
+            <div class="quick-chips">
+                <button type="button" class="quick-chip" data-months="1">+1 Month</button>
+                <button type="button" class="quick-chip" data-months="3">+3 Months</button>
+                <button type="button" class="quick-chip" data-months="6">+6 Months</button>
+                <button type="button" class="quick-chip" data-months="12">+12 Months</button>
+            </div>
+            <div class="form-field" id="extendDateField"><label>New Expiry Date</label><input type="date" id="extendExpiryInput" value="${c.expiryDate.slice(0,10)}" /></div>`;
+        openModal('Extend Service', body, `<button type="button" class="btn-secondary" id="cancelExtend">Cancel</button><button type="button" class="btn-primary" id="confirmExtend"><i class="fas fa-check"></i> Extend</button>`);
+        
+        const dateInput = document.getElementById('extendExpiryInput');
+        document.querySelectorAll('.quick-chip').forEach(chip => {
+            chip.onclick = () => {
+                const d = new Date(dateInput.value || Date.now());
+                d.setMonth(d.getMonth() + parseInt(chip.dataset.months));
+                dateInput.value = d.toISOString().slice(0, 10);
+            };
+        });
+        
+        document.getElementById('cancelExtend').onclick = closeModal;
+        document.getElementById('confirmExtend').onclick = async () => {
+            const res = await fetch(`${API}/customers/${id}/extend`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ newExpiryDate: dateInput.value }) });
+            if (res.ok) {
+                const data = await res.json();
+                const updated = data.customer || data;
+                const idx = allCustomers.findIndex(x => x.id === id);
+                if (idx !== -1) allCustomers[idx] = updated;
+                closeModal();
+                if (state.currentProfileId === id) renderProfile(updated);
+                renderCustomerList();
+            } else { alert((await res.json()).error || 'Failed'); }
+        };
+    }
+
+    function openChangePlanModal(id) {
+        const c = allCustomers.find(x => x.id === id);
+        if (!c) return;
+        const body = `<div class="form-field"><label>New Plan</label><select id="changePlanSelect">${planOptionsHtml(c.planId)}</select></div>`;
+        openModal('Change Plan', body, `<button type="button" class="btn-secondary" id="cancelChange">Cancel</button><button type="button" class="btn-primary" id="confirmChange"><i class="fas fa-check"></i> Change Plan</button>`);
+        
+        document.getElementById('cancelChange').onclick = closeModal;
+        document.getElementById('confirmChange').onclick = async () => {
+            const planId = document.getElementById('changePlanSelect').value;
+            const res = await fetch(`${API}/customers/${id}/change-plan`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ planId }) });
+            if (res.ok) {
+                const data = await res.json();
+                const updated = data.customer || data;
+                const idx = allCustomers.findIndex(x => x.id === id);
+                if (idx !== -1) allCustomers[idx] = updated;
+                closeModal();
+                if (state.currentProfileId === id) renderProfile(updated);
+                renderCustomerList();
+            } else { alert((await res.json()).error || 'Failed'); }
+        };
+    }
+
+    function openDeactivateConfirm(id) {
+        const c = allCustomers.find(x => x.id === id);
+        if (!c) return;
+        openModal('Deactivate Customer', `<div class="confirm-icon"><i class="fas fa-user-slash"></i></div><p>Are you sure you want to deactivate <strong>${escapeHtml(c.name)}</strong>?</p>`, 
+            `<button type="button" class="btn-secondary" id="cancelDeact">Cancel</button><button type="button" class="btn-danger" id="confirmDeact"><i class="fas fa-user-slash"></i> Deactivate</button>`);
+        
+        document.getElementById('cancelDeact').onclick = closeModal;
+        document.getElementById('confirmDeact').onclick = async () => {
+            const res = await fetch(`${API}/customers/${id}/deactivate`, { method: 'POST', headers: getHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                const updated = data.customer || data;
+                const idx = allCustomers.findIndex(x => x.id === id);
+                if (idx !== -1) allCustomers[idx] = updated;
+                closeModal();
+                if (state.currentProfileId === id) renderProfile(updated);
+                renderCustomerList();
+            } else { alert((await res.json()).error || 'Failed'); }
+        };
+    }
+
+    // ============================================================
+    // EVENT WIRING
+    // ============================================================
+    addCustomerBtn.addEventListener('click', openAddCustomerModal);
+    let searchTimer;
+    customerSearchInput.addEventListener('input', function() { clearTimeout(searchTimer); searchTimer = setTimeout(() => { state.search = this.value; state.page = 1; renderCustomerList(); }, 150); });
+    planFilterEl.addEventListener('change', function() { state.plan = this.value; state.page = 1; renderCustomerList(); });
+    statusFilterEl.addEventListener('change', function() { state.status = this.value; state.page = 1; renderCustomerList(); });
+
+    customerTableBody.addEventListener('click', function(e) {
+        if (e.target.closest('.extend-btn')) return openExtendServiceModal(e.target.closest('.extend-btn').dataset.id);
+        if (e.target.closest('.change-plan-btn')) return openChangePlanModal(e.target.closest('.change-plan-btn').dataset.id);
+        const row = e.target.closest('tr[data-id]');
+        if (row) showCustomerProfileView(row.dataset.id);
+    });
+
+    paginationControls.addEventListener('click', function(e) {
+        const btn = e.target.closest('.page-btn');
+        if (btn && !btn.disabled) { state.page = parseInt(btn.dataset.page); renderCustomerList(); window.scrollTo({top:0, behavior:'smooth'}); }
+    });
+
+    backToCustomersBtn.addEventListener('click', () => { showCustomerListView(); renderCustomerList(); });
+    deactivateBtn.addEventListener('click', () => { if (state.currentProfileId) openDeactivateConfirm(state.currentProfileId); });
+    profileExtendBtn.addEventListener('click', () => { if (state.currentProfileId) openExtendServiceModal(state.currentProfileId); });
+    profileChangePlanBtn.addEventListener('click', () => { if (state.currentProfileId) openChangePlanModal(state.currentProfileId); });
+
+    // ============================================================
+    // SIDEBAR & THEME (Shared UI)
+    // ============================================================
+    const sidebar = document.getElementById('sidebar'), sidebarOverlay = document.getElementById('sidebarOverlay'), hamburgerBtn = document.getElementById('hamburgerBtn'), closeSidebarBtn = document.getElementById('closeSidebarBtn');
+    function openSidebar() { sidebar.classList.add('open'); sidebarOverlay.classList.add('open'); hamburgerBtn.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('open'); hamburgerBtn.classList.remove('open'); document.body.style.overflow = ''; }
+    hamburgerBtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+    closeSidebarBtn.addEventListener('click', closeSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar(); });
+
+    const themeToggle = document.getElementById('themeToggle'), themeIcon = document.getElementById('themeIcon');
+    let darkMode = false;
+    function applyTheme(isDark) {
+        darkMode = isDark;
+        if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); themeIcon.className = 'fas fa-sun'; }
+        else { document.documentElement.removeAttribute('data-theme'); themeIcon.className = 'fas fa-moon'; }
+        try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+    }
+    try { const saved = localStorage.getItem('prontox-theme'); if (saved === 'dark') applyTheme(true); else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true); else applyTheme(false); } catch (_) { applyTheme(false); }
+    themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+    const logoLink = document.getElementById('logoLink');
+    if (logoLink) logoLink.addEventListener('click', e => { e.preventDefault(); window.location.href = 'dashboard.html'; });
+    document.getElementById('avatarBtn').addEventListener('click', () => alert('👤 User profile – would open user settings.'));
+    
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', e => {
+        e.preventDefault();
+        if (confirm('Are you sure you want to log out?')) {
+            localStorage.removeItem('prontolog_token');
+            localStorage.removeItem('prontolog_user_id');
+            window.location.href = 'login.html';
+        }
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    loadInitialData();
+    console.log('✅ Customer page connected to live API.');
+})();
+</script>
 
 </body>
 </html>

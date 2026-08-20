@@ -1,0 +1,31 @@
+USER_ID = af606104-2914-4b9c-9c1d-c3a103642103
+BASIC_PLAN_ID = 9ccc1cbd-8b94-4ee1-9d44-9060d113fb96
+STANDARD_PLAN_ID = c3cec6a3-f804-4bcf-b5ec-32cc42d08e72
+
+
+idA 9ccc1cbd-8b94-4ee1-9d44-9060d113fb96
+userid  af606104-2914-4b9c-9c1d-c3a103642103
+
+
+GET http://localhost:5001/api/actual/projection-vs-actual
+Header: x-user-id: af606104-2914-4b9c-9c1d-c3a103642103
+
+GET http://localhost:5001/api/plans
+Header: x-user-id: af606104-2914-4b9c-9c1d-c3a103642103
+
+
+const router = require('express').Router();
+
+// Colleague's routes
+router.use('/auth', require('./authRoutes'));   // 👈 enabled for login/register
+router.use('/plans', require('./planRoutes'));
+// router.use('/settings', require('./settingsRoutes'));
+// router.use('/payments', require('./paymentRoutes'));
+// router.use('/projections', require('./projectionRoutes'));
+
+// YOUR ROUTES
+router.use('/customers', require('./customerRoutes'));
+router.use('/actual', require('./actualRoutes'));
+router.use('/dashboard', require('./dashboardRoutes'));
+
+module.exports = router;

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prontox · Projection vs Actual</title>
@@ -859,451 +860,271 @@
     </main>
 
     <!-- ─── JAVASCRIPT ─── -->
-    <script>
-        (function() {
-            'use strict';
+   <script>
+(function () {
+  'use strict';
 
-            // ============================================================
-            // CONSTANTS & DATA KEYS
-            // ============================================================
-            const PROJ_KEY = 'incomeProjections';
-            const ACTUAL_KEY = 'actualRevenueData';
-            const PLAN_KEY = 'prontoxPlans';
+  /* ============================================================
+     CONFIG — if any element uses a different ID on your page,
+     fix it HERE in one place only.
+  ============================================================ */
+  const IDS = {
+    // Shared UI (navbar / sidebar / theme)
+    hamburger: 'hamburgerBtn',
+    sidebar: 'sidebar',
+    overlay: 'sidebarOverlay',
+    closeSidebar: 'closeSidebarBtn',
+    themeToggle: 'themeToggle',
+    themeIcon: 'themeIcon',
+    avatar: 'avatarBtn',
+    logout: 'logoutBtn',
+    // Income Projection page
+    openFormBtn: 'openFormBtn',
+    form: 'projectionForm',
+    cancelBtn: 'cancelBtn',
+    saveBtn: 'saveBtn',
+    date: 'projDate',
+    plan: 'projPlan',
+    threeDay: 'projThreeDay',
+    oneWeek: 'projOneWeek',
+    oneMonth: 'projOneMonth',
+    oneYear: 'projOneYear',
+    tableBody: 'projBody',
+    storedTitle: 'storedTitle'
+  };
 
-            const DEFAULT_PLANS = [
-                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
-                'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
-            ];
+  const API = 'http://localhost:5001/api';
+  const $ = (id) => document.getElementById(id);
 
-            // ============================================================
-            // DATA ACCESS
-            // ============================================================
-            function getProjections() {
-                try {
-                    const raw = localStorage.getItem(PROJ_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
+  const getHeaders = () => {
+    const h = { 'Content-Type': 'application/json' };
+    const token = localStorage.getItem('prontolog_token');
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    h['x-user-id'] = localStorage.getItem('prontolog_user_id') || 'af606104-2914-4b9c-9c1d-c3a103642103';
+    return h;
+  };
 
-            function getActuals() {
-                try {
-                    const raw = localStorage.getItem(ACTUAL_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
+  const fmt = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 
-            function getPlans() {
-                try {
-                    const raw = localStorage.getItem(PLAN_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                    }
-                } catch (e) {}
-                const plans = DEFAULT_PLANS.map((name, idx) => ({
-                    id: idx + 1,
-                    name: name,
-                    price: '₦' + [5000, 10000, 20000, 35000, 50000, 7500, 15000, 30000, 60000][idx] + '/mo'
-                }));
-                localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
-                return plans;
-            }
+  /* ============================================================
+     1) HAMBURGER / SIDEBAR
+  ============================================================ */
+  const sidebar = $(IDS.sidebar);
+  const overlay = $(IDS.overlay);
+  const hamburger = $(IDS.hamburger);
+  const closeSidebarBtn = $(IDS.closeSidebar);
 
-            function getPlanNames() {
-                return getPlans().map(p => p.name);
-            }
+  function openSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.add('open');
+    overlay && overlay.classList.add('open');
+    hamburger && hamburger.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    if (!sidebar) return;
+    sidebar.classList.remove('open');
+    overlay && overlay.classList.remove('open');
+    hamburger && hamburger.classList.remove('open');
+    document.body.style.overflow = '';
+  }
 
-            // ============================================================
-            // HELPERS
-            // ============================================================
-            function formatCurrency(amount) {
-                const n = Number(amount) || 0;
-                try {
-                    return new Intl.NumberFormat('en-NG', {
-                        style: 'currency',
-                        currency: 'NGN',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                    }).format(n);
-                } catch (e) {
-                    return '₦' + n.toLocaleString('en-US');
-                }
-            }
+  hamburger && hamburger.addEventListener('click', () =>
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+  closeSidebarBtn && closeSidebarBtn.addEventListener('click', closeSidebar);
+  overlay && overlay.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) closeSidebar();
+  });
 
-            function formatCurrencyShort(amount) {
-                const n = Number(amount) || 0;
-                if (n >= 1000000) return '₦' + (n / 1000000).toFixed(1) + 'M';
-                if (n >= 1000) return '₦' + (n / 1000).toFixed(0) + 'K';
-                return formatCurrency(n);
-            }
+  /* ============================================================
+     2) DARK MODE (same key & logic as your other pages)
+  ============================================================ */
+  const themeToggle = $(IDS.themeToggle);
+  const themeIcon = $(IDS.themeIcon);
+  let darkMode = false;
 
-            // ============================================================
-            // DOM REFS
-            // ============================================================
-            const paTotalProjected = document.getElementById('paTotalProjected');
-            const paTotalActual = document.getElementById('paTotalActual');
-            const paTotalVariance = document.getElementById('paTotalVariance');
-            const paVarianceSub = document.getElementById('paVarianceSub');
-            const paAccuracy = document.getElementById('paAccuracy');
-            const paTimeframeFilter = document.getElementById('paTimeframeFilter');
-            const paPlanFilter = document.getElementById('paPlanFilter');
-            const paChartContainer = document.getElementById('paChartContainer');
-            const paTableBody = document.getElementById('paTableBody');
-            const paNoData = document.getElementById('paNoData');
+  function applyTheme(isDark) {
+    darkMode = isDark;
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (themeIcon) themeIcon.className = 'fas fa-sun';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      if (themeIcon) themeIcon.className = 'fas fa-moon';
+    }
+    try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+  }
 
-            // ============================================================
-            // POPULATE PLAN FILTER
-            // ============================================================
-            function populatePlanFilter() {
-                const planNames = getPlanNames();
-                const currentVal = paPlanFilter.value;
-                paPlanFilter.innerHTML = '<option value="all">All Plans</option>' +
-                    planNames.map(p => `<option value="${p}">${p}</option>`).join('');
-                if (planNames.includes(currentVal)) paPlanFilter.value = currentVal;
-                else paPlanFilter.value = 'all';
-            }
+  try {
+    const saved = localStorage.getItem('prontox-theme');
+    if (saved === 'dark') applyTheme(true);
+    else if (saved === 'light') applyTheme(false);
+    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+    else applyTheme(false);
+  } catch (_) { applyTheme(false); }
 
-            // ============================================================
-            // SEED DATA (if empty)
-            // ============================================================
-            function seedProjectionsAndActuals() {
-                let proj = getProjections();
-                let actual = getActuals();
-                if (proj.length > 0) return;
+  themeToggle && themeToggle.addEventListener('click', () => applyTheme(!darkMode));
 
-                const plans = getPlanNames();
-                if (plans.length === 0) return;
-                const today = new Date().toISOString().slice(0, 10);
-
-                proj = plans.map((name, idx) => ({
-                    id: idx + 1,
-                    date: today,
-                    plan: name,
-                    projection3Days: (idx + 1) * 50000,
-                    projection1Week: (idx + 1) * 120000,
-                    projection1Month: (idx + 1) * 500000,
-                    projection1Year: (idx + 1) * 6000000
-                }));
-
-                actual = plans.map((name, idx) => {
-                    const base = (idx + 1) * 500000;
-                    const variation = Math.floor(Math.random() * 200000) - 100000;
-                    return {
-                        plan: name,
-                        date: today,
-                        actual3Days: base * 0.3 + variation * 0.5,
-                        actual1Week: base * 0.7 + variation * 0.6,
-                        actual1Month: base + variation * 0.7,
-                        actual1Year: base * 12 + variation * 0.8
-                    };
-                });
-
-                localStorage.setItem(PROJ_KEY, JSON.stringify(proj));
-                localStorage.setItem(ACTUAL_KEY, JSON.stringify(actual));
-            }
-
-            // ============================================================
-            // RENDER PROJECTION VS ACTUAL
-            // ============================================================
-            function renderProjectionVsActual() {
-                const projections = getProjections();
-                const actuals = getActuals();
-
-                if (projections.length === 0) {
-                    paTableBody.innerHTML = '';
-                    paNoData.style.display = 'block';
-                    paChartContainer.innerHTML = '';
-                    paTotalProjected.textContent = '₦0';
-                    paTotalActual.textContent = '₦0';
-                    paTotalVariance.textContent = '₦0';
-                    paVarianceSub.textContent = '—';
-                    paAccuracy.textContent = '0%';
-                    return;
-                }
-                paNoData.style.display = 'none';
-
-                const timeframe = paTimeframeFilter.value;
-                const planFilter = paPlanFilter.value;
-
-                const filterMap = {
-                    daily: { key: 'projection3Days', actualKey: 'actual3Days', label: '3-Day' },
-                    weekly: { key: 'projection1Week', actualKey: 'actual1Week', label: 'Weekly' },
-                    monthly: { key: 'projection1Month', actualKey: 'actual1Month', label: 'Monthly' },
-                    annually: { key: 'projection1Year', actualKey: 'actual1Year', label: 'Annually' },
-                };
-                const current = filterMap[timeframe];
-                if (!current) return;
-
-                // Filter projections by plan
-                let filteredProjections = [...projections];
-                if (planFilter !== 'all') {
-                    filteredProjections = filteredProjections.filter(p => p.plan === planFilter);
-                }
-
-                if (filteredProjections.length === 0) {
-                    paTableBody.innerHTML = '';
-                    paNoData.style.display = 'block';
-                    paChartContainer.innerHTML = '';
-                    paTotalProjected.textContent = '₦0';
-                    paTotalActual.textContent = '₦0';
-                    paTotalVariance.textContent = '₦0';
-                    paVarianceSub.textContent = '—';
-                    paAccuracy.textContent = '0%';
-                    return;
-                }
-                paNoData.style.display = 'none';
-
-                // Group by date
-                const grouped = {};
-                filteredProjections.forEach(p => {
-                    if (!grouped[p.date]) grouped[p.date] = [];
-                    grouped[p.date].push(p);
-                });
-
-                const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a) - new Date(b));
-
-                let totalProjected = 0;
-                let totalActual = 0;
-
-                let tableHtml = '';
-                const chartData = [];
-
-                sortedDates.forEach(date => {
-                    const items = grouped[date];
-                    items.sort((a, b) => a.plan.localeCompare(b.plan));
-
-                    let dateProjected = 0;
-                    let dateActual = 0;
-
-                    items.forEach(item => {
-                        const projVal = item[current.key] || 0;
-                        const actualEntry = actuals.find(a => a.date === date && a.plan === item.plan);
-                        const actualVal = actualEntry ? (actualEntry[current.actualKey] || 0) : 0;
-
-                        dateProjected += projVal;
-                        dateActual += actualVal;
-                        totalProjected += projVal;
-                        totalActual += actualVal;
-
-                        const variance = actualVal - projVal;
-                        const pct = projVal > 0 ? ((variance / projVal) * 100).toFixed(1) : 0;
-                        let statusClass, statusText;
-                        if (variance > 0) {
-                            statusClass = 'positive';
-                            statusText = '✅ +' + pct + '%';
-                        } else if (variance < 0) {
-                            statusClass = 'negative';
-                            statusText = '⚠️ ' + pct + '%';
-                        } else {
-                            statusClass = 'neutral';
-                            statusText = '➖ 0%';
-                        }
-
-                        tableHtml += `
-                                <tr>
-                                    <td>${date}</td>
-                                    <td>${item.plan}</td>
-                                    <td>${formatCurrency(projVal)}</td>
-                                    <td>${formatCurrency(actualVal)}</td>
-                                    <td>${(variance >= 0 ? '+' : '') + variance.toLocaleString()}</td>
-                                    <td><span class="variance-badge ${statusClass}">${statusText}</span></td>
-                                </tr>
-                            `;
-                    });
-
-                    const dateVariance = dateActual - dateProjected;
-                    const datePct = dateProjected > 0 ? ((dateVariance / dateProjected) * 100).toFixed(1) : 0;
-                    let dateStatusClass = 'neutral';
-                    if (dateVariance > 0) dateStatusClass = 'positive';
-                    else if (dateVariance < 0) dateStatusClass = 'negative';
-
-                    tableHtml += `
-                            <tr class="total-row">
-                                <td colspan="2" style="text-align:right; font-weight:700;">Total (${date})</td>
-                                <td style="font-weight:700;">${formatCurrency(dateProjected)}</td>
-                                <td style="font-weight:700;">${formatCurrency(dateActual)}</td>
-                                <td style="font-weight:700;">${(dateVariance >= 0 ? '+' : '') + dateVariance.toLocaleString()}</td>
-                                <td><span class="variance-badge ${dateStatusClass}">${dateVariance > 0 ? '✅ +' : dateVariance < 0 ? '⚠️ ' : '➖ '}${datePct}%</span></td>
-                            </tr>
-                        `;
-
-                    chartData.push({
-                        period: date,
-                        projection: dateProjected,
-                        actual: dateActual
-                    });
-                });
-
-                paTableBody.innerHTML = tableHtml;
-
-                // Update summary cards
-                paTotalProjected.textContent = formatCurrency(totalProjected);
-                paTotalActual.textContent = formatCurrency(totalActual);
-                const variance = totalActual - totalProjected;
-                paTotalVariance.textContent = (variance >= 0 ? '+' : '') + formatCurrency(variance);
-
-                let statusText, statusClass;
-                if (variance > 0) {
-                    statusText = '✅ Over performing';
-                    statusClass = 'positive';
-                } else if (variance < 0) {
-                    statusText = '⚠️ Under performing';
-                    statusClass = 'negative';
-                } else {
-                    statusText = '➖ On target';
-                    statusClass = 'neutral';
-                }
-                paVarianceSub.textContent = statusText;
-                paVarianceSub.className = 'sub ' + statusClass;
-
-                const accuracy = totalProjected > 0 ? Math.round((totalActual / totalProjected) * 100) : 0;
-                paAccuracy.textContent = accuracy + '%';
-
-                // Render chart
-                renderPaChart(chartData);
-            }
-
-            // ============================================================
-            // RENDER CHART
-            // ============================================================
-            function renderPaChart(data) {
-                if (!paChartContainer) return;
-                if (data.length === 0) {
-                    paChartContainer.innerHTML =
-                        '<div style="text-align:center;color:var(--text-muted);padding:40px 0;">No data to display</div>';
-                    return;
-                }
-
-                const maxVal = Math.max(...data.flatMap(d => [d.projection, d.actual]), 1);
-
-                let html = '';
-                data.forEach(item => {
-                    const projPct = Math.max((item.projection / maxVal) * 100, 3);
-                    const actPct = Math.max((item.actual / maxVal) * 100, 3);
-
-                    html += `
-                            <div class="pa-chart-column">
-                                <div class="pa-chart-bars">
-                                    <div class="pa-bar-group">
-                                        <div class="bar-value">${formatCurrencyShort(item.projection)}</div>
-                                        <div class="bar projection" style="height: ${projPct}%;"></div>
-                                    </div>
-                                    <div class="pa-bar-group">
-                                        <div class="bar-value">${formatCurrencyShort(item.actual)}</div>
-                                        <div class="bar actual" style="height: ${actPct}%;"></div>
-                                    </div>
-                                </div>
-                                <div class="pa-period-label">${item.period}</div>
-                            </div>
-                        `;
-                });
-
-                paChartContainer.innerHTML = html;
-            }
-
-            // ============================================================
-            // EVENT LISTENERS
-            // ============================================================
-            paTimeframeFilter.addEventListener('change', renderProjectionVsActual);
-            paPlanFilter.addEventListener('change', renderProjectionVsActual);
-
-            // ============================================================
-            // SIDEBAR & THEME (shared across pages)
-            // ============================================================
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-
-            function openSidebar() {
-                sidebar.classList.add('open');
-                sidebarOverlay.classList.add('open');
-                hamburgerBtn.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('open');
-                hamburgerBtn.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-
-            hamburgerBtn.addEventListener('click', function() {
-                if (sidebar.classList.contains('open')) closeSidebar();
-                else openSidebar();
-            });
-            closeSidebarBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
-            });
-
-            // Theme toggle
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            let darkMode = false;
-
-            function applyTheme(isDark) {
-                if (isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    themeIcon.className = 'fas fa-sun';
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    themeIcon.className = 'fas fa-moon';
-                }
-                darkMode = isDark;
-                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
-            }
-
-            try {
-                const saved = localStorage.getItem('prontox-theme');
-                if (saved === 'dark') applyTheme(true);
-                else if (saved === 'light') applyTheme(false);
-                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-                else applyTheme(false);
-            } catch (_) { applyTheme(false); }
-
-            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
-
-            // Logo link
-            document.getElementById('logoLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = 'dashboard.html';
-            });
-
-            // Avatar click
-            document.getElementById('avatarBtn').addEventListener('click', function() {
-                alert('👤 User profile – would open user settings.');
-            });
-
-         // ─── LOGOUT ───
-logoutBtn.addEventListener('click', function(e) {
+  /* Avatar + Logout */
+  $(IDS.avatar) && $(IDS.avatar).addEventListener('click', () => alert('👤 User profile – would open user settings.'));
+  $(IDS.logout) && $(IDS.logout).addEventListener('click', (e) => {
     e.preventDefault();
     if (confirm('Are you sure you want to log out?')) {
-        // Clear session from localStorage
-        localStorage.removeItem('prontox_session');
-        // Redirect to login page
-        window.location.href = 'login.html';
+      localStorage.removeItem('prontolog_token');
+      localStorage.removeItem('prontolog_user_id');
+      window.location.href = 'login.html';
     }
-});s
+  });
 
-            // ============================================================
-            // INIT
-            // ============================================================
-            populatePlanFilter();
-            seedProjectionsAndActuals();
-            renderProjectionVsActual();
+  /* ============================================================
+     3) PROJECTIONS (API wiring)
+  ============================================================ */
+  const TF_MAP = { daily: 'threeDay', weekly: 'oneWeek', monthly: 'oneMonth', annually: 'oneYear' };
+  let projections = [];
+  let editingId = null;
+  let currentTF = 'daily';
 
-            console.log('✅ Projection vs Actual page ready.');
-            console.log('✅ Connected to: dashboard, customer, income-projection, payments, monthly-income, settings');
-        })();
-    </script>
+  const form = $(IDS.form);
+  const openBtn = $(IDS.openFormBtn);
+  const cancelBtn = $(IDS.cancelBtn);
+  const saveBtn = $(IDS.saveBtn);
+  const tbody = $(IDS.tableBody) || document.querySelector('table tbody');
+
+  function showForm(show) {
+    if (!form) return;
+    form.classList.toggle('hidden', !show);
+    form.style.display = show ? '' : 'none';
+  }
+
+  function resetForm() {
+    editingId = null;
+    form && form.reset();
+    showForm(false);
+    if (saveBtn) saveBtn.textContent = 'Save Projection';
+  }
+
+  async function load() {
+    try {
+      const res = await fetch(API + '/projections', { headers: getHeaders() });
+      const data = await res.json();
+      projections = data.projections || [];
+
+      const sel = $(IDS.plan);
+      if (sel && data.plans) {
+        const keep = sel.value;
+        sel.innerHTML = '<option value="">Select Plan</option>' +
+          data.plans.map((p) => '<option value="' + p.id + '">' + p.name + '</option>').join('');
+        if (keep) sel.value = keep;
+      }
+      render();
+    } catch (err) {
+      console.error('Failed to load projections:', err);
+    }
+  }
+
+  function render() {
+    const title = $(IDS.storedTitle);
+    if (title) title.textContent = 'Stored Projections (' + projections.length + ' entries)';
+    if (!tbody) return;
+
+    const field = TF_MAP[currentTF];
+    if (!projections.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-muted);">No projections found. Create your first projection above!</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = projections.map((p) =>
+      '<tr>' +
+        '<td>' + new Date(p.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + '</td>' +
+        '<td>' + p.planName + '</td>' +
+        '<td>' + (p[field] !== null && p[field] !== undefined ? fmt(p[field]) : '—') + '</td>' +
+        '<td>' +
+          '<button class="btn small" data-edit="' + p.id + '">Edit</button> ' +
+          '<button class="btn small danger" data-del="' + p.id + '">Delete</button>' +
+        '</td>' +
+      '</tr>').join('');
+  }
+
+  /* Edit / Delete (delegated, survives re-renders) */
+  tbody && tbody.addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('[data-edit]');
+    const delBtn = e.target.closest('[data-del]');
+
+    if (editBtn) {
+      const p = projections.find((x) => x.id === editBtn.dataset.edit);
+      if (!p) return;
+      editingId = p.id;
+      showForm(true);
+      $(IDS.plan).value = p.planId;
+      $(IDS.date).value = p.date ? p.date.slice(0, 10) : '';
+      $(IDS.threeDay).value = p.threeDay ?? '';
+      $(IDS.oneWeek).value = p.oneWeek ?? '';
+      $(IDS.oneMonth).value = p.oneMonth ?? '';
+      $(IDS.oneYear).value = p.oneYear ?? '';
+      if (saveBtn) saveBtn.textContent = 'Update Projection';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    if (delBtn) {
+      if (!confirm('Delete this projection?')) return;
+      await fetch(API + '/projections/' + delBtn.dataset.del, { method: 'DELETE', headers: getHeaders() });
+      load();
+    }
+  });
+
+  /* Open / Cancel */
+  openBtn && openBtn.addEventListener('click', () => {
+    const hiddenNow = !form || form.classList.contains('hidden') ||
+      form.style.display === 'none' || getComputedStyle(form).display === 'none';
+    showForm(hiddenNow);
+    const d = $(IDS.date);
+    if (hiddenNow && d && !d.value) d.value = new Date().toISOString().slice(0, 10);
+  });
+
+  cancelBtn && cancelBtn.addEventListener('click', resetForm);
+
+  /* Save / Update */
+  form && form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+      planId: $(IDS.plan).value,
+      date: $(IDS.date).value,
+      threeDay: $(IDS.threeDay).value === '' ? null : Number($(IDS.threeDay).value),
+      oneWeek: $(IDS.oneWeek).value === '' ? null : Number($(IDS.oneWeek).value),
+      oneMonth: $(IDS.oneMonth).value === '' ? null : Number($(IDS.oneMonth).value),
+      oneYear: $(IDS.oneYear).value === '' ? null : Number($(IDS.oneYear).value)
+    };
+    if (!payload.planId || !payload.date) { alert('Pick a plan and a date.'); return; }
+
+    const res = await fetch(
+      editingId ? API + '/projections/' + editingId : API + '/projections',
+      { method: editingId ? 'PUT' : 'POST', headers: getHeaders(), body: JSON.stringify(payload) }
+    );
+    const data = await res.json();
+    if (res.ok) { resetForm(); load(); }
+    else alert(data.message || 'Save failed');
+  });
+
+  /* Timeframe tabs — by data-tf attribute OR by button text */
+  let tabButtons = Array.from(document.querySelectorAll('[data-tf]'));
+  if (!tabButtons.length) {
+    tabButtons = Array.from(document.querySelectorAll('button, .tab')).filter((b) =>
+      /^(Daily|Weekly|Monthly|Annually)/i.test(b.textContent.trim()));
+  }
+  tabButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTF = btn.dataset.tf || btn.textContent.trim().toLowerCase().split(' ')[0] || 'daily';
+      render();
+    });
+  });
+
+  load();
+  console.log('✅ Income Projection wired: API + sidebar + dark mode.');
+})();
+</script>
 
 </body>
 </html>

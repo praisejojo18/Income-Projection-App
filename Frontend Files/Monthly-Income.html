@@ -815,69 +815,18 @@
     </main>
 
     <!-- ─── JAVASCRIPT ─── -->
-    <script>
+       <script>
         (function() {
             'use strict';
 
-            // ============================================================
-            // CONSTANTS & DATA KEYS
-            // ============================================================
-            const PAYMENT_KEY = 'prontox_payments_v1';
-            const CUSTOMER_KEY = 'prontox_customers_v1';
-            const PLAN_KEY = 'prontoxPlans';
+            const API = 'http://localhost:5001/api';
 
-            const DEFAULT_PLANS = [
-                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
-                'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
-            ];
-
-            // ============================================================
-            // DATA ACCESS
-            // ============================================================
-            function getPayments() {
-                try {
-                    const raw = localStorage.getItem(PAYMENT_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
-
-            function savePayments(list) {
-                try {
-                    localStorage.setItem(PAYMENT_KEY, JSON.stringify(list));
-                    return true;
-                } catch (e) { return false; }
-            }
-
-            function getCustomers() {
-                try {
-                    const raw = localStorage.getItem(CUSTOMER_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
-
-            function getPlans() {
-                try {
-                    const raw = localStorage.getItem(PLAN_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                    }
-                } catch (e) {}
-                const plans = DEFAULT_PLANS.map((name, idx) => ({
-                    id: idx + 1,
-                    name: name,
-                    price: '₦' + [5000, 10000, 20000, 35000, 50000, 7500, 15000, 30000, 60000][idx] + '/mo'
-                }));
-                localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
-                return plans;
-            }
-
-            function getPlanNames() {
-                return getPlans().map(p => p.name);
+            function getHeaders() {
+                const h = { 'Content-Type': 'application/json' };
+                const token = localStorage.getItem('prontolog_token');
+                if (token) h['Authorization'] = 'Bearer ' + token;
+                h['x-user-id'] = localStorage.getItem('prontolog_user_id') || 'af606104-2914-4b9c-9c1d-c3a103642103';
+                return h;
             }
 
             // ============================================================
@@ -887,10 +836,8 @@
                 const n = Number(amount) || 0;
                 try {
                     return new Intl.NumberFormat('en-NG', {
-                        style: 'currency',
-                        currency: 'NGN',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
+                        style: 'currency', currency: 'NGN',
+                        minimumFractionDigits: 0, maximumFractionDigits: 0
                     }).format(n);
                 } catch (e) {
                     return '₦' + n.toLocaleString('en-US');
@@ -900,58 +847,6 @@
             function getMonthYearLabel(year, month) {
                 const d = new Date(year, month - 1, 1);
                 return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-            }
-
-            // ============================================================
-            // SEED DATA (if empty)
-            // ============================================================
-            function seedPaymentsIfEmpty() {
-                const existing = getPayments();
-                if (existing.length > 10) return existing;
-
-                const customers = getCustomers();
-                if (customers.length === 0) {
-                    // Create dummy customers if none exist
-                    const dummyNames = ['Adaeze Okonkwo', 'Chinedu Williams', 'Fatima Bello', 'Emeka Nwosu',
-                        'Ngozi Adeyemi', 'Tunde Balogun', 'Blessing Eze', 'Ibrahim Suleiman'
-                    ];
-                    const dummyCustomers = dummyNames.map((name, i) => ({
-                        id: 'cust_' + (i + 1),
-                        name: name,
-                        plan: getPlanNames()[i % getPlanNames().length],
-                        expiryDate: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
-                        amount: 10000,
-                        createdAt: new Date().toISOString(),
-                        deactivated: false
-                    }));
-                    localStorage.setItem(CUSTOMER_KEY, JSON.stringify(dummyCustomers));
-                }
-
-                const allCustomers = getCustomers();
-                const methods = ['Bank Transfer', 'Cash', 'POS'];
-                const records = [];
-                const now = new Date();
-
-                for (let i = 0; i < 50; i++) {
-                    const cust = allCustomers[i % allCustomers.length];
-                    const daysAgo = Math.floor(Math.random() * 180);
-                    const date = new Date(now);
-                    date.setDate(date.getDate() - daysAgo);
-                    const dateStr = date.toISOString().slice(0, 10);
-                    const amount = Math.round((Math.random() * 30000 + 5000) / 100) * 100;
-                    records.push({
-                        id: i + 1,
-                        date: dateStr,
-                        customer: cust.name,
-                        plan: cust.plan || getPlanNames()[i % getPlanNames().length],
-                        amount: amount,
-                        method: methods[Math.floor(Math.random() * methods.length)],
-                        reference: 'TRX' + String(i + 1).padStart(5, '0')
-                    });
-                }
-                records.sort((a, b) => b.date.localeCompare(a.date));
-                savePayments(records);
-                return records;
             }
 
             // ============================================================
@@ -978,7 +873,8 @@
             function populateMonthSelector() {
                 const now = new Date();
                 monthSelect.innerHTML = '';
-                for (let i = 0; i < 8; i++) {
+                // Show last 12 months
+                for (let i = 0; i < 12; i++) { 
                     const m = now.getMonth() - i;
                     const year = now.getFullYear() + (m < 0 ? -1 : 0);
                     const month = ((m % 12) + 12) % 12 + 1;
@@ -991,235 +887,170 @@
             }
 
             // ============================================================
-            // RENDER MONTHLY INCOME
+            // RENDER MONTHLY INCOME (API Version)
             // ============================================================
-            function renderMonthlyIncome() {
-                const payments = getPayments();
-                if (payments.length === 0) {
-                    // Try seeding
-                    seedPaymentsIfEmpty();
-                    // re-fetch
-                    const newPayments = getPayments();
-                    if (newPayments.length === 0) {
-                        // Still empty, show empty state
-                        totalIncome.textContent = '₦0';
-                        totalIncomeMonth.textContent = 'No data';
-                        payingCustomers.textContent = '0';
-                        avgPayment.textContent = '₦0';
-                        vsPrevious.textContent = '—';
-                        vsPreviousDetail.textContent = 'No payments recorded';
-                        planTableBody.innerHTML =
-                            `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-muted);">No payment data available. Start recording payments in the Payments page.</td></tr>`;
-                        planTableFooter.style.display = 'none';
-                        return;
-                    }
-                }
-
+            async function renderMonthlyIncome() {
                 const selected = monthSelect.value;
                 if (!selected) return;
                 const [year, month] = selected.split('-').map(Number);
 
-                const allPayments = getPayments();
-                const monthPayments = allPayments.filter(p => {
-                    const d = new Date(p.date);
-                    return d.getFullYear() === year && d.getMonth() === month - 1;
-                });
+                try {
+                    const res = await fetch(`${API}/actual/monthly-income?month=${selected}`, { headers: getHeaders() });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Failed to load data');
 
-                const total = monthPayments.reduce((sum, p) => sum + p.amount, 0);
-                const uniqueCustomers = new Set(monthPayments.map(p => p.customer)).size;
-                const avg = monthPayments.length > 0 ? total / monthPayments.length : 0;
+                    // Summary Cards
+                    totalIncome.textContent = formatCurrency(data.totalIncome);
+                    totalIncomeMonth.textContent = getMonthYearLabel(year, month);
+                    payingCustomers.textContent = data.payingCustomers;
+                    avgPayment.textContent = formatCurrency(data.averagePayment);
 
-                totalIncome.textContent = formatCurrency(total);
-                totalIncomeMonth.textContent = getMonthYearLabel(year, month);
-                payingCustomers.textContent = uniqueCustomers;
-                avgPayment.textContent = formatCurrency(avg);
-
-                // Previous month comparison
-                const prevMonth = month === 1 ? 12 : month - 1;
-                const prevYear = month === 1 ? year - 1 : year;
-                const prevPayments = allPayments.filter(p => {
-                    const d = new Date(p.date);
-                    return d.getFullYear() === prevYear && d.getMonth() === prevMonth - 1;
-                });
-                const prevTotal = prevPayments.reduce((sum, p) => sum + p.amount, 0);
-
-                if (prevTotal === 0) {
-                    vsPrevious.textContent = '—';
-                    vsPreviousDetail.textContent = 'No previous data';
-                } else {
-                    const diff = total - prevTotal;
-                    const pct = (diff / prevTotal) * 100;
-                    const sign = pct >= 0 ? '+' : '';
-                    const cls = pct >= 0 ? 'trend-up' : 'trend-down';
-                    vsPrevious.innerHTML = `<span class="${cls}">${sign}${pct.toFixed(1)}%</span>`;
-                    vsPreviousDetail.textContent = `${formatCurrency(prevTotal)} → ${formatCurrency(total)}`;
-                }
-
-                // Plan table
-                const planNames = getPlanNames();
-                const planData = {};
-                planNames.forEach(p => { planData[p] = { count: 0, total: 0, customers: new Set() }; });
-
-                monthPayments.forEach(p => {
-                    if (planData[p.plan]) {
-                        planData[p.plan].count += 1;
-                        planData[p.plan].total += p.amount;
-                        planData[p.plan].customers.add(p.customer);
+                    // Vs Previous Month
+                    const pct = data.vsPreviousMonth || 0;
+                    if (data.totalIncome === 0 && pct === 0) {
+                        vsPrevious.textContent = '—';
+                        vsPreviousDetail.textContent = 'No payments recorded';
+                    } else {
+                        const sign = pct >= 0 ? '+' : '';
+                        const cls = pct >= 0 ? 'trend-up' : 'trend-down';
+                        vsPrevious.innerHTML = `<span class="${cls}">${sign}${pct.toFixed(1)}%</span>`;
+                        vsPreviousDetail.textContent = `Compared to previous month`;
                     }
-                });
 
-                let html = '';
-                let totalPaying = 0;
-                let totalRevenue = 0;
-                planNames.forEach(plan => {
-                    const data = planData[plan] || { count: 0, total: 0, customers: new Set() };
-                    const paying = data.customers.size;
-                    const amount = data.count > 0 ? data.total / data.count : 0;
-                    totalPaying += paying;
-                    totalRevenue += data.total;
-                    const planClass = plan.toLowerCase().replace(/[+ ]/g, '-');
-                    html += `<tr>
-                                <td><span class="plan-tag ${planClass}">${plan}</span></td>
-                                <td class="text-right">${paying}</td>
-                                <td class="text-right">${data.count > 0 ? formatCurrency(amount) : '—'}</td>
-                                <td class="text-right">${formatCurrency(data.total)}</td>
-                            </tr>`;
-                });
+                    // Plan Table
+                    const plans = data.incomeByPlan || [];
+                    let html = '';
+                    let tPaying = 0;
+                    let tRevenue = 0;
 
-                planTableBody.innerHTML = html;
-                if (monthPayments.length > 0) {
-                    planTableFooter.style.display = 'table-footer-group';
-                    totalPayingCustomers.textContent = totalPaying;
-                    totalPlanRevenue.textContent = formatCurrency(totalRevenue);
-                } else {
+                    plans.forEach(p => {
+                        tPaying += p.payingCustomers;
+                        tRevenue += p.totalReceived;
+                        const planClass = p.planName.toLowerCase().replace(/[+ ]/g, '-');
+                        html += `<tr>
+                                    <td><span class="plan-tag ${planClass}">${p.planName}</span></td>
+                                    <td class="text-right">${p.payingCustomers}</td>
+                                    <td class="text-right">${formatCurrency(p.amountPerPlan)}</td>
+                                    <td class="text-right">${formatCurrency(p.totalReceived)}</td>
+                                </tr>`;
+                    });
+
+                    if (plans.length === 0) {
+                        html = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-muted);">No payment data available for this month. Start recording payments!</td></tr>`;
+                        planTableFooter.style.display = 'none';
+                    } else {
+                        planTableFooter.style.display = 'table-footer-group';
+                        totalPayingCustomers.textContent = tPaying;
+                        totalPlanRevenue.textContent = formatCurrency(tRevenue);
+                    }
+                    planTableBody.innerHTML = html;
+
+                    // Render Charts
+                    renderCharts(data.incomeByPlan || [], data.monthlyTrend || []);
+
+                } catch (err) {
+                    console.error("API Error:", err);
+                    totalIncome.textContent = '₦0';
+                    totalIncomeMonth.textContent = 'Error loading data';
+                    planTableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--danger);">Failed to load data.</td></tr>`;
                     planTableFooter.style.display = 'none';
                 }
-
-                // Render charts
-                renderCharts(planData, planNames, allPayments, year, month);
             }
 
             // ============================================================
             // RENDER CHARTS
             // ============================================================
-            function renderCharts(planData, planNames, allPayments, year, month) {
+            function renderCharts(incomeByPlan, monthlyTrend) {
+                const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3b82f6';
+                const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#e5e7eb';
+
                 // --- Chart 1: Revenue by Plan (Bar) ---
-                const ctxPlan = document.getElementById('planChart').getContext('2d');
-                if (planChartInstance) planChartInstance.destroy();
+                const ctxPlan = document.getElementById('planChart');
+                if (ctxPlan) {
+                    if (planChartInstance) planChartInstance.destroy();
 
-                const planValues = planNames.map(plan => planData[plan] ? planData[plan].total : 0);
-                const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() ||
-                    '#3b82f6';
+                    const planLabels = incomeByPlan.map(p => p.planName);
+                    const planValues = incomeByPlan.map(p => p.totalReceived);
 
-                planChartInstance = new Chart(ctxPlan, {
-                    type: 'bar',
-                    data: {
-                        labels: planNames,
-                        datasets: [{
-                            label: 'Revenue (₦)',
-                            data: planValues,
-                            backgroundColor: accentColor,
-                            borderRadius: 4,
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) { return formatCurrency(context.parsed.x); }
-                                }
-                            }
+                    planChartInstance = new Chart(ctxPlan.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: planLabels,
+                            datasets: [{
+                                label: 'Revenue (₦)',
+                                data: planValues,
+                                backgroundColor: accentColor,
+                                borderRadius: 4,
+                            }]
                         },
-                        scales: {
-                            x: {
-                                grid: { color: getComputedStyle(document.documentElement)
-                                        .getPropertyValue('--border').trim() || '#e5e7eb' },
-                                ticks: {
-                                    callback: function(value) {
-                                        if (value >= 1000000) return (value / 1000000) + 'M';
-                                        if (value >= 1000) return (value / 1000) + 'k';
-                                        return value;
-                                    }
-                                }
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { callbacks: { label: (ctx) => formatCurrency(ctx.parsed.x) } }
                             },
-                            y: { grid: { display: false } }
+                            scales: {
+                                x: {
+                                    grid: { color: borderColor },
+                                    ticks: { callback: (v) => v >= 1000000 ? (v/1000000)+'M' : v >= 1000 ? (v/1000)+'k' : v }
+                                },
+                                y: { grid: { display: false } }
+                            }
                         }
-                    }
-                });
-
-                // --- Chart 2: Monthly Trend (Line) ---
-                const ctxTrend = document.getElementById('trendChart').getContext('2d');
-                if (trendChartInstance) trendChartInstance.destroy();
-
-                const trend = [];
-                for (let i = 0; i < 6; i++) {
-                    const m = ((month - i - 1) % 12 + 12) % 12 + 1;
-                    const y = month - i - 1 < 0 ? year - 1 : year;
-                    const mPayments = allPayments.filter(p => {
-                        const d = new Date(p.date);
-                        return d.getFullYear() === y && d.getMonth() === m - 1;
-                    });
-                    const sum = mPayments.reduce((s, p) => s + p.amount, 0);
-                    trend.unshift({
-                        label: new Date(y, m - 1).toLocaleString('en-US', { month: 'short', year: 'numeric' }),
-                        value: sum
                     });
                 }
 
-                const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() ||
-                    '#3b82f6';
+                // --- Chart 2: Monthly Trend (Line) ---
+                const ctxTrend = document.getElementById('trendChart');
+                if (ctxTrend) {
+                    if (trendChartInstance) trendChartInstance.destroy();
 
-                trendChartInstance = new Chart(ctxTrend, {
-                    type: 'line',
-                    data: {
-                        labels: trend.map(t => t.label),
-                        datasets: [{
-                            label: 'Monthly Income',
-                            data: trend.map(t => t.value),
-                            borderColor: borderColor,
-                            backgroundColor: borderColor + '20',
-                            fill: true,
-                            tension: 0.2,
-                            pointRadius: 4,
-                            pointBackgroundColor: borderColor,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) { return formatCurrency(context.parsed.y); }
-                                }
-                            }
+                    const trendLabels = monthlyTrend.map(t => {
+                        const [y, m] = t.month.split('-').map(Number);
+                        return new Date(y, m - 1).toLocaleString('en-US', { month: 'short', year: 'numeric' });
+                    });
+                    const trendValues = monthlyTrend.map(t => t.income);
+
+                    trendChartInstance = new Chart(ctxTrend.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: trendLabels,
+                            datasets: [{
+                                label: 'Monthly Income',
+                                data: trendValues,
+                                borderColor: accentColor,
+                                backgroundColor: accentColor + '20',
+                                fill: true,
+                                tension: 0.2,
+                                pointRadius: 4,
+                                pointBackgroundColor: accentColor,
+                            }]
                         },
-                        scales: {
-                            y: {
-                                grid: { color: getComputedStyle(document.documentElement)
-                                        .getPropertyValue('--border').trim() || '#e5e7eb' },
-                                ticks: {
-                                    callback: function(value) {
-                                        if (value >= 1000000) return (value / 1000000) + 'M';
-                                        if (value >= 1000) return (value / 1000) + 'k';
-                                        return value;
-                                    }
-                                }
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { callbacks: { label: (ctx) => formatCurrency(ctx.parsed.y) } }
+                            },
+                            scales: {
+                                y: {
+                                    grid: { color: borderColor },
+                                    ticks: { callback: (v) => v >= 1000000 ? (v/1000000)+'M' : v >= 1000 ? (v/1000)+'k' : v }
+                                },
+                                x: { grid: { color: borderColor } }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
 
             // ============================================================
             // EVENT LISTENERS
             // ============================================================
-            monthSelect.addEventListener('change', renderMonthlyIncome);
+            if (monthSelect) monthSelect.addEventListener('change', renderMonthlyIncome);
 
             // ============================================================
             // SIDEBAR & THEME (shared across pages)
@@ -1230,28 +1061,27 @@
             const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 
             function openSidebar() {
+                if (!sidebar) return;
                 sidebar.classList.add('open');
-                sidebarOverlay.classList.add('open');
-                hamburgerBtn.classList.add('open');
+                if (sidebarOverlay) sidebarOverlay.classList.add('open');
+                if (hamburgerBtn) hamburgerBtn.classList.add('open');
                 document.body.style.overflow = 'hidden';
             }
 
             function closeSidebar() {
+                if (!sidebar) return;
                 sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('open');
-                hamburgerBtn.classList.remove('open');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('open');
+                if (hamburgerBtn) hamburgerBtn.classList.remove('open');
                 document.body.style.overflow = '';
             }
 
-            hamburgerBtn.addEventListener('click', function() {
-                if (sidebar.classList.contains('open')) closeSidebar();
-                else openSidebar();
-            });
-            closeSidebarBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
+            if (hamburgerBtn) hamburgerBtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+            if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+            if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
+                if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) closeSidebar();
             });
 
             // Theme toggle
@@ -1260,14 +1090,14 @@
             let darkMode = false;
 
             function applyTheme(isDark) {
+                darkMode = isDark;
                 if (isDark) {
                     document.documentElement.setAttribute('data-theme', 'dark');
-                    themeIcon.className = 'fas fa-sun';
+                    if (themeIcon) themeIcon.className = 'fas fa-sun';
                 } else {
                     document.documentElement.removeAttribute('data-theme');
-                    themeIcon.className = 'fas fa-moon';
+                    if (themeIcon) themeIcon.className = 'fas fa-moon';
                 }
-                darkMode = isDark;
                 try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
             }
 
@@ -1279,39 +1109,31 @@
                 else applyTheme(false);
             } catch (_) { applyTheme(false); }
 
-            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+            if (themeToggle) themeToggle.addEventListener('click', () => applyTheme(!darkMode));
 
-            // Logo link
-            document.getElementById('logoLink').addEventListener('click', function(e) {
+            const logoLink = document.getElementById('logoLink');
+            if (logoLink) logoLink.addEventListener('click', function(e) { e.preventDefault(); window.location.href = 'dashboard.html'; });
+
+            const avatarBtn = document.getElementById('avatarBtn');
+            if (avatarBtn) avatarBtn.addEventListener('click', function() { alert('👤 User profile – would open user settings.'); });
+
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) logoutBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                window.location.href = 'dashboard.html';
+                if (confirm('Are you sure you want to log out?')) {
+                    localStorage.removeItem('prontolog_token');
+                    localStorage.removeItem('prontolog_user_id');
+                    window.location.href = 'login.html';
+                }
             });
-
-            // Avatar click
-            document.getElementById('avatarBtn').addEventListener('click', function() {
-                alert('👤 User profile – would open user settings.');
-            });
-
-         // ─── LOGOUT ───
-logoutBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    if (confirm('Are you sure you want to log out?')) {
-        // Clear session from localStorage
-        localStorage.removeItem('prontox_session');
-        // Redirect to login page
-        window.location.href = 'login.html';
-    }
-});
 
             // ============================================================
             // INIT
             // ============================================================
             populateMonthSelector();
-            seedPaymentsIfEmpty();
             renderMonthlyIncome();
 
-            console.log('✅ Monthly Income page ready.');
-            console.log('✅ Connected to: dashboard, customer, income-projection, payments, projection-vs-actual, settings');
+            console.log('✅ Monthly Income connected to live API.');
         })();
     </script>
 

@@ -7,6 +7,7 @@
 
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
         /* ============================================================
@@ -1318,654 +1319,376 @@
     </main>
 
     <!-- ─── JAVASCRIPT ─── -->
-    <script>
-        (function() {
-            'use strict';
-
-            // ============================================================
-            // CONSTANTS & DATA KEYS
-            // ============================================================
-            const CUSTOMER_KEY = 'prontox_customers_v1';
-            const PAYMENT_KEY = 'prontox_payments_v1';
-            const PLAN_KEY = 'prontoxPlans';
-            const PROJ_KEY = 'incomeProjections';
-            const ACTUAL_KEY = 'actualRevenueData';
-
-            const DEFAULT_PLANS = [
-                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
-                'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
-            ];
-
-            const PLAN_PRICES = {
-                'Silver': 5000,
-                'Gold': 10000,
-                'Platinum': 20000,
-                'Premium': 35000,
-                'Premium+': 50000,
-                'SME Silver': 7500,
-                'SME Gold': 15000,
-                'SME Platinum': 30000,
-                'SME Platinum+': 60000
-            };
-
-            // ============================================================
-            // DATA ACCESS
-            // ============================================================
-            function getCustomers() {
-                try {
-                    const raw = localStorage.getItem(CUSTOMER_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
-
-            function getPayments() {
-                try {
-                    const raw = localStorage.getItem(PAYMENT_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
-
-            function savePayments(list) {
-                try {
-                    localStorage.setItem(PAYMENT_KEY, JSON.stringify(list));
-                    return true;
-                } catch (e) { return false; }
-            }
-
-            function getPlans() {
-                try {
-                    const raw = localStorage.getItem(PLAN_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                    }
-                } catch (e) {}
-                // default
-                const plans = DEFAULT_PLANS.map((name, idx) => ({
-                    id: idx + 1,
-                    name: name,
-                    price: Object.values(PLAN_PRICES)[idx] + '/mo'
-                }));
-                localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
-                return plans;
-            }
-
-            function getPlanNames() {
-                return getPlans().map(p => p.name);
-            }
-
-            function getPlanNumericPrice(name) {
-                return PLAN_PRICES[name] || 0;
-            }
-
-            function getProjections() {
-                try {
-                    const raw = localStorage.getItem(PROJ_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
-
-            function getActuals() {
-                try {
-                    const raw = localStorage.getItem(ACTUAL_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
-
-            // ============================================================
-            // HELPERS
-            // ============================================================
-            function parseLocalDate(dateStr) {
-                return new Date(dateStr + 'T00:00:00');
-            }
-
-            function calculateStatus(customer) {
-                if (!customer || customer.deactivated) return 'Inactive';
-                const expiry = parseLocalDate(customer.expiryDate);
-                if (isNaN(expiry.getTime())) return 'Inactive';
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                if (today < expiry) return 'Active';
-                const twoMonthsAfter = new Date(expiry);
-                twoMonthsAfter.setMonth(twoMonthsAfter.getMonth() + 2);
-                if (today <= twoMonthsAfter) return 'Expired';
-                return 'Inactive';
-            }
-
-            function formatCurrency(amount) {
-                const n = Number(amount) || 0;
-                try {
-                    return new Intl.NumberFormat('en-NG', {
-                        style: 'currency',
-                        currency: 'NGN',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                    }).format(n);
-                } catch (e) {
-                    return '₦' + n.toLocaleString('en-US');
-                }
-            }
-
-            function formatDate(dateStr) {
-                const d = parseLocalDate(dateStr);
-                if (isNaN(d.getTime())) return '—';
-                return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-            }
-
-            function daysUntil(dateStr) {
-                const now = new Date();
-                now.setHours(0, 0, 0, 0);
-                const d = new Date(dateStr);
-                d.setHours(0, 0, 0, 0);
-                return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
-            }
-
-            function getInitials(name) {
-                if (!name) return '?';
-                const parts = name.trim().split(/\s+/);
-                const initials = parts.slice(0, 2).map(p => p.charAt(0).toUpperCase());
-                return initials.join('') || '?';
-            }
-
-            function getProjectionByPeriod(period) {
-                const customers = getCustomers();
-                let total = 0;
-                const planTotals = {};
-                customers.forEach(c => {
-                    const price = getPlanNumericPrice(c.plan);
-                    let multiplier = 1;
-                    if (period === 'daily') multiplier = 1 / 30;
-                    else if (period === 'weekly') multiplier = 1 / 4;
-                    else multiplier = 1;
-                    const amount = price * multiplier;
-                    total += amount;
-                    if (!planTotals[c.plan]) planTotals[c.plan] = 0;
-                    planTotals[c.plan] += amount;
-                });
-                return { total, planTotals };
-            }
-
-            function getReceivedForMonth(year, month) {
-                const payments = getPayments();
-                return payments.filter(p => {
-                    const d = new Date(p.date);
-                    return d.getFullYear() === year && d.getMonth() === month;
-                }).reduce((sum, p) => sum + p.amount, 0);
-            }
-
-            // ============================================================
-            // SEED DATA (if empty)
-            // ============================================================
-            function seedPayments() {
-                const existing = getPayments();
-                if (existing.length > 0) return;
-
-                const customers = getCustomers();
-                if (customers.length === 0) return;
-
-                const methods = ['Bank Transfer', 'Cash', 'POS'];
-                const now = new Date();
-                const records = [];
-                for (let i = 0; i < 30; i++) {
-                    const cust = customers[i % customers.length];
-                    const date = new Date(now);
-                    date.setDate(date.getDate() - Math.floor(Math.random() * 90));
-                    const dateStr = date.toISOString().slice(0, 10);
-                    const amount = getPlanNumericPrice(cust.plan) * (1 + Math.floor(Math.random() * 2));
-                    records.push({
-                        id: i + 1,
-                        date: dateStr,
-                        customer: cust.name,
-                        plan: cust.plan,
-                        amount: amount,
-                        method: methods[Math.floor(Math.random() * methods.length)],
-                        reference: 'TRX' + String(i + 1).padStart(5, '0')
-                    });
-                }
-                records.sort((a, b) => b.date.localeCompare(a.date));
-                savePayments(records);
-            }
-
-            function seedProjectionsAndActuals() {
-                let proj = getProjections();
-                let actual = getActuals();
-                if (proj.length > 0) return;
-
-                const plans = getPlanNames();
-                if (plans.length === 0) return;
-                const today = new Date().toISOString().slice(0, 10);
-
-                proj = plans.map((name, idx) => ({
-                    id: idx + 1,
-                    date: today,
-                    plan: name,
-                    projection3Days: (idx + 1) * 50000,
-                    projection1Week: (idx + 1) * 120000,
-                    projection1Month: (idx + 1) * 500000,
-                    projection1Year: (idx + 1) * 6000000
-                }));
-
-                actual = plans.map((name, idx) => {
-                    const base = (idx + 1) * 500000;
-                    const variation = Math.floor(Math.random() * 200000) - 100000;
-                    return {
-                        plan: name,
-                        date: today,
-                        actual3Days: base * 0.3 + variation * 0.5,
-                        actual1Week: base * 0.7 + variation * 0.6,
-                        actual1Month: base + variation * 0.7,
-                        actual1Year: base * 12 + variation * 0.8
-                    };
-                });
-
-                localStorage.setItem(PROJ_KEY, JSON.stringify(proj));
-                localStorage.setItem(ACTUAL_KEY, JSON.stringify(actual));
-            }
-
-            // ============================================================
-            // RENDER FUNCTIONS
-            // ============================================================
-            function renderDashboard() {
-                const customers = getCustomers();
-                const total = customers.length;
-                const active = customers.filter(c => calculateStatus(c) === 'Active').length;
-
-                const proj = getProjectionByPeriod('monthly');
-                const received = getReceivedForMonth(new Date().getFullYear(), new Date().getMonth());
-                const diff = proj.total > 0 ? ((received - proj.total) / proj.total * 100) : 0;
-
-                document.getElementById('statTotal').textContent = total;
-                document.getElementById('statActiveCount').textContent = active;
-                document.getElementById('statProjection').textContent = formatCurrency(proj.total);
-                document.getElementById('statReceived').textContent = formatCurrency(received);
-                document.getElementById('statReceivedDiff').textContent = (diff >= 0 ? '+' : '') + diff.toFixed(1) +
-                    '% vs projection';
-
-                // Avg speed
-                const payments = getPayments();
-                let speeds = [];
-                if (payments.length > 0) {
-                    // approximate: average days between payments per customer
-                    const custMap = {};
-                    payments.forEach(p => {
-                        if (!custMap[p.customer]) custMap[p.customer] = [];
-                        custMap[p.customer].push(new Date(p.date));
-                    });
-                    Object.values(custMap).forEach(dates => {
-                        if (dates.length > 1) {
-                            dates.sort((a, b) => a - b);
-                            for (let i = 1; i < dates.length; i++) {
-                                const diffDays = (dates[i] - dates[i - 1]) / (1000 * 60 * 60 * 24);
-                                speeds.push(diffDays);
-                            }
-                        }
-                    });
-                }
-                const avgSpeed = speeds.length > 0 ? speeds.reduce((a, b) => a + b, 0) / speeds.length : 0;
-                document.getElementById('statAvgSpeed').textContent = avgSpeed > 0 ? Math.round(avgSpeed) + 'd' : '—';
-
-                renderPlanSummaryTable();
-                renderDashboardProjection();
-                renderExpiringSoonTable();
-                renderTodayExpiredTable();
-            }
-
-            function renderPlanSummaryTable() {
-                const customers = getCustomers();
-                const payments = getPayments();
-                const planNames = getPlanNames();
-                const tbody = document.getElementById('planSummaryTableBody');
-                let html = '';
-
-                planNames.forEach(plan => {
-                    const total = customers.filter(c => c.plan === plan).length;
-                    const paid = payments.filter(p => p.plan === plan).length;
-                    const unpaid = total - paid;
-                    const rate = total > 0 ? (paid / total * 100) : 0;
-                    const color = rate >= 80 ? '#22c55e' : (rate >= 50 ? '#f59e0b' : '#ef4444');
-                    html += `
-                            <tr>
-                                <td><span class="plan-tag ${plan.toLowerCase().replace(/[+ ]/g, '-')}">${plan}</span></td>
-                                <td><strong>${total}</strong></td>
-                                <td><span class="status-badge paid">${paid}</span></td>
-                                <td><span class="status-badge unpaid">${unpaid}</span></td>
-                                <td>
-                                    <div style="display:flex;align-items:center;gap:8px;">
-                                        <div class="progress-bar-custom" style="flex:1;min-width:60px;">
-                                            <div class="fill" style="width:${rate}%;background:${color};"></div>
-                                        </div>
-                                        <span class="fs-small fw-600">${rate.toFixed(0)}%</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
-                });
-
-                if (!html) {
-                    html =
-                        `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">No plans available.</td></tr>`;
-                }
-                tbody.innerHTML = html;
-            }
-
-            function renderDashboardProjection() {
-                const filter = document.getElementById('dashboardProjectionFilter');
-                const period = filter.value;
-                const data = getProjectionByPeriod(period);
-                document.getElementById('dashboardTotalProjection').textContent = formatCurrency(data.total);
-
-                const labels = {
-                    daily: 'Projected for next 3 days (daily)',
-                    weekly: 'Projected for next 7 days (weekly)',
-                    monthly: 'Projected for current month (monthly)'
-                };
-                document.getElementById('dashboardProjectionPeriodLabel').textContent = labels[period] ||
-                    'Projected for current period';
-
-                renderDashboardPlanDistribution(data.planTotals, period);
-            }
-
-            function renderDashboardPlanDistribution(planTotals, period) {
-                const sorted = Object.entries(planTotals).sort((a, b) => b[1] - a[1]);
-                const container = document.getElementById('dashboardPlanDistributionList');
-
-                if (sorted.length === 0) {
-                    container.innerHTML =
-                        `<div class="distribution-empty"><i class="fas fa-chart-bar"></i><p>No active customers.</p></div>`;
-                    return;
-                }
-
-                const total = sorted.reduce((sum, [_, val]) => sum + val, 0);
-                const periodLabels = { daily: 'per day', weekly: 'per week', monthly: 'per month' };
-                document.getElementById('dashboardDistributionSubtitle').textContent =
-                    `distributed by plan (${periodLabels[period] || 'per month'})`;
-
-                const barColors = ['#00AFEF', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8', '#22D3EE', '#06B6D4', '#0891B2',
-                    '#0E7490'
-                ];
-                const customers = getCustomers();
-
-                let html = `
-                        <table class="distribution-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:22%;">Service Plan</th>
-                                    <th style="width:8%;">Customers</th>
-                                    <th style="width:45%;">Distribution</th>
-                                    <th style="width:15%;text-align:right;">Amount</th>
-                                    <th style="width:10%;text-align:right;">%</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-
-                sorted.forEach(([plan, amount], idx) => {
-                    const count = customers.filter(c => c.plan === plan && calculateStatus(c) === 'Active')
-                    .length;
-                    const pct = total > 0 ? (amount / total * 100) : 0;
-                    const color = barColors[idx % barColors.length];
-
-                    html += `
-                            <tr>
-                                <td>
-                                    <span class="plan-label-cell">
-                                        <span class="color-dot" style="background:${color};"></span>
-                                        <span class="plan-tag ${plan.toLowerCase().replace(/[+ ]/g, '-')}">${plan}</span>
-                                    </span>
-                                </td>
-                                <td>${count}</td>
-                                <td class="bar-cell">
-                                    <div class="bar-track">
-                                        <div class="bar-fill" style="width:${Math.max(pct, 2)}%;background:${color};">
-                                            <span class="bar-value-label">${pct.toFixed(0)}%</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="amount-cell">${formatCurrency(amount)}</td>
-                                <td class="percent-cell">${pct.toFixed(0)}%</td>
-                            </tr>
-                        `;
-                });
-
-                const totalActive = customers.filter(c => calculateStatus(c) === 'Active').length;
-                html += `
-                        <tr class="total-row">
-                            <td><span class="plan-label-cell" style="font-weight:700;color:var(--accent);">TOTAL</span></td>
-                            <td style="font-weight:700;">${totalActive}</td>
-                            <td>
-                                <div class="bar-track" style="background:var(--accent-light);border-color:var(--accent);display:flex;align-items:center;justify-content:center;height:24px;">
-                                    <span class="total-label">${formatCurrency(total)}</span>
-                                </div>
-                            </td>
-                            <td class="amount-cell" style="color:var(--accent);font-size:0.95rem;">${formatCurrency(total)}</td>
-                            <td class="percent-cell" style="color:var(--accent);">100%</td>
-                        </tr>
-                    </tbody>
-                </table>
-                `;
-
-                container.innerHTML = html;
-            }
-
-            function renderExpiringSoonTable() {
-                const customers = getCustomers();
-                const soon = customers.filter(c => {
-                    const d = daysUntil(c.expiryDate);
-                    return d >= 0 && d <= 5 && calculateStatus(c) === 'Active';
-                }).sort((a, b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate));
-
-                const tbody = document.getElementById('expiringSoonTableBody');
-                const empty = document.getElementById('expiringSoonEmpty');
-
-                if (soon.length === 0) {
-                    tbody.innerHTML = '';
-                    empty.style.display = 'block';
-                    return;
-                }
-                empty.style.display = 'none';
-
-                let html = '';
-                soon.forEach(c => {
-                    const d = daysUntil(c.expiryDate);
-                    const initials = getInitials(c.name);
-                    let statusClass, statusText;
-                    if (d <= 1) { statusClass = 'critical';
-                        statusText = '⚠️ Critical'; } else if (d <= 3) { statusClass = 'warning';
-                        statusText = '⚡ Warning'; } else { statusClass = 'info';
-                        statusText = 'ℹ️ Soon'; }
-
-                    html += `
-                            <tr>
-                                <td>
-                                    <div class="expiry-customer">
-                                        <span class="avatar-sm">${initials}</span>
-                                        ${c.name}
-                                    </div>
-                                </td>
-                                <td><span class="plan-tag ${c.plan.toLowerCase().replace(/[+ ]/g, '-')}">${c.plan}</span></td>
-                                <td>${formatDate(c.expiryDate)}</td>
-                                <td><span class="expiry-countdown ${d <= 1 ? 'critical' : d <= 3 ? 'warning' : 'safe'}">${d} day${d > 1 ? 's' : ''}</span></td>
-                                <td><span class="expiry-status ${statusClass}">${statusText}</span></td>
-                            </tr>
-                        `;
-                });
-                tbody.innerHTML = html;
-            }
-
-            function renderTodayExpiredTable() {
-                const today = new Date().toISOString().slice(0, 10);
-                document.getElementById('todayDate').textContent = formatDate(today);
-
-                const customers = getCustomers();
-                const expired = customers.filter(c => c.expiryDate === today);
-
-                const tbody = document.getElementById('todayExpiredTableBody');
-                const empty = document.getElementById('todayExpiredEmpty');
-
-                if (expired.length === 0) {
-                    tbody.innerHTML = '';
-                    empty.style.display = 'block';
-                    return;
-                }
-                empty.style.display = 'none';
-
-                let html = '';
-                expired.forEach(c => {
-                    const initials = getInitials(c.name);
-                    html += `
-                            <tr>
-                                <td>
-                                    <div class="expiry-customer">
-                                        <span class="avatar-sm">${initials}</span>
-                                        ${c.name}
-                                    </div>
-                                </td>
-                                <td><span class="plan-tag ${c.plan.toLowerCase().replace(/[+ ]/g, '-')}">${c.plan}</span></td>
-                                <td>${formatDate(c.expiryDate)}</td>
-                                <td><span class="expiry-status critical">🔴 Expired</span></td>
-                            </tr>
-                        `;
-                });
-                tbody.innerHTML = html;
-            }
-
-            // ============================================================
-            // PANEL TOGGLE
-            // ============================================================
-            window.togglePanel = function(panelId) {
-                const panel = document.getElementById(panelId);
-                if (!panel) return;
-                const body = panel.querySelector('.panel-body');
-                const icon = panel.querySelector('.toggle-icon');
-                if (!body || !icon) return;
-                if (body.classList.contains('expanded')) {
-                    body.classList.remove('expanded');
-                    body.classList.add('collapsed');
-                    icon.classList.add('collapsed');
-                } else {
-                    body.classList.remove('collapsed');
-                    body.classList.add('expanded');
-                    icon.classList.remove('collapsed');
-                }
-            };
-
-            // ============================================================
-            // EVENT LISTENERS
-            // ============================================================
-            document.getElementById('dashboardApplyFilter').addEventListener('click', renderDashboardProjection);
-            document.getElementById('dashboardProjectionFilter').addEventListener('change', renderDashboardProjection);
-
-            document.getElementById('dashRefreshBtn').addEventListener('click', function() {
-                renderDashboard();
-            });
-
-            document.getElementById('dashNewCustomerBtn').addEventListener('click', function() {
-                window.location.href = 'customer.html';
-            });
-
-            // ============================================================
-            // SIDEBAR & THEME (shared across pages)
-            // ============================================================
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-
-            function openSidebar() {
-                sidebar.classList.add('open');
-                sidebarOverlay.classList.add('open');
-                hamburgerBtn.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('open');
-                hamburgerBtn.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-
-            hamburgerBtn.addEventListener('click', function() {
-                if (sidebar.classList.contains('open')) closeSidebar();
-                else openSidebar();
-            });
-            closeSidebarBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
-            });
-
-            // Theme toggle
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            let darkMode = false;
-
-            function applyTheme(isDark) {
-                if (isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    themeIcon.className = 'fas fa-sun';
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    themeIcon.className = 'fas fa-moon';
-                }
-                darkMode = isDark;
-                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
-            }
-
-            try {
-                const saved = localStorage.getItem('prontox-theme');
-                if (saved === 'dark') applyTheme(true);
-                else if (saved === 'light') applyTheme(false);
-                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-                else applyTheme(false);
-            } catch (_) { applyTheme(false); }
-
-            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
-
-            // Logo link (stay on dashboard)
-            document.getElementById('logoLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = 'dashboard.html';
-            });
-
-            // Avatar click
-            document.getElementById('avatarBtn').addEventListener('click', function() {
-                alert('👤 User profile – would open user settings.');
-            });
-
-        // ─── LOGOUT ───
-        logoutBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-            if (confirm('Are you sure you want to log out?')) {
-        // Clear session from localStorage
-        localStorage.removeItem('prontox_session');
-        // Redirect to login page
-        window.location.href = 'login.html';
+  <script>
+(function() {
+    'use strict';
+
+    const API = 'http://localhost:5001/api';
+    let currentPeriod = 'monthly';
+
+    const getHeaders = () => {
+        const h = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('prontolog_token');
+        if (token) h['Authorization'] = 'Bearer ' + token;
+        h['x-user-id'] = localStorage.getItem('prontolog_user_id') || 'af606104-2914-4b9c-9c1d-c3a103642103';
+        return h;
+    };
+
+    function formatCurrency(amount) {
+        const n = Number(amount) || 0;
+        try {
+            return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
+        } catch (e) { return '₦' + n.toLocaleString('en-US'); }
     }
-}); 
 
-            // ============================================================
-            // INIT
-            // ============================================================
-            // Seed data if needed
-            seedPayments();
-            seedProjectionsAndActuals();
+    function formatDate(dateStr) {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '—';
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
 
-            // Render dashboard
-            renderDashboard();
+    function getInitials(name) {
+        if (!name) return '?';
+        const parts = name.trim().split(/\s+/);
+        const initials = parts.slice(0, 2).map(p => p.charAt(0).toUpperCase());
+        return initials.join('') || '?';
+    }
 
-            console.log('✅ Dashboard ready.');
-        })();
-    </script>
+    async function fetchDashboardData(period = 'monthly') {
+        try {
+            const res = await fetch(`${API}/dashboard?timeframe=${period}`, { headers: getHeaders() });
+            if (!res.ok) throw new Error('Failed to fetch');
+            return await res.json();
+        } catch (err) {
+            console.error('Dashboard fetch error:', err);
+            return null;
+        }
+    }
+
+    async function renderDashboard() {
+        const d = await fetchDashboardData(currentPeriod);
+        if (!d) return;
+
+        const el = id => document.getElementById(id);
+        
+        // Top Cards
+        if(el('statTotal')) el('statTotal').textContent = d.totalCustomers;
+        if(el('statActiveCount')) el('statActiveCount').textContent = d.activeCustomers;
+        if(el('statProjection')) el('statProjection').textContent = formatCurrency(d.monthlyProjection);
+        if(el('statReceived')) el('statReceived').textContent = formatCurrency(d.receivedThisMonth);
+        if(el('statReceivedDiff')) el('statReceivedDiff').textContent = (d.projectionPercentage >= 0 ? '+' : '') + d.projectionPercentage.toFixed(1) + '% vs projection';
+        if(el('statAvgSpeed')) el('statAvgSpeed').textContent = d.avgPaymentSpeed > 0 ? Math.round(d.avgPaymentSpeed) + 'd' : '—';
+
+        renderPlanSummaryTable(d.planSummary);
+        renderDashboardProjection(d);
+        renderExpiringSoonTable(d.expiringSoon);
+        renderTodayExpiredTable(d.todaysExpirations);
+    }
+
+    function renderPlanSummaryTable(summary) {
+        const tbody = document.getElementById('planSummaryTableBody');
+        if (!tbody) return;
+        let html = '';
+
+        if (!summary || summary.length === 0) {
+            html = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">No plans available.</td></tr>`;
+        } else {
+            summary.forEach(p => {
+                const plan = p.planName;
+                const total = p.total;
+                const paid = p.paid;
+                const unpaid = p.unpaid;
+                const rate = parseInt(p.paymentRate) || 0;
+                const color = rate >= 80 ? '#22c55e' : (rate >= 50 ? '#f59e0b' : '#ef4444');
+                
+                html += `
+                    <tr>
+                        <td><span class="plan-tag ${plan.toLowerCase().replace(/[+ ]/g, '-')}">${plan}</span></td>
+                        <td><strong>${total}</strong></td>
+                        <td><span class="status-badge paid">${paid}</span></td>
+                        <td><span class="status-badge unpaid">${unpaid}</span></td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <div class="progress-bar-custom" style="flex:1;min-width:60px;">
+                                    <div class="fill" style="width:${rate}%;background:${color};"></div>
+                                </div>
+                                <span class="fs-small fw-600">${rate}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        tbody.innerHTML = html;
+    }
+
+    function renderDashboardProjection(d) {
+        const totalEl = document.getElementById('dashboardTotalProjection');
+        if(totalEl) totalEl.textContent = formatCurrency(d.totalProjection);
+
+        const labels = {
+            daily: 'Projected for next 3 days (daily)',
+            weekly: 'Projected for next 7 days (weekly)',
+            monthly: 'Projected for current month (monthly)'
+        };
+        const labelEl = document.getElementById('dashboardProjectionPeriodLabel');
+        if(labelEl) labelEl.textContent = labels[currentPeriod] || 'Projected for current period';
+
+        renderDashboardPlanDistribution(d.planDistribution, d.activeCustomers);
+    }
+
+    function renderDashboardPlanDistribution(distribution, totalActiveCustomers) {
+        const container = document.getElementById('dashboardPlanDistributionList');
+        if (!container) return;
+
+        if (!distribution || distribution.length === 0) {
+            container.innerHTML = `<div class="distribution-empty"><i class="fas fa-chart-bar"></i><p>No active customers.</p></div>`;
+            return;
+        }
+
+        const periodLabels = { daily: 'per day', weekly: 'per week', monthly: 'per month' };
+        const subtitleEl = document.getElementById('dashboardDistributionSubtitle');
+        if(subtitleEl) subtitleEl.textContent = `distributed by plan (${periodLabels[currentPeriod] || 'per month'})`;
+
+        const barColors = ['#00AFEF', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8', '#22D3EE', '#06B6D4', '#0891B2', '#0E7490'];
+        
+        const sorted = [...distribution].sort((a, b) => b.projected - a.projected);
+        const totalProjected = sorted.reduce((sum, p) => sum + p.projected, 0);
+
+        let html = `
+            <table class="distribution-table">
+                <thead>
+                    <tr>
+                        <th style="width:22%;">Service Plan</th>
+                        <th style="width:8%;">Customers</th>
+                        <th style="width:45%;">Distribution</th>
+                        <th style="width:15%;text-align:right;">Amount</th>
+                        <th style="width:10%;text-align:right;">%</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        sorted.forEach((p, idx) => {
+            const plan = p.plan;
+            const amount = p.projected;
+            const count = p.customers;
+            const amountPct = totalProjected > 0 ? (amount / totalProjected * 100) : 0;
+            const color = barColors[idx % barColors.length];
+
+            html += `
+                <tr>
+                    <td>
+                        <span class="plan-label-cell">
+                            <span class="color-dot" style="background:${color};"></span>
+                            <span class="plan-tag ${plan.toLowerCase().replace(/[+ ]/g, '-')}">${plan}</span>
+                        </span>
+                    </td>
+                    <td>${count}</td>
+                    <td class="bar-cell">
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width:${Math.max(amountPct, 2)}%;background:${color};">
+                                <span class="bar-value-label">${amountPct.toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="amount-cell">${formatCurrency(amount)}</td>
+                    <td class="percent-cell">${amountPct.toFixed(0)}%</td>
+                </tr>
+            `;
+        });
+
+        html += `
+            <tr class="total-row">
+                <td><span class="plan-label-cell" style="font-weight:700;color:var(--accent);">TOTAL</span></td>
+                <td style="font-weight:700;">${totalActiveCustomers}</td>
+                <td>
+                    <div class="bar-track" style="background:var(--accent-light);border-color:var(--accent);display:flex;align-items:center;justify-content:center;height:24px;">
+                        <span class="total-label">${formatCurrency(totalProjected)}</span>
+                    </div>
+                </td>
+                <td class="amount-cell" style="color:var(--accent);font-size:0.95rem;">${formatCurrency(totalProjected)}</td>
+                <td class="percent-cell" style="color:var(--accent);">100%</td>
+            </tr>
+            </tbody>
+        </table>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    function renderExpiringSoonTable(expiringSoon) {
+        const tbody = document.getElementById('expiringSoonTableBody');
+        const empty = document.getElementById('expiringSoonEmpty');
+
+        if (!expiringSoon || expiringSoon.length === 0) {
+            if (tbody) tbody.innerHTML = '';
+            if (empty) empty.style.display = 'block';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+
+        let html = '';
+        expiringSoon.forEach(c => {
+            const d = c.daysLeft;
+            const initials = getInitials(c.customer);
+            let statusClass, statusText;
+            if (d <= 1) { statusClass = 'critical'; statusText = '⚠️ Critical'; } 
+            else if (d <= 3) { statusClass = 'warning'; statusText = '⚡ Warning'; } 
+            else { statusClass = 'info'; statusText = 'ℹ️ Soon'; }
+
+            html += `
+                <tr>
+                    <td>
+                        <div class="expiry-customer">
+                            <span class="avatar-sm">${initials}</span>
+                            ${c.customer}
+                        </div>
+                    </td>
+                    <td><span class="plan-tag ${(c.plan || '').toLowerCase().replace(/[+ ]/g, '-')}">${c.plan || 'Unknown'}</span></td>
+                    <td>${formatDate(c.expiryDate)}</td>
+                    <td><span class="expiry-countdown ${d <= 1 ? 'critical' : d <= 3 ? 'warning' : 'safe'}">${d} day${d > 1 ? 's' : ''}</span></td>
+                    <td><span class="expiry-status ${statusClass}">${statusText}</span></td>
+                </tr>
+            `;
+        });
+        if (tbody) tbody.innerHTML = html;
+    }
+
+    function renderTodayExpiredTable(todaysExpirations) {
+        const today = new Date().toISOString().slice(0, 10);
+        const todayDateEl = document.getElementById('todayDate');
+        if (todayDateEl) todayDateEl.textContent = formatDate(today);
+
+        const tbody = document.getElementById('todayExpiredTableBody');
+        const empty = document.getElementById('todayExpiredEmpty');
+
+        if (!todaysExpirations || todaysExpirations.length === 0) {
+            if (tbody) tbody.innerHTML = '';
+            if (empty) empty.style.display = 'block';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+
+        let html = '';
+        todaysExpirations.forEach(c => {
+            const initials = getInitials(c.customer);
+            const isExpired = c.status === 'Expired';
+            html += `
+                <tr>
+                    <td>
+                        <div class="expiry-customer">
+                            <span class="avatar-sm">${initials}</span>
+                            ${c.customer}
+                        </div>
+                    </td>
+                    <td><span class="plan-tag ${(c.plan || '').toLowerCase().replace(/[+ ]/g, '-')}">${c.plan || 'Unknown'}</span></td>
+                    <td>${formatDate(c.expiryDate)}</td>
+                    <td><span class="expiry-status ${isExpired ? 'critical' : 'warning'}">${isExpired ? '🔴 Expired' : '🟡 Expiring Today'}</span></td>
+                </tr>
+            `;
+        });
+        if (tbody) tbody.innerHTML = html;
+    }
+
+    // Panel Toggle
+    window.togglePanel = function(panelId) {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        const body = panel.querySelector('.panel-body');
+        const icon = panel.querySelector('.toggle-icon');
+        if (!body || !icon) return;
+        if (body.classList.contains('expanded')) {
+            body.classList.remove('expanded'); body.classList.add('collapsed'); icon.classList.add('collapsed');
+        } else {
+            body.classList.remove('collapsed'); body.classList.add('expanded'); icon.classList.remove('collapsed');
+        }
+    };
+
+    // Event Listeners
+    const applyBtn = document.getElementById('dashboardApplyFilter');
+    const filterSelect = document.getElementById('dashboardProjectionFilter');
+    
+    if (applyBtn) applyBtn.addEventListener('click', () => {
+        currentPeriod = filterSelect ? filterSelect.value : 'monthly';
+        renderDashboard();
+    });
+    if (filterSelect) filterSelect.addEventListener('change', () => {
+        currentPeriod = filterSelect.value;
+        renderDashboard();
+    });
+
+    const refreshBtn = document.getElementById('dashRefreshBtn');
+    if (refreshBtn) refreshBtn.addEventListener('click', renderDashboard);
+
+    const newCustBtn = document.getElementById('dashNewCustomerBtn');
+    if (newCustBtn) newCustBtn.addEventListener('click', () => { window.location.href = 'customer.html'; });
+
+    // Sidebar & Theme
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+
+    function openSidebar() {
+        if (sidebar) sidebar.classList.add('open');
+        if (sidebarOverlay) sidebarOverlay.classList.add('open');
+        if (hamburgerBtn) hamburgerBtn.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+        if (sidebar) sidebar.classList.remove('open');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('open');
+        if (hamburgerBtn) hamburgerBtn.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    if (hamburgerBtn) hamburgerBtn.addEventListener('click', () => sidebar && sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) closeSidebar(); });
+
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    let darkMode = false;
+
+    function applyTheme(isDark) {
+        if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); if (themeIcon) themeIcon.className = 'fas fa-sun'; }
+        else { document.documentElement.removeAttribute('data-theme'); if (themeIcon) themeIcon.className = 'fas fa-moon'; }
+        darkMode = isDark;
+        try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+    }
+
+    try {
+        const saved = localStorage.getItem('prontox-theme');
+        if (saved === 'dark') applyTheme(true);
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+        else applyTheme(false);
+    } catch (_) { applyTheme(false); }
+
+    if (themeToggle) themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+    const logoLink = document.getElementById('logoLink');
+    if (logoLink) logoLink.addEventListener('click', (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; });
+
+    const avatarBtn = document.getElementById('avatarBtn');
+    if (avatarBtn) avatarBtn.addEventListener('click', () => alert('👤 User profile – would open user settings.'));
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm('Are you sure you want to log out?')) {
+            localStorage.removeItem('prontolog_token');
+            localStorage.removeItem('prontolog_user_id');
+            window.location.href = 'login.html';
+        }
+    });
+
+    renderDashboard();
+    console.log('✅ Dashboard connected to live backend API.');
+})();
+</script>
 
 </body>
 </html>
