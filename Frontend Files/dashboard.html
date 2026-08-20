@@ -1114,7 +1114,18 @@
             <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
                 <i class="fas fa-moon" id="themeIcon"></i>
             </button>
-            <div class="avatar" id="avatarBtn" tabindex="0">JD</div>
+            <div class="avatar" id="avatarBtn" tabindex="0" onclick="
+            try {
+                const s = JSON.parse(localStorage.getItem('prontox_session') || '{}');
+                alert('👤 ' + (s.name || 'User') + '\n📧 ' + (s.email || 'No email'));
+            } catch(e) { alert('Profile'); }
+        "><script>
+            try {
+                const s = JSON.parse(localStorage.getItem('prontox_session') || '{}');
+                const n = s.name || 'U';
+                document.write(n.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase());
+            } catch(e) { document.write('U'); }
+        </script></div>
         </div>
     </header>
 

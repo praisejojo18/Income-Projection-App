@@ -32,4 +32,10 @@ mount("/customers", () => require("./customerRoutes"), "customerRoutes");
 mount("/actual", () => require("./actualRoutes"), "actualRoutes");
 mount("/dashboard", () => require("./dashboardRoutes"), "dashboardRoutes");
 
+// ✅ YOUR ROUTES 
+router.use('/settings', require('./settingsRoutes'));
+router.use('/plans', require('./planRoutes'));
+router.use('/payments', require('./paymentRoutes'));
+router.use('/projections', require('./projectionRoutes'));
+
 module.exports = router;
