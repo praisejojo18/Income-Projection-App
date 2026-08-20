@@ -1117,6 +1117,45 @@
         (function() {
             'use strict';
 
+            // ─── API Configuration ───
+            const API_BASE = 'http://127.0.0.1:5001/api';
+
+            // ─── Auth Check: redirect to login if no token ───
+            if (!localStorage.getItem('prontox_token')) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // ─── Helper: fetch with auth token ───
+            async function apiFetch(path, options = {}) {
+                const token = localStorage.getItem('prontox_token');
+                const config = {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        ...(options.headers || {}),
+                    },
+                };
+                try {
+                    const res = await fetch(`${API_BASE}${path}`, config);
+                    if (res.status === 401) {
+                        localStorage.removeItem('prontox_token');
+                        localStorage.removeItem('prontox_session');
+                        window.location.href = 'login.html';
+                        throw new Error('Session expired');
+                    }
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message || 'Request failed');
+                    return data;
+                } catch (err) {
+                    if (err instanceof TypeError && /fetch/i.test(err.message)) {
+                        throw new Error('Cannot reach the server');
+                    }
+                    throw err;
+                }
+            }
+
             // ============================================================
             // CONSTANTS & DATA KEYS
             // ============================================================
@@ -1136,30 +1175,17 @@
             // ============================================================
             // DATA ACCESS
             // ============================================================
-            function getPlans() {
+            async function getPlans() {
                 try {
-                    const raw = localStorage.getItem(PLAN_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                    }
-                } catch (e) {}
-                // Default
-                const plans = DEFAULT_PLANS.map((name, idx) => ({
-                    id: idx + 1,
-                    name: name,
-                    price: DEFAULT_PRICES[idx] || '₦0/mo'
-                }));
-                localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
-                return plans;
+                    const data = await apiFetch('/plans');
+                    return data.data || [];
+                } catch (err) {
+                    console.error('Failed to load plans:', err);
+                    return [];
+                }
             }
 
-            function savePlans(list) {
-                try {
-                    localStorage.setItem(PLAN_KEY, JSON.stringify(list));
-                    return true;
-                } catch (e) { return false; }
-            }
+            // Note: Plans are now saved via individual API calls (create/update/delete)
 
             function getPlanNames() {
                 return getPlans().map(p => p.name);
@@ -1219,8 +1245,8 @@
             // ============================================================
             // PLAN RENDER FUNCTIONS
             // ============================================================
-            function renderSettingsPlanPreview() {
-                const plans = getPlans();
+            async function renderSettingsPlanPreview() {
+                const plans = await getPlans();
                 if (!settingsPlanPreviewGrid) return;
                 if (plans.length === 0) {
                     settingsPlanPreviewGrid.innerHTML =
@@ -1241,8 +1267,8 @@
                 settingsPlanCountLabel.textContent = `${plans.length} plans`;
             }
 
-            function renderPlanList() {
-                const plans = getPlans();
+            async function renderPlanList() {
+                const plans = await getPlans();
                 if (!planListContainer) return;
                 if (plans.length === 0) {
                     planListContainer.innerHTML =
@@ -1271,35 +1297,44 @@
 
                 // Save price
                 document.querySelectorAll('.save-price-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
+                    btn.addEventListener('click', async function(e) {
                         e.stopPropagation();
-                        const id = parseInt(this.dataset.id);
+                        const id = this.dataset.id;
                         const input = document.querySelector(`.plan-price-input[data-id="${id}"]`);
                         if (!input) return;
                         const newPrice = input.value.trim();
-                        let plans = getPlans();
-                        const plan = plans.find(p => p.id === id);
-                        if (plan) {
-                            plan.price = newPrice || plan.price;
-                            savePlans(plans);
-                            renderPlanList();
-                            renderSettingsPlanPreview();
-                            // Also update other pages via localStorage
+                        
+                        // Parse price to number (e.g., "₦5,000/mo" -> 5000)
+                        const priceNum = parseFloat(newPrice.replace(/[^0-9.]/g, '')) || 0;
+                        
+                        try {
+                            await apiFetch(`/plans/${id}`, {
+                                method: 'PATCH',
+                                body: JSON.stringify({ price: priceNum })
+                            });
+                            alert('Price updated!');
+                            await renderPlanList();
+                            await renderSettingsPlanPreview();
+                        } catch (err) {
+                            alert('Failed to update: ' + err.message);
                         }
                     });
                 });
 
                 // Remove plan
                 document.querySelectorAll('.remove-plan-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
+                    btn.addEventListener('click', async function(e) {
                         e.stopPropagation();
-                        const id = parseInt(this.dataset.id);
+                        const id = this.dataset.id;
                         if (!confirm('Remove this plan?')) return;
-                        let plans = getPlans();
-                        plans = plans.filter(p => p.id !== id);
-                        savePlans(plans);
-                        renderPlanList();
-                        renderSettingsPlanPreview();
+                        
+                        try {
+                            await apiFetch(`/plans/${id}`, { method: 'DELETE' });
+                            await renderPlanList();
+                            await renderSettingsPlanPreview();
+                        } catch (err) {
+                            alert('Failed to delete: ' + err.message);
+                        }
                     });
                 });
 
@@ -1307,7 +1342,7 @@
                 document.querySelectorAll('.plan-price-input').forEach(inp => {
                     inp.addEventListener('keydown', function(e) {
                         if (e.key === 'Enter') {
-                            const id = parseInt(this.dataset.id);
+                            const id = this.dataset.id;
                             const btn = document.querySelector(`.save-price-btn[data-id="${id}"]`);
                             if (btn) btn.click();
                         }
@@ -1318,24 +1353,27 @@
             // ============================================================
             // ADD PLAN
             // ============================================================
-            function handleAddPlan() {
+            async function handleAddPlan() {
                 const name = newPlanName.value.trim();
                 const price = newPlanPrice.value.trim();
                 if (!name) { alert('Please enter a plan name.'); return; }
                 if (!price) { alert('Please enter a price.'); return; }
 
-                let plans = getPlans();
-                if (plans.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-                    alert('A plan with this name already exists.');
-                    return;
+                // Parse price to number
+                const priceNum = parseFloat(price.replace(/[^0-9.]/g, '')) || 0;
+                
+                try {
+                    await apiFetch('/plans', {
+                        method: 'POST',
+                        body: JSON.stringify({ name, price: priceNum, durationDays: 30 })
+                    });
+                    newPlanName.value = '';
+                    newPlanPrice.value = '';
+                    await renderPlanList();
+                    await renderSettingsPlanPreview();
+                } catch (err) {
+                    alert('Failed to add plan: ' + err.message);
                 }
-                const maxId = plans.reduce((max, p) => p.id > max ? p.id : max, 0);
-                plans.push({ id: maxId + 1, name, price });
-                savePlans(plans);
-                newPlanName.value = '';
-                newPlanPrice.value = '';
-                renderPlanList();
-                renderSettingsPlanPreview();
             }
 
             addPlanBtn.addEventListener('click', handleAddPlan);
@@ -1358,29 +1396,59 @@
             // NOTIFICATIONS TOGGLE
             // ============================================================
             if (notifToggle) {
-                notifToggle.addEventListener('click', function() {
+                notifToggle.addEventListener('click', async function() {
                     this.classList.toggle('active');
+                    const notifications = this.classList.contains('active');
+                    try {
+                        await apiFetch('/settings', {
+                            method: 'PATCH',
+                            body: JSON.stringify({ notifications })
+                        });
+                    } catch (err) {
+                        alert('Failed to save: ' + err.message);
+                        this.classList.toggle('active'); // revert on error
+                    }
                 });
             }
 
             // ============================================================
             // WORKSPACE NAME & LANGUAGE (demo - saved to localStorage)
             // ============================================================
-            function loadGeneralSettings() {
+            async function loadGeneralSettings() {
                 try {
-                    const ws = localStorage.getItem('prontox_workspace_name');
-                    if (ws) workspaceNameInput.value = ws;
-                    const lang = localStorage.getItem('prontox_language');
-                    if (lang) languageSelect.value = lang;
-                } catch (e) {}
+                    const data = await apiFetch('/settings');
+                    const settings = data.data || {};
+                    if (settings.workspaceName) workspaceNameInput.value = settings.workspaceName;
+                    if (settings.language) languageSelect.value = settings.language;
+                    if (settings.notifications !== undefined) {
+                        if (settings.notifications) notifToggle.classList.add('active');
+                        else notifToggle.classList.remove('active');
+                    }
+                } catch (err) {
+                    console.error('Failed to load settings:', err);
+                }
             }
 
-            workspaceNameInput.addEventListener('change', function() {
-                try { localStorage.setItem('prontox_workspace_name', this.value); } catch (e) {}
+            workspaceNameInput.addEventListener('change', async function() {
+                try {
+                    await apiFetch('/settings', {
+                        method: 'PATCH',
+                        body: JSON.stringify({ workspaceName: this.value })
+                    });
+                } catch (err) {
+                    alert('Failed to save: ' + err.message);
+                }
             });
 
-            languageSelect.addEventListener('change', function() {
-                try { localStorage.setItem('prontox_language', this.value); } catch (e) {}
+            languageSelect.addEventListener('change', async function() {
+                try {
+                    await apiFetch('/settings', {
+                        method: 'PATCH',
+                        body: JSON.stringify({ language: this.value })
+                    });
+                } catch (err) {
+                    alert('Failed to save: ' + err.message);
+                }
             });
 
             // ============================================================
@@ -1454,11 +1522,14 @@
                 });
             }
 
-            // ─── Logo link ───
-            document.getElementById('logoLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = 'dashboard.html';
-            });
+            // ─── Logo link (null-safe) ───
+            const logoLink = document.getElementById('logoLink');
+            if (logoLink) {
+                logoLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = 'dashboard.html';
+                });
+            }
 
             // ─── Avatar click ───
             document.getElementById('avatarBtn').addEventListener('click', function() {
@@ -1466,22 +1537,20 @@
             });
 
         // ─── LOGOUT ───
-logoutBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    if (confirm('Are you sure you want to log out?')) {
-        // Clear session from localStorage
-        localStorage.removeItem('prontox_session');
-        // Redirect to login page
-        window.location.href = 'login.html';
-    }
-});
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+                localStorage.removeItem('prontox_token');
+                localStorage.removeItem('prontox_session');
+                window.location.href = 'login.html';
+            }
+        });
 
             // ============================================================
             // INIT
             // ============================================================
             loadGeneralSettings();
             renderSettingsPlanPreview();
-            // Show General page by default
             showSettingsPage('general');
 
             console.log('✅ Settings page ready.');
