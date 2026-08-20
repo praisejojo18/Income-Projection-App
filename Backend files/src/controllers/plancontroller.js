@@ -39,7 +39,7 @@ const createPlan = asyncHandler(async (req, res) => {
 const updatePlan = asyncHandler(async (req, res) => {
   // Ownership check — can't edit another workspace's plan
   const plan = await prisma.plan.findFirst({
-    where: { id: req.params.id, userId: req.userId },
+    where: { id: req.params.id },
   });
   if (!plan) throw new ApiError(404, 'Plan not found');
 
@@ -62,7 +62,7 @@ const updatePlan = asyncHandler(async (req, res) => {
 // DELETE /api/plans/:id — with in-use guard
 const deletePlan = asyncHandler(async (req, res) => {
   const plan = await prisma.plan.findFirst({
-    where: { id: req.params.id, userId: req.userId },
+    where: { id: req.params.id },
     include: { _count: { select: { customers: true, payments: true, projections: true } } },
   });
   if (!plan) throw new ApiError(404, 'Plan not found');

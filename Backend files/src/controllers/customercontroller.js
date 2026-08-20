@@ -11,6 +11,7 @@ const {
 */
 const getUserId = (req) => {
   return (
+    req.userId ||
     req.user?.id ||
     req.user?.userId ||
     req.headers["x-user-id"] ||
