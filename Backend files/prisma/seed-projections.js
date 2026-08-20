@@ -6,15 +6,13 @@ async function main() {
   const user = await prisma.user.findUnique({
     where: { email: "praise.test@prontolog.com" }
   });
-  if (!user) throw new Error("Run `node prisma/seed.js` first.");
+  if (!user) throw new Error("Run `node prisma/seed.js` first to create the user.");
 
-  const basic = await prisma.plan.findFirst({
-    where: { userId: user.id, name: "Basic Plan" }
-  });
-  const standard = await prisma.plan.findFirst({
-    where: { userId: user.id, name: "Standard Plan" }
-  });
-  if (!basic || !standard) throw new Error("Plans missing. Run `node prisma/seed.js` first.");
+  const silver = await prisma.plan.findFirst({ where: { userId: user.id, name: "Silver" } });
+  const gold = await prisma.plan.findFirst({ where: { userId: user.id, name: "Gold" } });
+  const platinum = await prisma.plan.findFirst({ where: { userId: user.id, name: "Platinum" } });
+
+  if (!silver || !gold) throw new Error("New business plans missing. Run `node prisma/seed-business-plans.js` first.");
 
   let customer = await prisma.customer.findFirst({ where: { userId: user.id } });
   if (!customer) {
@@ -22,70 +20,63 @@ async function main() {
       data: {
         userId: user.id,
         name: "Seed Customer",
-        planId: basic.id,
+        planId: silver.id,
         expiryDate: new Date("2026-09-30T00:00:00.000Z")
       }
     });
   }
 
-  // ---- PROJECTIONS ----
-  // July (closed window -> will be judged)
+  // ---- PROJECTIONS (July) ----
   await prisma.projection.upsert({
-    where: {
-      userId_planId_date: { userId: user.id, planId: basic.id, date: new Date("2026-07-01") }
-    },
+    where: { userId_planId_date: { userId: user.id, planId: silver.id, date: new Date("2026-07-01") } },
     update: {},
     create: {
-      userId: user.id, planId: basic.id, date: new Date("2026-07-01"),
-      threeDay: 15000, oneWeek: 35000, oneMonth: 100000, oneYear: 1200000
+      userId: user.id, planId: silver.id, date: new Date("2026-07-01"),
+      threeDay: 25000, oneWeek: 60000, oneMonth: 150000, oneYear: 1800000
     }
   });
 
   await prisma.projection.upsert({
-    where: {
-      userId_planId_date: { userId: user.id, planId: standard.id, date: new Date("2026-07-01") }
-    },
+    where: { userId_planId_date: { userId: user.id, planId: gold.id, date: new Date("2026-07-01") } },
     update: {},
     create: {
-      userId: user.id, planId: standard.id, date: new Date("2026-07-01"),
-      threeDay: 10000, oneWeek: 20000, oneMonth: 50000, oneYear: 600000
+      userId: user.id, planId: gold.id, date: new Date("2026-07-01"),
+      threeDay: 40000, oneWeek: 90000, oneMonth: 250000, oneYear: 3000000
     }
   });
 
-  // August (open window -> "In Progress")
+  // ---- PROJECTIONS (August) ----
   await prisma.projection.upsert({
-    where: {
-      userId_planId_date: { userId: user.id, planId: basic.id, date: new Date("2026-08-01") }
-    },
+    where: { userId_planId_date: { userId: user.id, planId: silver.id, date: new Date("2026-08-01") } },
     update: {},
     create: {
-      userId: user.id, planId: basic.id, date: new Date("2026-08-01"),
-      threeDay: 15000, oneWeek: 35000, oneMonth: 100000, oneYear: 1200000
+      userId: user.id, planId: silver.id, date: new Date("2026-08-01"),
+      threeDay: 30000, oneWeek: 70000, oneMonth: 180000, oneYear: 2000000
     }
   });
 
-  // ---- ACTUAL PAYMENTS ----
+  // ---- ACTUAL PAYMENTS (July) ----
   await prisma.payment.upsert({
-    where: { userId_reference: { userId: user.id, reference: "SEED-JUL-BASIC" } },
+    where: { userId_reference: { userId: user.id, reference: "SEED-JUL-SILVER" } },
     update: {},
     create: {
-      userId: user.id, customerId: customer.id, planId: basic.id,
-      amount: 90000, paymentDate: new Date("2026-07-20T10:00:00.000Z"),
-      method: "BANK_TRANSFER", reference: "SEED-JUL-BASIC"
+      userId: user.id, customerId: customer.id, planId: silver.id,
+      amount: 130000, paymentDate: new Date("2026-07-15T10:00:00.000Z"),
+      method: "BANK_TRANSFER", reference: "SEED-JUL-SILVER"
     }
   });
 
   await prisma.payment.upsert({
-    where: { userId_reference: { userId: user.id, reference: "SEED-JUL-STD" } },
+    where: { userId_reference: { userId: user.id, reference: "SEED-JUL-GOLD" } },
     update: {},
     create: {
-      userId: user.id, customerId: customer.id, planId: standard.id,
-      amount: 20000, paymentDate: new Date("2026-07-25T10:00:00.000Z"),
-      method: "CASH", reference: "SEED-JUL-STD"
+      userId: user.id, customerId: customer.id, planId: gold.id,
+      amount: 260000, paymentDate: new Date("2026-07-22T10:00:00.000Z"),
+      method: "CASH", reference: "SEED-JUL-GOLD"
     }
   });
 
-  console.log("✅ Projections + payments seeded!");
+  console.log("✅ Projections + payments seeded with NEW Business Plans!");
 }
 
 main()

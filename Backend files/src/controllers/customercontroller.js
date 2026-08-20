@@ -360,3 +360,23 @@ exports.deactivateCustomer = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/*
+  GET /api/customers/plans
+  Returns the user's plans securely (bypasses his broken /api/plans auth)
+*/
+exports.getUserPlans = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+    
+    const plans = await prisma.plan.findMany({ 
+      where: { userId, status: "ACTIVE" }, 
+      orderBy: { name: "asc" } 
+    });
+    
+    res.json(plans);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

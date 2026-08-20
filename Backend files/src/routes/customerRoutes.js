@@ -4,6 +4,7 @@ const customerController = require('../controllers/customerController');
 
 // Define routes
 router.get('/', customerController.getCustomers);
+router.get('/plans', customerController.getUserPlans);
 router.get('/:id', customerController.getCustomerById);
 router.post('/', customerController.createCustomer);
 router.put('/:id', customerController.updateCustomer);
