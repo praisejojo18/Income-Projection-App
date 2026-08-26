@@ -13,19 +13,5 @@ Header: x-user-id: af606104-2914-4b9c-9c1d-c3a103642103
 GET http://localhost:5001/api/plans
 Header: x-user-id: af606104-2914-4b9c-9c1d-c3a103642103
 
-
-const router = require('express').Router();
-
-// Colleague's routes
-router.use('/auth', require('./authRoutes'));   // 👈 enabled for login/register
-router.use('/plans', require('./planRoutes'));
-// router.use('/settings', require('./settingsRoutes'));
-// router.use('/payments', require('./paymentRoutes'));
-// router.use('/projections', require('./projectionRoutes'));
-
-// YOUR ROUTES
-router.use('/customers', require('./customerRoutes'));
-router.use('/actual', require('./actualRoutes'));
-router.use('/dashboard', require('./dashboardRoutes'));
-
-module.exports = router;
+GET http://localhost:5001/api/payments
+Header: x-user-id → af606104-2914-4b9c-9c1d-c3a103642103

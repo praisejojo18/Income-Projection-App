@@ -823,491 +823,383 @@
 
     <!-- ─── JAVASCRIPT ─── -->
     <script>
-        (function() {
-            'use strict';
+(function () {
+  'use strict';
 
-            // ============================================================
-            // CONSTANTS & DATA KEYS
-            // ============================================================
-            const PROJ_KEY = 'incomeProjections';
-            const ACTUAL_KEY = 'actualRevenueData';
-            const PLAN_KEY = 'prontoxPlans';
+  const API = 'http://localhost:5001/api';
+  const $ = (id) => document.getElementById(id);
 
-            const DEFAULT_PLANS = [
-                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
-                'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
-            ];
+  /* SAME identity as your other working pages */
+  const headers = () => {
+    const h = { 'Content-Type': 'application/json' };
+    const token = localStorage.getItem('prontolog_token');
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    h['x-user-id'] = localStorage.getItem('prontolog_user_id') || 'af606104-2914-4b9c-9c1d-c3a103642103';
+    return h;
+  };
 
-            // ============================================================
-            // DATA ACCESS
-            // ============================================================
-            function getPlans() {
-                try {
-                    const raw = localStorage.getItem(PLAN_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                    }
-                } catch (e) {}
-                // default
-                const plans = DEFAULT_PLANS.map((name, idx) => ({
-                    id: idx + 1,
-                    name: name,
-                    price: '₦' + [5000, 10000, 20000, 35000, 50000, 7500, 15000, 30000, 60000][idx] + '/mo'
-                }));
-                localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
-                return plans;
-            }
+  const fmt = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
+  const td = 'padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-primary);';
+  const tdr = td + 'text-align:right;';
+  const th = 'padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);border-bottom:1px solid var(--border);';
+  const sod = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
-            function getPlanNames() {
-                return getPlans().map(p => p.name);
-            }
+  /* ============================================================
+     1) INJECT LIVE AUTO SECTION (with full plan filter)
+  ============================================================ */
+  const main = document.querySelector('main') || document.body;
+  const headerEl = document.querySelector('.page-header');
+  const autoWrap = document.createElement('section');
+  autoWrap.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:22px;box-shadow:var(--shadow);';
+  autoWrap.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <h2 style="font-size:16px;font-weight:600;color:var(--text-primary);">📡 Live Projection (Auto-Computed)</h2>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span id="autoTransparency" style="font-size:12px;color:var(--text-muted);"></span>
+        <select id="autoPlanFilter" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-primary);padding:7px 10px;border-radius:8px;font-size:13px;"></select>
+      </div>
+    </div>
+    <div id="autoCards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px;"></div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead><tr>
+          <th style="${th}text-align:left;">Service Plan</th>
+          <th style="${th}text-align:right;">Billable Customers</th>
+          <th style="${th}text-align:right;">Price</th>
+          <th style="${th}text-align:right;">3-Day</th>
+          <th style="${th}text-align:right;">1-Week</th>
+          <th style="${th}text-align:right;">1-Month ⭐</th>
+          <th style="${th}text-align:right;">1-Year</th>
+        </tr></thead>
+        <tbody id="ppBody"></tbody>
+      </table>
+    </div>`;
+  if (headerEl) headerEl.parentNode.insertBefore(autoWrap, headerEl.nextSibling);
+  else main.prepend(autoWrap);
 
-            function getProjections() {
-                try {
-                    const raw = localStorage.getItem(PROJ_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
+  /* ============================================================
+     2) AUTO DATA — server first, browser fallback (never empty)
+  ============================================================ */
+  let AUTO = null;
 
-            function saveProjections(list) {
-                try {
-                    localStorage.setItem(PROJ_KEY, JSON.stringify(list));
-                    return true;
-                } catch (e) { return false; }
-            }
+  async function fetchPlans() {
+    try {
+      const r = await fetch(API + '/customers/plans', { headers: headers() });
+      const d = await r.json();
+      return Array.isArray(d) ? d : (d.plans || []);
+    } catch (e) { return []; }
+  }
 
-            function getActuals() {
-                try {
-                    const raw = localStorage.getItem(ACTUAL_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
+  async function computeLocalAuto(plans) {
+    let customers = [];
+    try {
+      const r = await fetch(API + '/customers', { headers: headers() });
+      const d = await r.json();
+      customers = Array.isArray(d) ? d : (d.customers || []);
+    } catch (e) {}
 
-            function saveActuals(list) {
-                try {
-                    localStorage.setItem(ACTUAL_KEY, JSON.stringify(list));
-                    return true;
-                } catch (e) { return false; }
-            }
+    const now = new Date(), today = sod(now);
+    const in3 = new Date(today.getTime() + 3 * 86400000);
+    const in7 = new Date(today.getTime() + 7 * 86400000);
 
-            // ============================================================
-            // HELPERS
-            // ============================================================
-            function formatCurrency(amount) {
-                const n = Number(amount) || 0;
-                try {
-                    return new Intl.NumberFormat('en-NG', {
-                        style: 'currency',
-                        currency: 'NGN',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                    }).format(n);
-                } catch (e) {
-                    return '₦' + n.toLocaleString('en-US');
-                }
-            }
+    const rows = plans.map(pl => {
+      const price = Number(pl.price) || 0;
+      const mine = customers.filter(c => c.planId === pl.id);
+      const billable = mine.filter(c => {
+        const st = String(c.displayStatus || c.status || '').toUpperCase();
+        return st === 'ACTIVE' || st === 'EXPIRED';
+      }).length;
+      let f3 = 0, f7 = 0;
+      mine.forEach(c => {
+        const exp = new Date(c.expiryDate);
+        if (exp >= today && exp <= in3) f3 += price;
+        if (exp >= today && exp <= in7) f7 += price;
+      });
+      return {
+        planId: pl.id, planName: pl.name, price,
+        billableCustomers: billable, source: 'auto',
+        threeDay: f3, oneWeek: f7,
+        oneMonth: billable * price, oneYear: billable * price * 12
+      };
+    });
 
-            // ============================================================
-            // STATE
-            // ============================================================
-            let currentFilter = 'daily';
-            let nextId = 1;
+    const totals = rows.reduce((t, p) => ({
+      threeDay: t.threeDay + p.threeDay, oneWeek: t.oneWeek + p.oneWeek,
+      oneMonth: t.oneMonth + p.oneMonth, oneYear: t.oneYear + p.oneYear
+    }), { threeDay: 0, oneWeek: 0, oneMonth: 0, oneYear: 0 });
 
-            // ============================================================
-            // DOM REFS
-            // ============================================================
-            const projDate = document.getElementById('projDate');
-            const projPlan = document.getElementById('projPlan');
-            const proj3Days = document.getElementById('proj3Days');
-            const proj1Week = document.getElementById('proj1Week');
-            const proj1Month = document.getElementById('proj1Month');
-            const proj1Year = document.getElementById('proj1Year');
-            const toggleFormBtn = document.getElementById('toggleFormBtn');
-            const cancelFormBtn = document.getElementById('cancelFormBtn');
-            const saveBtn = document.getElementById('saveProjectionBtn');
-            const projectionForm = document.getElementById('projectionForm');
-            const tableBody = document.getElementById('projectionTableBody');
-            const noProjection = document.getElementById('noProjection');
-            const projectionCount = document.getElementById('projectionCount');
-            const projectionHeader = document.getElementById('projectionHeader');
-            const filterTabs = document.getElementById('filterTabs');
-            const projectionToggleHeader = document.getElementById('projectionToggleHeader');
-            const projectionToggleIcon = document.getElementById('projectionToggleIcon');
-            const projectionBody = document.getElementById('projectionBody');
+    const st = (c) => String(c.displayStatus || c.status || '').toUpperCase();
+    return {
+      perPlan: rows, totals,
+      counts: {
+        billable: customers.filter(c => st(c) === 'ACTIVE' || st(c) === 'EXPIRED').length,
+        active: customers.filter(c => st(c) === 'ACTIVE').length,
+        expired: customers.filter(c => st(c) === 'EXPIRED').length
+      },
+      manualCount: 0
+    };
+  }
 
-            // ============================================================
-            // POPULATE PLAN DROPDOWN
-            // ============================================================
-            function populatePlanDropdown() {
-                const names = getPlanNames();
-                const currentVal = projPlan.value;
-                projPlan.innerHTML = names.map(name => `<option value="${name}">${name}</option>`).join('');
-                if (names.includes(currentVal)) projPlan.value = currentVal;
-                else if (names.length > 0) projPlan.value = names[0];
-            }
+  async function loadAuto() {
+    const plans = await fetchPlans();
+    let d = null;
 
-            // ============================================================
-            // FORM CONTROLS
-            // ============================================================
-            function resetForm() {
-                projDate.value = new Date().toISOString().split('T')[0];
-                const names = getPlanNames();
-                if (names.length > 0) projPlan.value = names[0];
-                proj3Days.value = '';
-                proj1Week.value = '';
-                proj1Month.value = '';
-                proj1Year.value = '';
-                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Projection';
-            }
+    try {
+      const res = await fetch(API + '/projections/auto', { headers: headers() });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.perPlan && data.perPlan.length) d = data;
+      }
+    } catch (e) {}
 
-            toggleFormBtn.addEventListener('click', function() {
-                if (projectionForm.classList.contains('open')) {
-                    projectionForm.classList.remove('open');
-                    toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
-                } else {
-                    projectionForm.classList.add('open');
-                    toggleFormBtn.innerHTML = '<i class="fas fa-chevron-up"></i> Close Form';
-                    resetForm();
-                }
-            });
+    if (!d) d = await computeLocalAuto(plans);
 
-            cancelFormBtn.addEventListener('click', function() {
-                projectionForm.classList.remove('open');
-                toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
-            });
+    /* Make sure EVERY plan appears (even with 0 customers) */
+    plans.forEach(pl => {
+      if (!d.perPlan.some(p => p.planId === pl.id)) {
+        d.perPlan.push({
+          planId: pl.id, planName: pl.name, price: Number(pl.price) || 0,
+          billableCustomers: 0, source: 'auto',
+          threeDay: 0, oneWeek: 0, oneMonth: 0, oneYear: 0
+        });
+      }
+    });
 
-            // ============================================================
-            // SAVE PROJECTION
-            // ============================================================
-            function handleSaveProjection() {
-                const date = projDate.value;
-                const plan = projPlan.value;
-                const p3d = parseInt(proj3Days.value) || 0;
-                const p1w = parseInt(proj1Week.value) || 0;
-                const p1m = parseInt(proj1Month.value) || 0;
-                const p1y = parseInt(proj1Year.value) || 0;
+    AUTO = d;
 
-                if (!date) {
-                    alert('Please select a date.');
-                    return;
-                }
-                if (p3d === 0 && p1w === 0 && p1m === 0 && p1y === 0) {
-                    alert('Please enter at least one projection value.');
-                    return;
-                }
+    const sel = $('autoPlanFilter');
+    sel.innerHTML = '<option value="all">All Plans (combined)</option>' +
+      plans.map(p => '<option value="' + p.id + '">' + p.name + '</option>').join('');
+    sel.onchange = renderAuto;
 
-                let projections = getProjections();
-                let actuals = getActuals();
+    renderAuto();
+  }
 
-                // Find max id
-                let maxId = 0;
-                projections.forEach(p => { if (p.id > maxId) maxId = p.id; });
-                nextId = maxId + 1;
+  function renderAuto() {
+    if (!AUTO) return;
+    const filter = $('autoPlanFilter') ? $('autoPlanFilter').value : 'all';
+    const rows = filter === 'all' ? AUTO.perPlan : AUTO.perPlan.filter(p => p.planId === filter);
 
-                const existing = projections.find(p => p.date === date && p.plan === plan);
-                if (existing) {
-                    if (!confirm(`A projection for ${plan} on ${date} already exists. Overwrite?`)) return;
-                    existing.projection3Days = p3d;
-                    existing.projection1Week = p1w;
-                    existing.projection1Month = p1m;
-                    existing.projection1Year = p1y;
-                } else {
-                    projections.push({
-                        id: nextId++,
-                        date: date,
-                        plan: plan,
-                        projection3Days: p3d,
-                        projection1Week: p1w,
-                        projection1Month: p1m,
-                        projection1Year: p1y
-                    });
-                }
+    $('autoTransparency').textContent =
+      'Computed from ' + AUTO.counts.billable + ' billable customers (' + AUTO.counts.active + ' Active + ' + AUTO.counts.expired + ' Expired)' +
+      (AUTO.manualCount ? ' · ✍️ ' + AUTO.manualCount + ' custom target(s)' : '');
 
-                // Ensure actual entry exists for this plan/date
-                const actualEntry = actuals.find(a => a.date === date && a.plan === plan);
-                if (!actualEntry) {
-                    actuals.push({
-                        plan: plan,
-                        date: date,
-                        actual3Days: 0,
-                        actual1Week: 0,
-                        actual1Month: 0,
-                        actual1Year: 0
-                    });
-                    saveActuals(actuals);
-                }
+    const t = rows.reduce((s, p) => ({
+      b: s.b + p.billableCustomers, d3: s.d3 + p.threeDay, w: s.w + p.oneWeek, m: s.m + p.oneMonth, y: s.y + p.oneYear
+    }), { b: 0, d3: 0, w: 0, m: 0, y: 0 });
 
-                saveProjections(projections);
+    const cards = [
+      { label: '3-Day Projection', v: t.d3 },
+      { label: '1-Week Projection', v: t.w },
+      { label: '1-Month Projection ⭐', v: t.m, star: true },
+      { label: '1-Year Projection', v: t.y }
+    ];
+    $('autoCards').innerHTML = cards.map(c => `
+      <div style="background:var(--surface-2);border:1px solid ${c.star ? 'var(--accent)' : 'var(--border)'};border-radius:10px;padding:14px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);font-weight:600;">${c.label}</div>
+        <div style="font-size:22px;font-weight:700;color:${c.star ? 'var(--accent)' : 'var(--text-primary)'};margin-top:6px;">${fmt(c.v)}</div>
+      </div>`).join('');
 
-                projectionForm.classList.remove('open');
-                toggleFormBtn.innerHTML = '<i class="fas fa-chevron-down"></i> Open Form';
-                renderProjectionTable();
-                alert('✅ Projection saved successfully!');
-            }
+    $('ppBody').innerHTML = rows.map(p => `
+      <tr>
+        <td style="${td}"><strong>${p.planName}</strong>${p.source === 'manual' ? ' <span style="font-size:10px;color:var(--accent);">✍️ custom</span>' : ''}</td>
+        <td style="${tdr}">${p.billableCustomers}</td>
+        <td style="${tdr}">${fmt(p.price)}</td>
+        <td style="${tdr}">${fmt(p.threeDay)}</td>
+        <td style="${tdr}">${fmt(p.oneWeek)}</td>
+        <td style="${tdr}"><strong>${fmt(p.oneMonth)}</strong></td>
+        <td style="${tdr}">${fmt(p.oneYear)}</td>
+      </tr>`).join('') + `
+      <tr>
+        <td style="${td}"><strong style="color:var(--accent);">TOTAL${filter !== 'all' ? ' (this plan)' : ' (all plans)'}</strong></td>
+        <td style="${tdr}"><strong>${t.b}</strong></td>
+        <td style="${tdr}">—</td>
+        <td style="${tdr}"><strong>${fmt(t.d3)}</strong></td>
+        <td style="${tdr}"><strong>${fmt(t.w)}</strong></td>
+        <td style="${tdr}"><strong style="color:var(--accent);">${fmt(t.m)}</strong></td>
+        <td style="${tdr}"><strong>${fmt(t.y)}</strong></td>
+      </tr>`;
+  }
 
-            saveBtn.addEventListener('click', handleSaveProjection);
+  /* ============================================================
+     3) FORM + SAVED TARGETS (structure-based, ID-agnostic)
+  ============================================================ */
+  const TF_MAP = { daily: 'threeDay', weekly: 'oneWeek', monthly: 'oneMonth', annually: 'oneYear' };
+  let saved = [];
+  let editingId = null;
+  let currentTF = 'daily';
 
-            // Allow Enter key on form inputs to save
-            document.querySelectorAll('#projDate, #projPlan, #proj3Days, #proj1Week, #proj1Month, #proj1Year').forEach(el => {
-                el.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && projectionForm.classList.contains('open')) {
-                        e.preventDefault();
-                        handleSaveProjection();
-                    }
-                });
-            });
+  const openBtn = Array.from(document.querySelectorAll('button, a, [role="button"]')).find(b => b.textContent.trim().startsWith('Open Form'));
+  const dateInput = document.querySelector('input[type="date"]');
+  const formEl = dateInput ? dateInput.closest('form') : null;
+  const formBox = dateInput ? (formEl || dateInput.closest('[class*="card"]') || dateInput.closest('section') || dateInput.parentElement.parentElement.parentElement) : null;
+  const planSelect = formBox ? formBox.querySelector('select') : null;
+  const numInputs = formBox ? formBox.querySelectorAll('input[type="number"]') : [];
+  const [inThreeDay, inOneWeek, inOneMonth, inOneYear] = numInputs;
+  const cancelBtn = formBox ? Array.from(formBox.querySelectorAll('button')).find(b => b.textContent.trim() === 'Cancel') : null;
+  const saveBtn = formBox ? (formBox.querySelector('button[type="submit"]') || Array.from(formBox.querySelectorAll('button')).find(b => b.textContent.includes('Save'))) : null;
+  const storedTbody = Array.from(document.querySelectorAll('tbody')).pop();
 
-            // ============================================================
-            // RENDER PROJECTION TABLE
-            // ============================================================
-            function renderProjectionTable() {
-                const projections = getProjections();
+  function formHidden() {
+    if (!formBox) return true;
+    return formBox.classList.contains('hidden') || getComputedStyle(formBox).display === 'none';
+  }
+  function showForm(show) {
+    if (!formBox) return;
+    formBox.classList.toggle('hidden', !show);
+    formBox.style.display = show ? '' : 'none';
+  }
+  function resetForm() {
+    editingId = null;
+    if (formEl) formEl.reset();
+    else if (formBox) formBox.querySelectorAll('input').forEach(i => { if (i.type !== 'date') i.value = ''; });
+    showForm(false);
+    if (saveBtn) saveBtn.textContent = 'Save Projection';
+  }
 
-                const filterMap = {
-                    daily: { key: 'projection3Days', label: '3-Day Projection (₦)' },
-                    weekly: { key: 'projection1Week', label: '1-Week Projection (₦)' },
-                    monthly: { key: 'projection1Month', label: '1-Month Projection (₦)' },
-                    annually: { key: 'projection1Year', label: '1-Year Projection (₦)' },
-                };
-                const current = filterMap[currentFilter];
-                if (!current) return;
+  openBtn && openBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const wasHidden = formHidden();
+    showForm(wasHidden);
+    if (wasHidden && dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0, 10);
+  });
+  cancelBtn && cancelBtn.addEventListener('click', (e) => { e.preventDefault(); resetForm(); });
 
-                projectionHeader.textContent = current.label;
+  async function doSave() {
+    const payload = {
+      planId: planSelect ? planSelect.value : '',
+      date: dateInput ? dateInput.value : '',
+      threeDay: inThreeDay && inThreeDay.value !== '' ? Number(inThreeDay.value) : null,
+      oneWeek: inOneWeek && inOneWeek.value !== '' ? Number(inOneWeek.value) : null,
+      oneMonth: inOneMonth && inOneMonth.value !== '' ? Number(inOneMonth.value) : null,
+      oneYear: inOneYear && inOneYear.value !== '' ? Number(inOneYear.value) : null
+    };
+    if (!payload.planId || !payload.date) { alert('Pick a plan and a date.'); return; }
+    const res = await fetch(
+      editingId ? API + '/projections/' + editingId : API + '/projections',
+      { method: editingId ? 'PATCH' : 'POST', headers: headers(), body: JSON.stringify(payload) }
+    );
+    const data = await res.json();
+    if (res.ok) { resetForm(); loadSaved(); loadAuto(); }
+    else alert(data.message || data.error || 'Save failed (are you logged in?)');
+  }
 
-                const grouped = {};
-                projections.forEach(p => {
-                    if (!grouped[p.date]) grouped[p.date] = [];
-                    grouped[p.date].push(p);
-                });
+  if (formEl) formEl.addEventListener('submit', (e) => { e.preventDefault(); doSave(); });
+  else saveBtn && saveBtn.addEventListener('click', (e) => { e.preventDefault(); doSave(); });
 
-                const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+  async function loadSaved() {
+    try {
+      const res = await fetch(API + '/projections', { headers: headers() });
+      if (res.status === 401) {
+        if (storedTbody) storedTbody.innerHTML = '<tr><td colspan="4" style="' + td + 'text-align:center;color:var(--text-muted);">Log in to manage custom targets.</td></tr>';
+        return;
+      }
+      const data = await res.json();
+      saved = data.projections || data.data || (Array.isArray(data) ? data : []);
+      renderSaved();
+    } catch (err) { console.error('Saved projections error:', err); }
+  }
 
-                if (sortedDates.length === 0) {
-                    tableBody.innerHTML = '';
-                    noProjection.style.display = 'block';
-                    projectionCount.textContent = '(0 entries)';
-                    return;
-                }
+  function renderSaved() {
+    const title = Array.from(document.querySelectorAll('h2,h3')).find(h => h.textContent.includes('Stored Projections'));
+    if (title) title.textContent = 'Stored Projections (' + saved.length + ' entries)';
+    if (!storedTbody) return;
+    const field = TF_MAP[currentTF];
+    if (!saved.length) {
+      storedTbody.innerHTML = '<tr><td colspan="4" style="' + td + 'text-align:center;color:var(--text-muted);">No custom targets saved. The Live Projection above is your automatic baseline.</td></tr>';
+      return;
+    }
+    storedTbody.innerHTML = saved.map(p => `
+      <tr>
+        <td style="${td}">${new Date(p.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+        <td style="${td}">${p.planName || (p.plan && p.plan.name) || '—'}</td>
+        <td style="${tdr}">${p[field] != null ? fmt(p[field]) : '—'}</td>
+        <td style="${td}">
+          <button class="btn small" data-edit="${p.id}">Edit</button>
+          <button class="btn small danger" data-del="${p.id}">Delete</button>
+        </td>
+      </tr>`).join('');
+  }
 
-                noProjection.style.display = 'none';
-                projectionCount.textContent = `(${projections.length} entries)`;
+  storedTbody && storedTbody.addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('[data-edit]');
+    const delBtn = e.target.closest('[data-del]');
+    if (editBtn) {
+      const p = saved.find(x => x.id === editBtn.dataset.edit);
+      if (!p) return;
+      editingId = p.id;
+      showForm(true);
+      if (planSelect) planSelect.value = p.planId;
+      if (dateInput) dateInput.value = p.date ? p.date.slice(0, 10) : '';
+      if (inThreeDay) inThreeDay.value = p.threeDay ?? '';
+      if (inOneWeek) inOneWeek.value = p.oneWeek ?? '';
+      if (inOneMonth) inOneMonth.value = p.oneMonth ?? '';
+      if (inOneYear) inOneYear.value = p.oneYear ?? '';
+      if (saveBtn) saveBtn.textContent = 'Update Projection';
+    }
+    if (delBtn) {
+      if (!confirm('Delete this custom target?')) return;
+      await fetch(API + '/projections/' + delBtn.dataset.del, { method: 'DELETE', headers: headers() });
+      loadSaved(); loadAuto();
+    }
+  });
 
-                let html = '';
-                sortedDates.forEach(date => {
-                    const items = grouped[date];
-                    items.sort((a, b) => a.plan.localeCompare(b.plan));
+  let tabButtons = Array.from(document.querySelectorAll('[data-tf]'));
+  if (!tabButtons.length) {
+    tabButtons = Array.from(document.querySelectorAll('button, .tab')).filter(b => /^(Daily|Weekly|Monthly|Annually)/i.test(b.textContent.trim()));
+  }
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTF = btn.dataset.tf || btn.textContent.trim().toLowerCase().split(' ')[0] || 'daily';
+      renderSaved();
+    });
+  });
 
-                    let total = 0;
-                    items.forEach(item => { total += item[current.key] || 0; });
+  /* ============================================================
+     4) SHARED UI
+  ============================================================ */
+  const sidebar = $('sidebar'), overlay = $('sidebarOverlay'), hamburger = $('hamburgerBtn'), closeSidebarBtn = $('closeSidebarBtn');
+  function openSidebar() { if (!sidebar) return; sidebar.classList.add('open'); overlay && overlay.classList.add('open'); hamburger && hamburger.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function closeSidebar() { if (!sidebar) return; sidebar.classList.remove('open'); overlay && overlay.classList.remove('open'); hamburger && hamburger.classList.remove('open'); document.body.style.overflow = ''; }
+  hamburger && hamburger.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+  closeSidebarBtn && closeSidebarBtn.addEventListener('click', closeSidebar);
+  overlay && overlay.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) closeSidebar(); });
 
-                    items.forEach(item => {
-                        const amount = item[current.key] || 0;
-                        html += `
-                                <tr>
-                                    <td>${date}</td>
-                                    <td>${item.plan}</td>
-                                    <td>${formatCurrency(amount)}</td>
-                                    <td style="text-align:center;">
-                                        <button class="delete-btn" data-id="${item.id}">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-                    });
+  const themeToggle = $('themeToggle'), themeIcon = $('themeIcon');
+  let darkMode = false;
+  function applyTheme(isDark) {
+    darkMode = isDark;
+    if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); if (themeIcon) themeIcon.className = 'fas fa-sun'; }
+    else { document.documentElement.removeAttribute('data-theme'); if (themeIcon) themeIcon.className = 'fas fa-moon'; }
+    try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+  }
+  try {
+    const savedTheme = localStorage.getItem('prontox-theme');
+    if (savedTheme === 'dark') applyTheme(true);
+    else if (savedTheme === 'light') applyTheme(false);
+    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+    else applyTheme(false);
+  } catch (_) { applyTheme(false); }
+  themeToggle && themeToggle.addEventListener('click', () => applyTheme(!darkMode));
 
-                    html += `
-                            <tr class="total-row">
-                                <td colspan="2" style="text-align:right; font-weight:700;">Total (${date})</td>
-                                <td style="font-weight:700;">${formatCurrency(total)}</td>
-                                <td></td>
-                            </tr>
-                        `;
-                });
-
-                tableBody.innerHTML = html;
-
-                // Delete handlers
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const id = parseInt(this.dataset.id);
-                        if (!confirm('Delete this projection?')) return;
-                        let projections = getProjections();
-                        projections = projections.filter(p => p.id !== id);
-                        saveProjections(projections);
-                        renderProjectionTable();
-                    });
-                });
-            }
-
-            // ============================================================
-            // FILTER TABS
-            // ============================================================
-            filterTabs.addEventListener('click', function(e) {
-                const btn = e.target.closest('.filter-btn');
-                if (!btn) return;
-                const filter = btn.dataset.filter;
-                if (!filter) return;
-                filterTabs.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = filter;
-                renderProjectionTable();
-            });
-
-            // ============================================================
-            // COLLAPSIBLE SECTION
-            // ============================================================
-            projectionToggleHeader.addEventListener('click', function() {
-                if (projectionBody.classList.contains('expanded')) {
-                    projectionBody.classList.remove('expanded');
-                    projectionBody.classList.add('collapsed');
-                    projectionToggleIcon.classList.add('collapsed');
-                } else {
-                    projectionBody.classList.remove('collapsed');
-                    projectionBody.classList.add('expanded');
-                    projectionToggleIcon.classList.remove('collapsed');
-                }
-            });
-
-            // ============================================================
-            // SEED DATA
-            // ============================================================
-            function seedProjectionsAndActuals() {
-                let proj = getProjections();
-                let actual = getActuals();
-                if (proj.length > 0) return;
-
-                const plans = getPlanNames();
-                if (plans.length === 0) return;
-                const today = new Date().toISOString().slice(0, 10);
-
-                proj = plans.map((name, idx) => ({
-                    id: idx + 1,
-                    date: today,
-                    plan: name,
-                    projection3Days: (idx + 1) * 50000,
-                    projection1Week: (idx + 1) * 120000,
-                    projection1Month: (idx + 1) * 500000,
-                    projection1Year: (idx + 1) * 6000000
-                }));
-
-                actual = plans.map((name, idx) => {
-                    const base = (idx + 1) * 500000;
-                    const variation = Math.floor(Math.random() * 200000) - 100000;
-                    return {
-                        plan: name,
-                        date: today,
-                        actual3Days: base * 0.3 + variation * 0.5,
-                        actual1Week: base * 0.7 + variation * 0.6,
-                        actual1Month: base + variation * 0.7,
-                        actual1Year: base * 12 + variation * 0.8
-                    };
-                });
-
-                saveProjections(proj);
-                saveActuals(actual);
-            }
-
-            // ============================================================
-            // SIDEBAR & THEME (shared across pages)
-            // ============================================================
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-
-            function openSidebar() {
-                sidebar.classList.add('open');
-                sidebarOverlay.classList.add('open');
-                hamburgerBtn.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('open');
-                hamburgerBtn.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-
-            hamburgerBtn.addEventListener('click', function() {
-                if (sidebar.classList.contains('open')) closeSidebar();
-                else openSidebar();
-            });
-            closeSidebarBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
-            });
-
-            // Theme toggle
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            let darkMode = false;
-
-            function applyTheme(isDark) {
-                if (isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    themeIcon.className = 'fas fa-sun';
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    themeIcon.className = 'fas fa-moon';
-                }
-                darkMode = isDark;
-                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
-            }
-
-            try {
-                const saved = localStorage.getItem('prontox-theme');
-                if (saved === 'dark') applyTheme(true);
-                else if (saved === 'light') applyTheme(false);
-                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-                else applyTheme(false);
-            } catch (_) { applyTheme(false); }
-
-            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
-
-            // Logo link
-            document.getElementById('logoLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = 'dashboard.html';
-            });
-
-            // Avatar click
-            document.getElementById('avatarBtn').addEventListener('click', function() {
-                alert('👤 User profile – would open user settings.');
-            });
-
-           // ─── LOGOUT ───
-logoutBtn.addEventListener('click', function(e) {
+  const logoutBtn = $('logoutBtn');
+  if (logoutBtn) logoutBtn.addEventListener('click', e => {
     e.preventDefault();
     if (confirm('Are you sure you want to log out?')) {
-        // Clear session from localStorage
-        localStorage.removeItem('prontox_session');
-        // Redirect to login page
-        window.location.href = 'login.html';
+      localStorage.removeItem('prontox_token');
+      localStorage.removeItem('prontox_user_id');
+      window.location.href = 'login.html';
     }
-});
+  });
 
-            // ============================================================
-            // INIT
-            // ============================================================
-            populatePlanDropdown();
-            seedProjectionsAndActuals();
-            resetForm();
-            renderProjectionTable();
-
-            console.log('✅ Income Projection page ready.');
-            console.log('✅ Connected to: dashboard, customer, payments, monthly-income, projection-vs-actual, settings');
-        })();
-    </script>
+  loadAuto();
+  loadSaved();
+  console.log('✅ Income Projection v3: numbers guaranteed + full plan filter.');
+})();
+</script>
 
 </body>
 </html>

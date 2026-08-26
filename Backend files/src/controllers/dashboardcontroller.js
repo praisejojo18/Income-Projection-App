@@ -1,21 +1,15 @@
 const prisma = require("../config/database");
+const { computeAutoProjections } = require("../utils/autoProjection");
 
-const getUserId = (req) => {
-  return (
-    req.user?.id ||
-    req.user?.userId ||
-    req.headers["x-user-id"] ||
-    process.env.DEFAULT_USER_ID
-  );
-};
+const getUserId = (req) =>
+  req.user?.id ||
+  req.user?.userId ||
+  req.headers["x-user-id"] ||
+  process.env.DEFAULT_USER_ID;
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
-const PROJECTION_FIELDS = {
-  daily: "threeDay",
-  weekly: "oneWeek",
-  monthly: "oneMonth"
-};
+const TF_FIELD = { daily: "threeDay", weekly: "oneWeek", monthly: "oneMonth" };
 
 exports.getDashboardStats = async (req, res) => {
   try {
@@ -23,36 +17,25 @@ exports.getDashboardStats = async (req, res) => {
     if (!userId) return res.status(401).json({ error: "User ID is required." });
 
     const requested = (req.query.timeframe || "monthly").toLowerCase();
-    const timeframe = PROJECTION_FIELDS[requested] ? requested : "monthly";
-    const projectionField = PROJECTION_FIELDS[timeframe];
+    const timeframe = TF_FIELD[requested] ? requested : "monthly";
+    const field = TF_FIELD[timeframe];
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-    const in5Days = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+    const in5Days = new Date(startOfToday.getTime() + 5 * 86400000);
 
-    const [customers, paymentsThisMonth, projections] = await Promise.all([
+    /* ONE source of truth: the shared AUTO engine */
+    const [customers, paymentsThisMonth, auto] = await Promise.all([
       prisma.customer.findMany({ where: { userId }, include: { plan: true } }),
       prisma.payment.findMany({
         where: { userId, paymentDate: { gte: startOfMonth, lte: endOfMonth } }
       }),
-      prisma.projection.findMany({
-        where: { userId },
-        include: { plan: true },
-        orderBy: { date: "desc" }
-      })
+      computeAutoProjections(prisma, userId)
     ]);
 
-    /* Latest projection per plan = the user's current expectation */
-    const latestByPlan = {};
-    projections.forEach((p) => {
-      if (!latestByPlan[p.planId]) latestByPlan[p.planId] = p;
-    });
-    const latestProjections = Object.values(latestByPlan);
-
-    /* ---- Cards (widgets 2–5) ---- */
     const totalCustomers = customers.length;
     const activeCustomers = customers.filter(
       (c) => c.status === "ACTIVE" && new Date(c.expiryDate) >= now
@@ -62,14 +45,9 @@ exports.getDashboardStats = async (req, res) => {
       paymentsThisMonth.reduce((s, p) => s + Number(p.amount), 0)
     );
 
-    const monthlyProjection = round2(
-      latestProjections.reduce((s, p) => s + Number(p.oneMonth || 0), 0)
-    );
-
-    const totalProjection = round2(
-      latestProjections.reduce((s, p) => s + Number(p[projectionField] || 0), 0)
-    );
-
+    /* 🎯 These now come from the SAME engine as Income Projection + PVA */
+    const monthlyProjection = round2(auto.totals.oneMonth);
+    const totalProjection = round2(auto.totals[field]);
     const projectionPercentage =
       monthlyProjection > 0 ? Math.round((receivedThisMonth / monthlyProjection) * 100) : 0;
 
@@ -81,7 +59,6 @@ exports.getDashboardStats = async (req, res) => {
       avgPaymentSpeed = Math.round(totalDays / paymentsThisMonth.length);
     }
 
-    /* ---- Plan Summary + Distribution (widgets 6 & 8) ---- */
     const planMap = {};
     customers.forEach((c) => {
       const planName = c.plan?.name || "Unknown";
@@ -92,29 +69,24 @@ exports.getDashboardStats = async (req, res) => {
       else if (c.status === "ACTIVE") planMap[planName].unpaid++;
     });
 
-    latestProjections.forEach((p) => {
-      const planName = p.plan?.name || "Unknown";
-      if (!planMap[planName]) planMap[planName] = { planName, total: 0, paid: 0, unpaid: 0 };
-      planMap[planName].projected = round2(Number(p[projectionField] || 0));
-    });
-
     const planSummary = Object.values(planMap).map((d) => ({
       planName: d.planName,
       total: d.total,
       paid: d.paid,
       unpaid: d.unpaid,
-      paymentRate: d.total > 0 ? `${Math.round((d.paid / d.total) * 100)}%` : "0%",
-      projected: d.projected || 0
+      paymentRate: `${d.total > 0 ? Math.round((d.paid / d.total) * 100) : 0}%`
     }));
 
-    const planDistribution = planSummary.map((d) => ({
-      plan: d.planName,
-      customers: d.total,
-      percentage: totalCustomers > 0 ? Math.round((d.total / totalCustomers) * 100) : 0,
-      projected: d.projected
+    const planDistribution = auto.perPlan.map((p) => ({
+      plan: p.planName,
+      customers: p.billableCustomers,
+      percentage:
+        auto.counts.billable > 0
+          ? Math.round((p.billableCustomers / auto.counts.billable) * 100)
+          : 0,
+      projected: round2(p[field])
     }));
 
-    /* ---- Expiring Soon (widget 9) ---- */
     const expiringSoon = customers
       .filter((c) => {
         const exp = new Date(c.expiryDate);
@@ -124,11 +96,10 @@ exports.getDashboardStats = async (req, res) => {
         customer: c.name,
         plan: c.plan?.name,
         expiryDate: c.expiryDate,
-        daysLeft: Math.ceil((new Date(c.expiryDate) - now) / (1000 * 60 * 60 * 24)),
+        daysLeft: Math.ceil((new Date(c.expiryDate) - now) / 86400000),
         status: "Active"
       }));
 
-    /* ---- Today's Expirations (widget 10) ---- */
     const todaysExpirations = customers
       .filter((c) => {
         const exp = new Date(c.expiryDate);

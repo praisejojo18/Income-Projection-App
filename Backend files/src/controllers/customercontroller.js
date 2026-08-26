@@ -11,6 +11,7 @@ const {
 */
 const getUserId = (req) => {
   return (
+    req.userId ||          // 🔑 THIS IS THE MISSING PIECE (his auth.js sets this!)
     req.user?.id ||
     req.user?.userId ||
     req.headers["x-user-id"] ||
@@ -376,6 +377,71 @@ exports.getUserPlans = async (req, res) => {
     });
     
     res.json(plans);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};/* =====================================================
+   POST /api/customers/import — bulk import from CSV rows
+   Body: { rows: [ { name, plan, expiryDate, email?, phone? }, ... ] }
+===================================================== */
+exports.importCustomers = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const rows = req.body.rows;
+    if (!Array.isArray(rows) || rows.length === 0)
+      return res.status(400).json({ error: "No rows provided. Send { rows: [...] }." });
+
+    const plans = await prisma.plan.findMany({ where: { userId } });
+    const planByName = {};
+    plans.forEach((p) => (planByName[p.name.toLowerCase()] = p));
+
+    const created = [];
+    const errors = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i] || {};
+      const line = i + 1;
+      const name = String(r.name || "").trim();
+      const plan = planByName[String(r.plan || "").trim().toLowerCase()];
+
+      if (!name) { errors.push(`Row ${line}: missing customer name.`); continue; }
+      if (!plan) { errors.push(`Row ${line} (${name}): unknown plan "${r.plan}".`); continue; }
+
+      let expiryDate = new Date(r.expiryDate || r.expiry || "");
+      if (isNaN(expiryDate.getTime())) {
+        // No valid date given → default to today + plan duration
+        expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + (plan.durationDays || 30));
+      }
+
+      const data = {
+        userId,
+        name,
+        planId: plan.id,
+        expiryDate,
+        amount: plan.price,
+        status: "ACTIVE"
+      };
+      if (r.email) data.email = String(r.email).trim();
+      if (r.phone) data.phone = String(r.phone).trim();
+
+      const customer = await prisma.customer.create({ data });
+      created.push({
+        name,
+        plan: plan.name,
+        expiryDate: customer.expiryDate.toISOString().slice(0, 10)
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Imported ${created.length} customer(s), ${errors.length} error(s).`,
+      imported: created.length,
+      failed: errors.length,
+      errors
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

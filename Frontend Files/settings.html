@@ -1113,450 +1113,297 @@
     </main>
 
     <!-- ─── JAVASCRIPT ─── -->
-    <script>
-        (function() {
-            'use strict';
+   <script>
+(function () {
+    'use strict';
 
-            // ─── API Configuration ───
-            const API_BASE = 'http://127.0.0.1:5001/api';
+    const API = 'http://localhost:5001/api';
 
-            // ─── Auth Check: redirect to login if no token ───
-            if (!localStorage.getItem('prontox_token')) {
-                window.location.href = 'login.html';
-                return;
-            }
+    const getToken = () => localStorage.getItem('prontox_token') || localStorage.getItem('prontolog_token');
+    const getUserId = () =>
+        localStorage.getItem('prontox_user_id') ||
+        localStorage.getItem('prontolog_user_id') ||
+        'af606104-2914-4b9c-9c1d-c3a103642103';
 
-            // ─── Helper: fetch with auth token ───
-            async function apiFetch(path, options = {}) {
-                const token = localStorage.getItem('prontox_token');
-                const config = {
-                    ...options,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        ...(options.headers || {}),
-                    },
-                };
-                try {
-                    const res = await fetch(`${API_BASE}${path}`, config);
-                    if (res.status === 401) {
-                        localStorage.removeItem('prontox_token');
-                        localStorage.removeItem('prontox_session');
-                        window.location.href = 'login.html';
-                        throw new Error('Session expired');
-                    }
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.message || 'Request failed');
-                    return data;
-                } catch (err) {
-                    if (err instanceof TypeError && /fetch/i.test(err.message)) {
-                        throw new Error('Cannot reach the server');
-                    }
-                    throw err;
-                }
-            }
+    // Guard: redirect ONLY when there is no token at all (kills the logout loop)
+    if (!getToken()) { window.location.href = 'login.html'; return; }
 
-            // ============================================================
-            // CONSTANTS & DATA KEYS
-            // ============================================================
-            const PLAN_KEY = 'prontoxPlans';
-
-            const DEFAULT_PLANS = [
-                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
-                'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
-            ];
-
-            const DEFAULT_PRICES = [
-                '₦5,000/mo', '₦10,000/mo', '₦20,000/mo', '₦35,000/mo',
-                '₦50,000/mo', '₦7,500/mo', '₦15,000/mo', '₦30,000/mo',
-                '₦60,000/mo'
-            ];
-
-            // ============================================================
-            // DATA ACCESS
-            // ============================================================
-            async function getPlans() {
-                try {
-                    const data = await apiFetch('/plans');
-                    return data.data || [];
-                } catch (err) {
-                    console.error('Failed to load plans:', err);
-                    return [];
-                }
-            }
-
-            // Note: Plans are now saved via individual API calls (create/update/delete)
-
-            function getPlanNames() {
-                return getPlans().map(p => p.name);
-            }
-
-            // ============================================================
-            // DOM REFS
-            // ============================================================
-            const settingsSidebarItems = document.querySelectorAll('.settings-sidebar .nav-item');
-            const settingsPages = {
-                general: document.getElementById('settings-page-general'),
-                plans: document.getElementById('settings-page-plans'),
-            };
-            const settingsPlanPreviewGrid = document.getElementById('settingsPlanPreviewGrid');
-            const settingsPlanCountLabel = document.getElementById('settingsPlanCountLabel');
-            const openPlanEditorBtn = document.getElementById('openPlanEditorBtn');
-            const closePlanEditorBtn = document.getElementById('closePlanEditorBtn');
-            const planEditorOverlay = document.getElementById('planEditorOverlay');
-            const planListContainer = document.getElementById('planListContainer');
-            const addPlanBtn = document.getElementById('addPlanBtn');
-            const newPlanName = document.getElementById('newPlanName');
-            const newPlanPrice = document.getElementById('newPlanPrice');
-            const settingsDarkToggle = document.getElementById('settingsDarkToggle');
-            const notifToggle = document.getElementById('notifToggle');
-            const workspaceNameInput = document.getElementById('workspaceNameInput');
-            const languageSelect = document.getElementById('languageSelect');
-
-            // ============================================================
-            // SETTINGS SUB-NAVIGATION
-            // ============================================================
-            function showSettingsPage(pageId) {
-                Object.keys(settingsPages).forEach(key => {
-                    settingsPages[key].classList.remove('active');
-                });
-                if (settingsPages[pageId]) {
-                    settingsPages[pageId].classList.add('active');
-                }
-                settingsSidebarItems.forEach(item => {
-                    item.classList.remove('active');
-                    if (item.dataset.settingsPage === pageId) {
-                        item.classList.add('active');
-                    }
-                });
-                planEditorOverlay.classList.remove('open');
-                if (pageId === 'plans') {
-                    renderSettingsPlanPreview();
-                }
-            }
-
-            settingsSidebarItems.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const page = this.dataset.settingsPage;
-                    if (page) showSettingsPage(page);
-                });
-            });
-
-            // ============================================================
-            // PLAN RENDER FUNCTIONS
-            // ============================================================
-            async function renderSettingsPlanPreview() {
-                const plans = await getPlans();
-                if (!settingsPlanPreviewGrid) return;
-                if (plans.length === 0) {
-                    settingsPlanPreviewGrid.innerHTML =
-                        `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);">No plans configured.</div>`;
-                    settingsPlanCountLabel.textContent = '0 plans';
-                    return;
-                }
-                let html = '';
-                plans.forEach(p => {
-                    html += `
-                            <div class="plan-card">
-                                <div class="name">${p.name}</div>
-                                <div class="price">${p.price}</div>
-                            </div>
-                        `;
-                });
-                settingsPlanPreviewGrid.innerHTML = html;
-                settingsPlanCountLabel.textContent = `${plans.length} plans`;
-            }
-
-            async function renderPlanList() {
-                const plans = await getPlans();
-                if (!planListContainer) return;
-                if (plans.length === 0) {
-                    planListContainer.innerHTML =
-                        `<div class="empty-plans"><i class="fas fa-cube"></i><p>No plans yet. Add your first plan below.</p></div>`;
-                    return;
-                }
-                let html = '';
-                plans.forEach(p => {
-                    html += `
-                            <div class="plan-item" data-id="${p.id}">
-                                <div class="plan-info">
-                                    <span class="plan-name">${p.name}</span>
-                                    <div class="plan-price-wrap">
-                                        <label>Price</label>
-                                        <input type="text" class="plan-price-input" value="${p.price}" data-id="${p.id}" />
-                                    </div>
-                                </div>
-                                <div class="plan-actions">
-                                    <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
-                                    <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-trash"></i> Remove</button>
-                                </div>
-                            </div>
-                        `;
-                });
-                planListContainer.innerHTML = html;
-
-                // Save price
-                document.querySelectorAll('.save-price-btn').forEach(btn => {
-                    btn.addEventListener('click', async function(e) {
-                        e.stopPropagation();
-                        const id = this.dataset.id;
-                        const input = document.querySelector(`.plan-price-input[data-id="${id}"]`);
-                        if (!input) return;
-                        const newPrice = input.value.trim();
-                        
-                        // Parse price to number (e.g., "₦5,000/mo" -> 5000)
-                        const priceNum = parseFloat(newPrice.replace(/[^0-9.]/g, '')) || 0;
-                        
-                        try {
-                            await apiFetch(`/plans/${id}`, {
-                                method: 'PATCH',
-                                body: JSON.stringify({ price: priceNum })
-                            });
-                            alert('Price updated!');
-                            await renderPlanList();
-                            await renderSettingsPlanPreview();
-                        } catch (err) {
-                            alert('Failed to update: ' + err.message);
-                        }
-                    });
-                });
-
-                // Remove plan
-                document.querySelectorAll('.remove-plan-btn').forEach(btn => {
-                    btn.addEventListener('click', async function(e) {
-                        e.stopPropagation();
-                        const id = this.dataset.id;
-                        if (!confirm('Remove this plan?')) return;
-                        
-                        try {
-                            await apiFetch(`/plans/${id}`, { method: 'DELETE' });
-                            await renderPlanList();
-                            await renderSettingsPlanPreview();
-                        } catch (err) {
-                            alert('Failed to delete: ' + err.message);
-                        }
-                    });
-                });
-
-                // Enter key on price input
-                document.querySelectorAll('.plan-price-input').forEach(inp => {
-                    inp.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
-                            const id = this.dataset.id;
-                            const btn = document.querySelector(`.save-price-btn[data-id="${id}"]`);
-                            if (btn) btn.click();
-                        }
-                    });
-                });
-            }
-
-            // ============================================================
-            // ADD PLAN
-            // ============================================================
-            async function handleAddPlan() {
-                const name = newPlanName.value.trim();
-                const price = newPlanPrice.value.trim();
-                if (!name) { alert('Please enter a plan name.'); return; }
-                if (!price) { alert('Please enter a price.'); return; }
-
-                // Parse price to number
-                const priceNum = parseFloat(price.replace(/[^0-9.]/g, '')) || 0;
-                
-                try {
-                    await apiFetch('/plans', {
-                        method: 'POST',
-                        body: JSON.stringify({ name, price: priceNum, durationDays: 30 })
-                    });
-                    newPlanName.value = '';
-                    newPlanPrice.value = '';
-                    await renderPlanList();
-                    await renderSettingsPlanPreview();
-                } catch (err) {
-                    alert('Failed to add plan: ' + err.message);
-                }
-            }
-
-            addPlanBtn.addEventListener('click', handleAddPlan);
-            newPlanName.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
-            newPlanPrice.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
-
-            // ============================================================
-            // OPEN / CLOSE PLAN EDITOR
-            // ============================================================
-            openPlanEditorBtn.addEventListener('click', function() {
-                renderPlanList();
-                planEditorOverlay.classList.add('open');
-            });
-
-            closePlanEditorBtn.addEventListener('click', function() {
-                planEditorOverlay.classList.remove('open');
-            });
-
-            // ============================================================
-            // NOTIFICATIONS TOGGLE
-            // ============================================================
-            if (notifToggle) {
-                notifToggle.addEventListener('click', async function() {
-                    this.classList.toggle('active');
-                    const notifications = this.classList.contains('active');
-                    try {
-                        await apiFetch('/settings', {
-                            method: 'PATCH',
-                            body: JSON.stringify({ notifications })
-                        });
-                    } catch (err) {
-                        alert('Failed to save: ' + err.message);
-                        this.classList.toggle('active'); // revert on error
-                    }
-                });
-            }
-
-            // ============================================================
-            // WORKSPACE NAME & LANGUAGE (demo - saved to localStorage)
-            // ============================================================
-            async function loadGeneralSettings() {
-                try {
-                    const data = await apiFetch('/settings');
-                    const settings = data.data || {};
-                    if (settings.workspaceName) workspaceNameInput.value = settings.workspaceName;
-                    if (settings.language) languageSelect.value = settings.language;
-                    if (settings.notifications !== undefined) {
-                        if (settings.notifications) notifToggle.classList.add('active');
-                        else notifToggle.classList.remove('active');
-                    }
-                } catch (err) {
-                    console.error('Failed to load settings:', err);
-                }
-            }
-
-            workspaceNameInput.addEventListener('change', async function() {
-                try {
-                    await apiFetch('/settings', {
-                        method: 'PATCH',
-                        body: JSON.stringify({ workspaceName: this.value })
-                    });
-                } catch (err) {
-                    alert('Failed to save: ' + err.message);
-                }
-            });
-
-            languageSelect.addEventListener('change', async function() {
-                try {
-                    await apiFetch('/settings', {
-                        method: 'PATCH',
-                        body: JSON.stringify({ language: this.value })
-                    });
-                } catch (err) {
-                    alert('Failed to save: ' + err.message);
-                }
-            });
-
-            // ============================================================
-            // SIDEBAR & THEME (shared across pages)
-            // ============================================================
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-
-            function openSidebar() {
-                sidebar.classList.add('open');
-                sidebarOverlay.classList.add('open');
-                hamburgerBtn.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('open');
-                hamburgerBtn.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-
-            hamburgerBtn.addEventListener('click', function() {
-                if (sidebar.classList.contains('open')) closeSidebar();
-                else openSidebar();
-            });
-            closeSidebarBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
-                if (e.key === 'Escape' && planEditorOverlay.classList.contains('open')) {
-                    planEditorOverlay.classList.remove('open');
-                }
-            });
-
-            // ─── Theme toggle ───
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            let darkMode = false;
-
-            function applyTheme(isDark) {
-                if (isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    themeIcon.className = 'fas fa-sun';
-                    if (settingsDarkToggle) settingsDarkToggle.classList.add('active');
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    themeIcon.className = 'fas fa-moon';
-                    if (settingsDarkToggle) settingsDarkToggle.classList.remove('active');
-                }
-                darkMode = isDark;
-                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
-            }
-
-            try {
-                const saved = localStorage.getItem('prontox-theme');
-                if (saved === 'dark') applyTheme(true);
-                else if (saved === 'light') applyTheme(false);
-                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-                else applyTheme(false);
-            } catch (_) { applyTheme(false); }
-
-            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
-
-            if (settingsDarkToggle) {
-                settingsDarkToggle.addEventListener('click', function() {
-                    applyTheme(!darkMode);
-                });
-            }
-
-            // ─── Logo link (null-safe) ───
-            const logoLink = document.getElementById('logoLink');
-            if (logoLink) {
-                logoLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    window.location.href = 'dashboard.html';
-                });
-            }
-
-            // ─── Avatar click ───
-            document.getElementById('avatarBtn').addEventListener('click', function() {
-                alert('👤 User profile – would open user settings.');
-            });
-
-        // ─── LOGOUT ───
-        document.getElementById('logoutBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            if (confirm('Are you sure you want to log out?')) {
-                localStorage.removeItem('prontox_token');
-                localStorage.removeItem('prontox_session');
-                window.location.href = 'login.html';
+    async function apiFetch(path, options = {}) {
+        const res = await fetch(API + path, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + getToken(),
+                'x-user-id': getUserId(),
+                ...(options.headers || {})
             }
         });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || data.message || 'Request failed (' + res.status + ')');
+        return data;
+    }
 
-            // ============================================================
-            // INIT
-            // ============================================================
-            loadGeneralSettings();
-            renderSettingsPlanPreview();
-            showSettingsPage('general');
+    const fmt = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
 
-            console.log('✅ Settings page ready.');
-            console.log('✅ Connected to: dashboard, customer, income-projection, payments, monthly-income, projection-vs-actual');
-        })();
-    </script>
+    // ============================================================
+    // DOM REFS
+    // ============================================================
+    const settingsSidebarItems = document.querySelectorAll('.settings-sidebar .nav-item');
+    const settingsPages = {
+        general: document.getElementById('settings-page-general'),
+        plans: document.getElementById('settings-page-plans')
+    };
+    const settingsPlanPreviewGrid = document.getElementById('settingsPlanPreviewGrid');
+    const settingsPlanCountLabel = document.getElementById('settingsPlanCountLabel');
+    const openPlanEditorBtn = document.getElementById('openPlanEditorBtn');
+    const closePlanEditorBtn = document.getElementById('closePlanEditorBtn');
+    const planEditorOverlay = document.getElementById('planEditorOverlay');
+    const planListContainer = document.getElementById('planListContainer');
+    const addPlanBtn = document.getElementById('addPlanBtn');
+    const newPlanName = document.getElementById('newPlanName');
+    const newPlanPrice = document.getElementById('newPlanPrice');
+    const settingsDarkToggle = document.getElementById('settingsDarkToggle');
+    const notifToggle = document.getElementById('notifToggle');
+    const workspaceNameInput = document.getElementById('workspaceNameInput');
+    const languageSelect = document.getElementById('languageSelect');
+
+    // ============================================================
+    // SUB-NAVIGATION (General / Plans)
+    // ============================================================
+    function showSettingsPage(pageId) {
+        Object.keys(settingsPages).forEach(k => settingsPages[k] && settingsPages[k].classList.remove('active'));
+        if (settingsPages[pageId]) settingsPages[pageId].classList.add('active');
+        settingsSidebarItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.settingsPage === pageId) item.classList.add('active');
+        });
+        if (planEditorOverlay) planEditorOverlay.classList.remove('open');
+        if (pageId === 'plans') renderSettingsPlanPreview();
+    }
+    settingsSidebarItems.forEach(btn => btn.addEventListener('click', function () {
+        const page = this.dataset.settingsPage;
+        if (page) showSettingsPage(page);
+    }));
+
+    // ============================================================
+    // PLANS (live from DB, price changes cascade everywhere)
+    // ============================================================
+    async function fetchPlans() {
+        const data = await apiFetch('/settings/plans');
+        return data.plans || [];
+    }
+
+    async function renderSettingsPlanPreview() {
+        if (!settingsPlanPreviewGrid) return;
+        try {
+            const plans = (await fetchPlans()).filter(p => p.status === 'ACTIVE');
+            settingsPlanPreviewGrid.innerHTML = plans.length
+                ? plans.map(p => `
+                    <div class="plan-card">
+                        <div class="name">${p.name}</div>
+                        <div class="price">${fmt(p.price)}</div>
+                    </div>`).join('')
+                : '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);">No plans configured.</div>';
+            if (settingsPlanCountLabel) settingsPlanCountLabel.textContent = plans.length + ' plans configured';
+        } catch (err) {
+            console.error('Failed to load plans:', err);
+            if (settingsPlanCountLabel) settingsPlanCountLabel.textContent = 'Plans unavailable';
+        }
+    }
+
+    async function renderPlanList() {
+        if (!planListContainer) return;
+        try {
+            const plans = await fetchPlans();
+            if (!plans.length) {
+                planListContainer.innerHTML = '<div class="empty-plans"><i class="fas fa-cube"></i><p>No plans yet. Add your first plan below.</p></div>';
+                return;
+            }
+            planListContainer.innerHTML = plans.map(p => `
+                <div class="plan-item" data-id="${p.id}">
+                    <div class="plan-info">
+                        <span class="plan-name">${p.name} ${p.status !== 'ACTIVE' ? '<em style="color:var(--text-muted);font-size:11px;">(archived)</em>' : ''}</span>
+                        <div class="plan-price-wrap">
+                            <label>Price (₦)</label>
+                            <input type="number" min="0" class="plan-price-input" value="${Number(p.price) || 0}" data-id="${p.id}" />
+                        </div>
+                    </div>
+                    <div class="plan-actions">
+                        <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
+                        <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-${p.status === 'ACTIVE' ? 'archive' : 'undo'}"></i> ${p.status === 'ACTIVE' ? 'Archive' : 'Restore'}</button>
+                    </div>
+                </div>`).join('');
+
+            // Save price → cascades to Customers / Payments / Projections / Reports
+            planListContainer.querySelectorAll('.save-price-btn').forEach(btn => {
+                btn.addEventListener('click', async function (e) {
+                    e.stopPropagation();
+                    const id = this.dataset.id;
+                    const input = planListContainer.querySelector('.plan-price-input[data-id="' + id + '"]');
+                    if (!input) return;
+                    const price = parseFloat(input.value) || 0;
+                    if (price <= 0) { alert('Price must be greater than 0.'); return; }
+                    try {
+                        await apiFetch('/settings/plans/' + id, { method: 'PUT', body: JSON.stringify({ price }) });
+                        alert('✅ Price updated! Now live across Customers, Payments, Projections & Reports.');
+                        await renderPlanList();
+                        await renderSettingsPlanPreview();
+                    } catch (err) { alert('Failed to update: ' + err.message); }
+                });
+            });
+
+            // Archive / Restore plan
+            planListContainer.querySelectorAll('.remove-plan-btn').forEach(btn => {
+                btn.addEventListener('click', async function (e) {
+                    e.stopPropagation();
+                    const id = this.dataset.id;
+                    try {
+                        const res = await apiFetch('/settings/plans/' + id + '/archive', { method: 'POST' });
+                        alert(res.message || 'Done.');
+                        await renderPlanList();
+                        await renderSettingsPlanPreview();
+                    } catch (err) { alert('Failed: ' + err.message); }
+                });
+            });
+
+            // Enter key saves
+            planListContainer.querySelectorAll('.plan-price-input').forEach(inp => {
+                inp.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        const btn = planListContainer.querySelector('.save-price-btn[data-id="' + this.dataset.id + '"]');
+                        if (btn) btn.click();
+                    }
+                });
+            });
+        } catch (err) {
+            console.error('Failed to load plan list:', err);
+            planListContainer.innerHTML = '<div class="empty-plans"><p>Could not load plans. Is the server running?</p></div>';
+        }
+    }
+
+    async function handleAddPlan() {
+        const name = (newPlanName ? newPlanName.value : '').trim();
+        const price = parseFloat(newPlanPrice ? newPlanPrice.value : '') || 0;
+        if (!name) { alert('Please enter a plan name.'); return; }
+        if (price <= 0) { alert('Please enter a valid price.'); return; }
+        try {
+            await apiFetch('/settings/plans', { method: 'POST', body: JSON.stringify({ name, price, durationDays: 30 }) });
+            newPlanName.value = '';
+            newPlanPrice.value = '';
+            await renderPlanList();
+            await renderSettingsPlanPreview();
+        } catch (err) { alert('Failed to add plan: ' + err.message); }
+    }
+    if (addPlanBtn) addPlanBtn.addEventListener('click', handleAddPlan);
+    if (newPlanName) newPlanName.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
+    if (newPlanPrice) newPlanPrice.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddPlan(); });
+
+    if (openPlanEditorBtn) openPlanEditorBtn.addEventListener('click', () => { renderPlanList(); if (planEditorOverlay) planEditorOverlay.classList.add('open'); });
+    if (closePlanEditorBtn) closePlanEditorBtn.addEventListener('click', () => planEditorOverlay && planEditorOverlay.classList.remove('open'));
+
+    // ============================================================
+    // GENERAL SETTINGS (saved to DB)
+    // ============================================================
+    async function saveSetting(payload, showAlert) {
+        try {
+            await apiFetch('/settings', { method: 'PUT', body: JSON.stringify(payload) });
+            return true;
+        } catch (err) {
+            if (showAlert) alert('Failed to save: ' + err.message);
+            else console.warn('Settings save skipped:', err.message);
+            return false;
+        }
+    }
+
+    async function loadGeneralSettings() {
+        try {
+            const data = await apiFetch('/settings');
+            const s = data.settings || {};
+            if (workspaceNameInput && s.workspaceName) workspaceNameInput.value = s.workspaceName;
+            if (languageSelect && s.language) languageSelect.value = s.language;
+            if (notifToggle) notifToggle.classList.toggle('active', !!s.notifications);
+        } catch (err) { console.error('Failed to load settings:', err); }
+    }
+
+    if (workspaceNameInput) workspaceNameInput.addEventListener('change', function () { saveSetting({ workspaceName: this.value }, true); });
+    if (languageSelect) languageSelect.addEventListener('change', function () { saveSetting({ language: this.value }, true); });
+    if (notifToggle) notifToggle.addEventListener('click', function () {
+        this.classList.toggle('active');
+        saveSetting({ notifications: this.classList.contains('active') }, true);
+    });
+
+    // ============================================================
+    // THEME (navbar toggle + settings toggle, synced & saved)
+    // ============================================================
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    let darkMode = false;
+
+    function applyTheme(isDark) {
+        darkMode = isDark;
+        if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); if (themeIcon) themeIcon.className = 'fas fa-sun'; }
+        else { document.documentElement.removeAttribute('data-theme'); if (themeIcon) themeIcon.className = 'fas fa-moon'; }
+        if (settingsDarkToggle) settingsDarkToggle.classList.toggle('active', isDark);
+        try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+        saveSetting({ darkMode: isDark }, false);
+    }
+
+    try {
+        const saved = localStorage.getItem('prontox-theme');
+        if (saved === 'dark') applyTheme(true);
+        else if (saved === 'light') applyTheme(false);
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+        else applyTheme(false);
+    } catch (_) { applyTheme(false); }
+
+    if (themeToggle) themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+    if (settingsDarkToggle) settingsDarkToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+    // ============================================================
+    // SIDEBAR / LOGOUT / MISC
+    // ============================================================
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+
+    function openSidebar() { if (!sidebar) return; sidebar.classList.add('open'); if (sidebarOverlay) sidebarOverlay.classList.add('open'); if (hamburgerBtn) hamburgerBtn.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeSidebar() { if (!sidebar) return; sidebar.classList.remove('open'); if (sidebarOverlay) sidebarOverlay.classList.remove('open'); if (hamburgerBtn) hamburgerBtn.classList.remove('open'); document.body.style.overflow = ''; }
+
+    if (hamburgerBtn) hamburgerBtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) closeSidebar();
+        if (e.key === 'Escape' && planEditorOverlay && planEditorOverlay.classList.contains('open')) planEditorOverlay.classList.remove('open');
+    });
+
+    const logoLink = document.getElementById('logoLink');
+    if (logoLink) logoLink.addEventListener('click', function (e) { e.preventDefault(); window.location.href = 'dashboard.html'; });
+
+    const avatarBtn = document.getElementById('avatarBtn');
+    if (avatarBtn) avatarBtn.addEventListener('click', () => alert('👤 User profile – would open user settings.'));
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (confirm('Are you sure you want to log out?')) {
+            ['prontox_token', 'prontox_user_id', 'prontox_session', 'prontolog_token', 'prontolog_user_id'].forEach(k => localStorage.removeItem(k));
+            window.location.href = 'login.html';
+        }
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    loadGeneralSettings();
+    renderSettingsPlanPreview();
+    showSettingsPage('general');
+
+    console.log('✅ Settings page fully live (no logout loop).');
+})();
+</script>
 
 </body>
 </html>

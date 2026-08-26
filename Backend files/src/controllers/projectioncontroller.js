@@ -1,164 +1,218 @@
-const prisma = require('../config/database');
-const { asyncHandler, ApiError } = require('../utils/helpers');
+const prisma = require("../config/database");
+const { computeAutoProjections } = require("../utils/autoProjection");
 
-// Maps frontend tabs → DB columns
-// Frontend uses "Daily (3-day)/Weekly/Monthly/Annually"
-const TIMEFRAME_COLUMN = {
-  daily: 'threeDay',
-  weekly: 'oneWeek',
-  monthly: 'oneMonth',
-  yearly: 'oneYear',
-  annually: 'oneYear', // Proj-vs-Actual report uses "Annually"
+const getUserId = (req) =>
+  req.user?.id ||
+  req.user?.userId ||
+  req.headers["x-user-id"] ||
+  process.env.DEFAULT_USER_ID;
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+const cleanNumber = (v) =>
+  v === undefined || v === null || v === "" ? null : Number(v);
+
+const formatProjection = (p) => ({
+  id: p.id,
+  planId: p.planId,
+  planName: p.plan?.name || "Unknown",
+  date: p.date,
+  threeDay: p.threeDay !== null ? round2(Number(p.threeDay)) : null,
+  oneWeek: p.oneWeek !== null ? round2(Number(p.oneWeek)) : null,
+  oneMonth: p.oneMonth !== null ? round2(Number(p.oneMonth)) : null,
+  oneYear: p.oneYear !== null ? round2(Number(p.oneYear)) : null
+});
+
+/* =====================================================
+   GET /api/projections  (list + plans for dropdowns)
+===================================================== */
+exports.getProjections = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const { planId } = req.query;
+
+    const [projections, plans] = await Promise.all([
+      prisma.projection.findMany({
+        where: { userId, ...(planId ? { planId } : {}) },
+        include: { plan: true },
+        orderBy: { date: "desc" }
+      }),
+      prisma.plan.findMany({ where: { userId }, orderBy: { name: "asc" } })
+    ]);
+
+    res.json({
+      success: true,
+      count: projections.length,
+      projections: projections.map(formatProjection),
+      plans: plans.map((p) => ({ id: p.id, name: p.name, price: Number(p.price) }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
-// ─────────────────────────────────────────────
-// POST /api/projections — Create (upserts same date+plan)
-// ─────────────────────────────────────────────
-const createProjection = asyncHandler(async (req, res) => {
-  const { planId, date, threeDay, oneWeek, oneMonth, oneYear } = req.body;
+/* =====================================================
+   GET /api/projections/summary  (totals of latest per plan)
+===================================================== */
+exports.getProjectionSummary = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-  // Plan must belong to this workspace
-  const plan = await prisma.plan.findFirst({
-    where: { id: planId, userId: req.userId },
-  });
-  if (!plan) throw new ApiError(404, 'Plan not found in your workspace');
+    const projections = await prisma.projection.findMany({
+      where: { userId },
+      include: { plan: true },
+      orderBy: { date: "desc" }
+    });
 
-  const projectionDate = new Date(date);
+    const latestByPlan = {};
+    projections.forEach((p) => {
+      if (!latestByPlan[p.planId]) latestByPlan[p.planId] = p;
+    });
+    const latest = Object.values(latestByPlan);
 
-  // Upsert: if a projection for this date+plan already exists, update it instead
-  const projection = await prisma.projection.upsert({
-    where: {
-      userId_planId_date: { userId: req.userId, planId, date: projectionDate },
-    },
-    create: {
-      userId: req.userId,
-      planId,
-      date: projectionDate,
-      threeDay,
-      oneWeek,
-      oneMonth,
-      oneYear,
-    },
-    update: { threeDay, oneWeek, oneMonth, oneYear },
-    include: { plan: { select: { id: true, name: true } } },
-  });
+    const sum = (field) => round2(latest.reduce((s, p) => s + Number(p[field] || 0), 0));
 
-  res.status(201).json({ success: true, data: projection });
-});
-
-// ─────────────────────────────────────────────
-// GET /api/projections?timeframe=daily — Tabbed list
-// ─────────────────────────────────────────────
-const getProjections = asyncHandler(async (req, res) => {
-  const { timeframe, page = 1, limit = 20 } = req.query;
-  const where = { userId: req.userId };
-
-  const skip = (Number(page) - 1) * Number(limit);
-  const take = Math.min(Number(limit), 100);
-
-  const projections = await prisma.projection.findMany({
-    where,
-    orderBy: { date: 'desc' },
-    skip,
-    take,
-    include: { plan: { select: { id: true, name: true } } },
-  });
-
-  const total = await prisma.projection.count({ where });
-
-  // Attach the amount matching the active tab so the frontend can render one column
-  const column = TIMEFRAME_COLUMN[timeframe] || null;
-  const data = projections.map((p) => ({
-    ...p,
-    projectedAmount: column ? Number(p[column] || 0) : null,
-  }));
-
-  res.json({
-    success: true,
-    count: data.length,
-    total,
-    page: Number(page),
-    totalPages: Math.ceil(total / take),
-    timeframe: timeframe || 'all',
-    data,
-  });
-});
-
-// ─────────────────────────────────────────────
-// GET /api/projections/summary — Totals per timeframe
-// (Feeds Dashboard "Total Projection" + Proj-vs-Actual report)
-// ─────────────────────────────────────────────
-const getProjectionSummary = asyncHandler(async (req, res) => {
-  const where = { userId: req.userId };
-
-  // Optional date scoping: ?from=2026-08-01&to=2026-08-31
-  if (req.query.from || req.query.to) {
-    where.date = {};
-    if (req.query.from) where.date.gte = new Date(req.query.from);
-    if (req.query.to) where.date.lte = new Date(`${req.query.to}T23:59:59.999`);
+    res.json({
+      success: true,
+      summary: {
+        threeDay: sum("threeDay"),
+        oneWeek: sum("oneWeek"),
+        oneMonth: sum("oneMonth"),
+        oneYear: sum("oneYear")
+      },
+      perPlan: latest.map(formatProjection)
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
+};
 
-  const result = await prisma.projection.aggregate({
-    where,
-    _sum: { threeDay: true, oneWeek: true, oneMonth: true, oneYear: true },
-    _count: true,
-  });
+/* =====================================================
+   GET /api/projections/auto  — THE AUTO ENGINE (owner's rule)
+   1-Month = billable (Active+Expired) × price · 1-Year = ×12
+   3-Day & 1-Week = renewals (expiry dates) due inside the window
+===================================================== */
+exports.getAutoProjections = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-  res.json({
-    success: true,
-    data: {
-      daily: Number(result._sum.threeDay || 0),
-      weekly: Number(result._sum.oneWeek || 0),
-      monthly: Number(result._sum.oneMonth || 0),
-      yearly: Number(result._sum.oneYear || 0),
-      totalProjections: result._count,
-    },
-  });
-});
+    const auto = await computeAutoProjections(prisma, userId);
 
-// ─────────────────────────────────────────────
-// PATCH /api/projections/:id
-// ─────────────────────────────────────────────
-const updateProjection = asyncHandler(async (req, res) => {
-  const projection = await prisma.projection.findFirst({
-    where: { id: req.params.id, userId: req.userId },
-  });
-  if (!projection) throw new ApiError(404, 'Projection not found');
+    res.json({
+      success: true,
+      explanation:
+        "1-Month = billable (Active+Expired) × price · 1-Year = ×12 · 3-Day & 1-Week = renewals due inside the window.",
+      counts: auto.counts,
+      totals: auto.totals,
+      perPlan: auto.perPlan,
+      renewalBook: auto.renewalBook,
+      manualCount: auto.manualCount
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
-  const { threeDay, oneWeek, oneMonth, oneYear } = req.body;
+/* =====================================================
+   POST /api/projections  (upsert per plan + date)
+===================================================== */
+exports.createProjection = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-  const updated = await prisma.projection.update({
-    where: { id: projection.id },
-    data: {
-      ...(threeDay !== undefined && { threeDay }),
-      ...(oneWeek !== undefined && { oneWeek }),
-      ...(oneMonth !== undefined && { oneMonth }),
-      ...(oneYear !== undefined && { oneYear }),
-    },
-    include: { plan: { select: { id: true, name: true } } },
-  });
+    const { planId, date, threeDay, oneWeek, oneMonth, oneYear } = req.body;
 
-  res.json({ success: true, data: updated });
-});
+    if (!planId || !date || isNaN(Date.parse(date))) {
+      return res.status(400).json({ error: "A valid planId and date are required." });
+    }
 
-// ─────────────────────────────────────────────
-// DELETE /api/projections/:id
-// ─────────────────────────────────────────────
-const deleteProjection = asyncHandler(async (req, res) => {
-  const projection = await prisma.projection.findFirst({
-    where: { id: req.params.id, userId: req.userId },
-  });
-  if (!projection) throw new ApiError(404, 'Projection not found');
+    const plan = await prisma.plan.findFirst({ where: { id: planId, userId } });
+    if (!plan) return res.status(404).json({ error: "Plan not found." });
 
-  await prisma.projection.delete({ where: { id: projection.id } });
+    const data = {
+      threeDay: cleanNumber(threeDay),
+      oneWeek: cleanNumber(oneWeek),
+      oneMonth: cleanNumber(oneMonth),
+      oneYear: cleanNumber(oneYear)
+    };
 
-  res.json({ success: true, message: 'Projection deleted successfully' });
-});
+    const projection = await prisma.projection.upsert({
+      where: { userId_planId_date: { userId, planId, date: new Date(date) } },
+      update: data,
+      create: { userId, planId, date: new Date(date), ...data },
+      include: { plan: true }
+    });
 
-module.exports = {
-  createProjection,
-  getProjections,
-  getProjectionSummary,
-  updateProjection,
-  deleteProjection,
+    res.status(201).json({
+      success: true,
+      message: "Projection saved.",
+      projection: formatProjection(projection)
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =====================================================
+   PATCH /api/projections/:id  (his routes use PATCH!)
+===================================================== */
+exports.updateProjection = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const existing = await prisma.projection.findFirst({
+      where: { id: req.params.id, userId }
+    });
+    if (!existing) return res.status(404).json({ error: "Projection not found." });
+
+    const { threeDay, oneWeek, oneMonth, oneYear, date, planId } = req.body;
+    const data = {};
+    if (threeDay !== undefined) data.threeDay = cleanNumber(threeDay);
+    if (oneWeek !== undefined) data.oneWeek = cleanNumber(oneWeek);
+    if (oneMonth !== undefined) data.oneMonth = cleanNumber(oneMonth);
+    if (oneYear !== undefined) data.oneYear = cleanNumber(oneYear);
+    if (date && !isNaN(Date.parse(date))) data.date = new Date(date);
+    if (planId) data.planId = planId;
+
+    const updated = await prisma.projection.update({
+      where: { id: existing.id },
+      data,
+      include: { plan: true }
+    });
+
+    res.json({
+      success: true,
+      message: "Projection updated.",
+      projection: formatProjection(updated)
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =====================================================
+   DELETE /api/projections/:id
+===================================================== */
+exports.deleteProjection = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const existing = await prisma.projection.findFirst({
+      where: { id: req.params.id, userId }
+    });
+    if (!existing) return res.status(404).json({ error: "Projection not found." });
+
+    await prisma.projection.delete({ where: { id: existing.id } });
+
+    res.json({ success: true, message: "Projection deleted." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };

@@ -14,13 +14,8 @@ const round2 = (n) => Math.round(n * 100) / 100;
 const formatMonth = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
-const formatDay = (d) =>
-  `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(
-    d.getUTCDate()
-  ).padStart(2, "0")}`;
-
 /* =====================================================
-   MONTHLY INCOME (already working, timezone bug fixed)
+   MONTHLY INCOME  (GET /api/actual/monthly-income)
 ===================================================== */
 exports.getMonthlyIncome = async (req, res) => {
   try {
@@ -85,7 +80,7 @@ exports.getMonthlyIncome = async (req, res) => {
       planName: p.planName,
       payingCustomers: p.payingCustomers.size,
       amountPerPlan: p.amountPerPlan,
-      totalReceived: p.totalReceived
+      totalReceived: round2(p.totalReceived)
     }));
 
     const trendMonths = [];
@@ -119,121 +114,130 @@ exports.getMonthlyIncome = async (req, res) => {
 };
 
 /* =====================================================
-   PROJECTION VS ACTUAL (new — powers the report page)
+   PROJECTION VS ACTUAL — AUTO MODEL (owner's rule)
+   Projection = billable customers (ACTIVE + EXPIRED) × plan price,
+                scaled by timeframe
+   Actual     = payments received inside the period window
+                (every recorded payment adds automatically)
+   INACTIVE   = left the service completely → excluded
 ===================================================== */
-const TIMEFRAMES = {
-  daily: { field: "threeDay", label: "Daily (3-day)" },
-  weekly: { field: "oneWeek", label: "Weekly" },
-  monthly: { field: "oneMonth", label: "Monthly" },
-  annually: { field: "oneYear", label: "Annually" }
-};
-
-const windowEnd = (start, timeframe) => {
-  const end = new Date(start);
-  if (timeframe === "daily") end.setUTCDate(end.getUTCDate() + 3);
-  else if (timeframe === "weekly") end.setUTCDate(end.getUTCDate() + 7);
-  else if (timeframe === "monthly") end.setUTCMonth(end.getUTCMonth() + 1);
-  else end.setUTCFullYear(end.getUTCFullYear() + 1);
-  return end;
-};
-
+/* =====================================================
+   PROJECTION VS ACTUAL — Uses AUTO ENGINE + PAYMENTS
+   Projection = AUTO engine (with manual overrides)
+   Actual = real payments in the window
+===================================================== */
 exports.getProjectionVsActual = async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ error: "User ID is required." });
 
     const requested = (req.query.timeframe || "monthly").toLowerCase();
-    const timeframe = TIMEFRAMES[requested] ? requested : "monthly";
-    const field = TIMEFRAMES[timeframe].field;
+    const timeframe = ["daily", "weekly", "monthly", "annually"].includes(requested)
+      ? requested
+      : "monthly";
     const planFilter = req.query.planId;
 
-    // 1) Projections + all plans (for the "All Plans" dropdown)
-    const [projections, allPlans] = await Promise.all([
-      prisma.projection.findMany({
-        where: { userId, ...(planFilter ? { planId: planFilter } : {}) },
-        include: { plan: true },
-        orderBy: { date: "asc" }
-      }),
-      prisma.plan.findMany({ where: { userId }, orderBy: { name: "asc" } })
-    ]);
-
-    // 2) Payments fetched once, filtered in memory per projection window
-    const payments = await prisma.payment.findMany({
-      where: { userId, ...(planFilter ? { planId: planFilter } : {}) }
-    });
-
     const now = new Date();
+    const { computeAutoProjections } = require("../utils/autoProjection");
 
-    // 3) Build one row per projection
-    const rows = [];
-    projections.forEach((proj) => {
-      const projected =
-        proj[field] === null || proj[field] === undefined ? null : Number(proj[field]);
-      if (projected === null) return; // no value stored for this timeframe
+    // Get AUTO projections (includes manual overrides)
+    const auto = await computeAutoProjections(prisma, userId);
 
-      const start = new Date(proj.date);
-      const end = windowEnd(start, timeframe);
+    // Calculate payment window
+    let windowStart, windowEnd, periodLabel;
+    if (timeframe === "daily") {
+      windowStart = new Date(now.getTime() - 3 * 86400000);
+      windowEnd = now;
+      periodLabel = "Last 3 days";
+    } else if (timeframe === "weekly") {
+      windowStart = new Date(now.getTime() - 7 * 86400000);
+      windowEnd = now;
+      periodLabel = "Last 7 days";
+    } else if (timeframe === "monthly") {
+      windowStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      windowEnd = now;
+      periodLabel = now.toLocaleString("en-US", { month: "long", year: "numeric" });
+    } else {
+      windowStart = new Date(now.getFullYear(), 0, 1);
+      windowEnd = now;
+      periodLabel = String(now.getFullYear());
+    }
 
-      const actual = payments
-        .filter(
-          (p) => p.planId === proj.planId && p.paymentDate >= start && p.paymentDate < end
-        )
-        .reduce((s, p) => s + Number(p.amount), 0);
-
-      const variance = actual - projected;
-      const accuracy = projected > 0 ? Math.min(100, (actual / projected) * 100) : 0;
-
-      let status;
-      if (now < end) status = "In Progress";
-      else if (accuracy >= 100) status = "Achieved";
-      else if (accuracy >= 80) status = "On Track";
-      else status = "Below Target";
-
-      rows.push({
-        period: formatDay(start),
-        plan: proj.plan?.name || "Unknown Plan",
-        projection: round2(projected),
-        actual: round2(actual),
-        variance: round2(variance),
-        accuracy: round2(accuracy),
-        status
-      });
+    // Fetch payments in window
+    const payments = await prisma.payment.findMany({
+      where: {
+        userId,
+        ...(planFilter ? { planId: planFilter } : {}),
+        paymentDate: { gte: windowStart, lte: windowEnd }
+      }
     });
 
-    // Table rows: newest first
-    const tableRows = [...rows].sort((a, b) => (a.period < b.period ? 1 : -1));
-
-    // Chart data: aggregated per period (oldest first) for a grouped BAR chart
-    const chartMap = {};
-    rows.forEach((r) => {
-      if (!chartMap[r.period])
-        chartMap[r.period] = { period: r.period, projection: 0, actual: 0 };
-      chartMap[r.period].projection = round2(chartMap[r.period].projection + r.projection);
-      chartMap[r.period].actual = round2(chartMap[r.period].actual + r.actual);
+    // Group actual payments by plan
+    const actualByPlan = {};
+    payments.forEach((p) => {
+      actualByPlan[p.planId] = (actualByPlan[p.planId] || 0) + Number(p.amount);
     });
-    const chart = Object.values(chartMap).sort((a, b) =>
-      a.period < b.period ? -1 : 1
-    );
 
-    // 4) Summary cards
-    const totalProjected = rows.reduce((s, r) => s + r.projection, 0);
-    const totalActual = rows.reduce((s, r) => s + r.actual, 0);
-    const totalVariance = totalActual - totalProjected;
-    const overallAccuracy =
-      totalProjected > 0 ? Math.min(100, (totalActual / totalProjected) * 100) : 0;
+    // Build rows from AUTO engine data
+    const rows = auto.perPlan
+      .filter((p) => !planFilter || p.planId === planFilter)
+      .map((p) => {
+        const projection = timeframe === "daily" ? p.threeDay :
+                          timeframe === "weekly" ? p.oneWeek :
+                          timeframe === "monthly" ? p.oneMonth : p.oneYear;
+        const actual = actualByPlan[p.planId] || 0;
+        const variance = round2(actual - projection);
+        const accuracy = projection > 0 ? Math.min(100, (actual / projection) * 100) : (actual > 0 ? 100 : 0);
+
+        let status;
+        if (accuracy >= 100) status = "Achieved";
+        else if (accuracy >= 80) status = "On Track";
+        else if (actual > 0) status = "Below Target";
+        else status = "In Progress";
+
+        return {
+          period: periodLabel,
+          plan: p.planName,
+          customers: p.billableCustomers,
+          projection: round2(projection),
+          actual: round2(actual),
+          variance,
+          accuracy: round2(accuracy),
+          status
+        };
+      })
+      .filter((r) => r.projection > 0 || r.actual > 0);
+
+    rows.sort((a, b) => b.projection - a.projection);
+
+    // Summary
+    const totalProjected = round2(rows.reduce((s, r) => s + r.projection, 0));
+    const totalActual = round2(rows.reduce((s, r) => s + r.actual, 0));
+    const totalVariance = round2(totalActual - totalProjected);
+    const overallAccuracy = totalProjected > 0 ? Math.min(100, (totalActual / totalProjected) * 100) : 0;
+
+    // Chart data
+    const chart = rows.map((r) => ({
+      period: r.plan,
+      projection: r.projection,
+      actual: r.actual
+    }));
+
+    // Plans list for filter dropdown
+    const plans = await prisma.plan.findMany({ where: { userId } });
 
     res.json({
       timeframe,
-      timeframeLabel: TIMEFRAMES[timeframe].label,
+      timeframeLabel: periodLabel,
       summary: {
-        totalProjected: round2(totalProjected),
-        totalActual: round2(totalActual),
-        variance: round2(totalVariance),
+        totalProjected,
+        totalActual,
+        variance: totalVariance,
         accuracy: round2(overallAccuracy)
       },
       chart,
-      rows: tableRows,
-      plans: allPlans.map((p) => ({ id: p.id, name: p.name })) // 👈 feeds the "All Plans" dropdown
+      rows,
+      plans: plans.map((p) => ({ id: p.id, name: p.name }))
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

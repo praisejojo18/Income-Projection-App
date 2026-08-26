@@ -1136,6 +1136,17 @@
             console.log('✅ Monthly Income connected to live API.');
         })();
     </script>
+    <script>
+// UNIVERSAL LOGOUT FIX - Paste at the bottom of all pages
+document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopImmediatePropagation(); // Stops the old broken logout from running
+    if (confirm('Are you sure you want to log out?')) {
+        localStorage.clear(); // Nukes all tokens - guaranteed logout
+        window.location.href = 'login.html';
+    }
+}, true);
+</script>
 
 </body>
 </html>

@@ -1,194 +1,295 @@
-const prisma = require('../config/database');
-const { asyncHandler, ApiError, generateReference } = require('../utils/helpers');
+const prisma = require("../config/database");
 
-// ─────────────────────────────────────────────
-// Helper: builds date filter from query params
-// Supports: ?range=today | ?range=month | ?from=&to=
-// ─────────────────────────────────────────────
-const buildDateFilter = (query) => {
-  const now = new Date();
-
-  if (query.range === 'today') {
-    return { gte: new Date(now.getFullYear(), now.getMonth(), now.getDate()) };
-  }
-
-  if (query.range === 'month') {
-    return { gte: new Date(now.getFullYear(), now.getMonth(), 1) };
-  }
-
-  if (query.from || query.to) {
-    const filter = {};
-    if (query.from) filter.gte = new Date(query.from);
-    if (query.to) filter.lte = new Date(`${query.to}T23:59:59.999`);
-    return filter;
-  }
-
-  return undefined;
+const getUserId = (req) => {
+  return (
+    req.user?.id ||
+    req.user?.userId ||
+    req.headers["x-user-id"] ||
+    process.env.DEFAULT_USER_ID
+  );
 };
 
-// ─────────────────────────────────────────────
-// POST /api/payments — Record a payment
-// ─────────────────────────────────────────────
-const recordPayment = asyncHandler(async (req, res) => {
-  const { customerId, planId, amount, paymentDate, method } = req.body;
-  let { reference } = req.body;
+const round2 = (n) => Math.round(n * 100) / 100;
 
-  // 1. Customer must belong to this workspace
-  const customer = await prisma.customer.findFirst({
-    where: { id: customerId, userId: req.userId },
-  });
-  if (!customer) throw new ApiError(404, 'Customer not found in your workspace');
+/* Pretty method names for frontend display */
+const METHOD_DISPLAY = {
+  BANK_TRANSFER: "Bank Transfer",
+  CASH: "Cash",
+  POS: "POS"
+};
 
-  // 2. Plan must belong to this workspace
-  const plan = await prisma.plan.findFirst({
-    where: { id: planId, userId: req.userId },
-  });
-  if (!plan) throw new ApiError(404, 'Plan not found in your workspace');
+const toMethodEnum = (str) => {
+  if (!str) return "CASH";
+  const upper = String(str).toUpperCase().replace(/ /g, "_");
+  if (["BANK_TRANSFER", "CASH", "POS"].includes(upper)) return upper;
+  return "CASH";
+};
 
-  // 3. Auto-generate reference if the frontend didn't send one
-  if (!reference) reference = generateReference();
+/* =====================================================
+   GET /api/payments
+   Returns all payments (newest first) + summary cards
+   + plans list + customers list (for modal dropdowns)
+===================================================== */
+exports.getPayments = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-  // 4. Duplicate reference check (friendly message before DB constraint hits)
-  const duplicate = await prisma.payment.findUnique({
-    where: { userId_reference: { userId: req.userId, reference } },
-  });
-  if (duplicate) throw new ApiError(409, `A payment with reference "${reference}" already exists`);
-
-  // 5. Create
-  const payment = await prisma.payment.create({
-    data: {
-      userId: req.userId,
-      customerId,
-      planId,
-      amount,
-      paymentDate: paymentDate || new Date(),
-      method,
-      reference,
-    },
-    include: {
-      customer: { select: { id: true, name: true } },
-      plan: { select: { id: true, name: true } },
-    },
-  });
-
-  res.status(201).json({ success: true, data: payment });
-});
-
-// ─────────────────────────────────────────────
-// GET /api/payments/stats — The 4 stat cards
-// ─────────────────────────────────────────────
-const getPaymentStats = asyncHandler(async (req, res) => {
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  const [aggregates, paymentsThisMonth, lastPayment] = await Promise.all([
-    prisma.payment.aggregate({
-      where: { userId: req.userId },
-      _sum: { amount: true },
-      _avg: { amount: true },
-    }),
-    prisma.payment.count({
-      where: { userId: req.userId, paymentDate: { gte: startOfMonth } },
-    }),
-    prisma.payment.findFirst({
-      where: { userId: req.userId },
-      orderBy: { paymentDate: 'desc' },
-      select: { amount: true },
-    }),
-  ]);
-
-  res.json({
-    success: true,
-    data: {
-      totalReceived: Number(aggregates._sum.amount || 0),
-      paymentsThisMonth,
-      averagePayment: Number(Number(aggregates._avg.amount || 0).toFixed(2)),
-      lastPayment: lastPayment ? Number(lastPayment.amount) : 0,
-    },
-  });
-});
-
-// ─────────────────────────────────────────────
-// GET /api/payments — Transactions list + filters
-// ─────────────────────────────────────────────
-const getPayments = asyncHandler(async (req, res) => {
-  const { planId, method, page = 1, limit = 20 } = req.query;
-
-  const where = { userId: req.userId };
-  if (planId) where.planId = planId;
-  if (method) where.method = method.toUpperCase();
-
-  const dateFilter = buildDateFilter(req.query);
-  if (dateFilter) where.paymentDate = dateFilter;
-
-  const skip = (Number(page) - 1) * Number(limit);
-  const take = Math.min(Number(limit), 100);
-
-  const [payments, total] = await Promise.all([
-    prisma.payment.findMany({
-      where,
-      orderBy: [{ paymentDate: 'desc' }, { createdAt: 'desc' }],
-      skip,
-      take,
+    const payments = await prisma.payment.findMany({
+      where: { userId },
       include: {
         customer: { select: { id: true, name: true } },
-        plan: { select: { id: true, name: true } },
+        plan: { select: { id: true, name: true, price: true } }
       },
-    }),
-    prisma.payment.count({ where }),
-  ]);
-
-  res.json({
-    success: true,
-    count: payments.length,
-    total,
-    page: Number(page),
-    totalPages: Math.ceil(total / take),
-    data: payments,
-  });
-});
-
-// ─────────────────────────────────────────────
-// PATCH /api/payments/:id
-// ─────────────────────────────────────────────
-const updatePayment = asyncHandler(async (req, res) => {
-  const payment = await prisma.payment.findFirst({
-    where: { id: req.params.id, userId: req.userId },
-  });
-  if (!payment) throw new ApiError(404, 'Payment not found');
-
-  // Changing the reference? Check for duplicates first
-  if (req.body.reference && req.body.reference !== payment.reference) {
-    const duplicate = await prisma.payment.findUnique({
-      where: { userId_reference: { userId: req.userId, reference: req.body.reference } },
+      orderBy: { paymentDate: "desc" }
     });
-    if (duplicate) throw new ApiError(409, `A payment with reference "${req.body.reference}" already exists`);
+
+    /* Format each payment row for the frontend table */
+    const formatted = payments.map((p) => ({
+      id: p.id,
+      date: p.paymentDate ? p.paymentDate.toISOString().slice(0, 10) : null,
+      paymentDate: p.paymentDate ? p.paymentDate.toISOString().slice(0, 10) : null,
+      customer: p.customer?.name || "Unknown",
+      customerName: p.customer?.name || "Unknown",
+      customerId: p.customerId,
+      plan: p.plan?.name || "Unknown",
+      planName: p.plan?.name || "Unknown",
+      planId: p.planId,
+      amount: round2(Number(p.amount)),
+      method: METHOD_DISPLAY[p.method] || p.method,
+      reference: p.reference || "—"
+    }));
+
+    /* Summary card values */
+    const total = formatted.reduce((s, p) => s + p.amount, 0);
+    const avg = formatted.length > 0 ? total / formatted.length : 0;
+    const now = new Date();
+    const thisMonthCount = formatted.filter((p) => {
+      const d = new Date(p.paymentDate);
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }).length;
+    const lastPay = formatted.length > 0 ? formatted[0].amount : 0;
+
+    res.json({
+      success: true,
+      summary: {
+        totalReceived: round2(total),
+        paymentsThisMonth: thisMonthCount,
+        averagePayment: round2(avg),
+        lastPayment: round2(lastPay)
+      },
+      payments: formatted
+    });
+  } catch (error) {
+    console.error("GET /api/payments error:", error);
+    res.status(500).json({ error: error.message });
   }
+};
 
-  const updated = await prisma.payment.update({
-    where: { id: payment.id },
-    data: req.body,
-    include: {
-      customer: { select: { id: true, name: true } },
-      plan: { select: { id: true, name: true } },
-    },
-  });
+/* =====================================================
+   GET /api/payments/:id
+   Returns a single payment's full details
+===================================================== */
+exports.getPaymentById = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-  res.json({ success: true, data: updated });
-});
+    const payment = await prisma.payment.findFirst({
+      where: { id: req.params.id, userId },
+      include: {
+        customer: { select: { id: true, name: true } },
+        plan: { select: { id: true, name: true, price: true } }
+      }
+    });
 
-// ─────────────────────────────────────────────
-// DELETE /api/payments/:id
-// ─────────────────────────────────────────────
-const deletePayment = asyncHandler(async (req, res) => {
-  const payment = await prisma.payment.findFirst({
-    where: { id: req.params.id, userId: req.userId },
-  });
-  if (!payment) throw new ApiError(404, 'Payment not found');
+    if (!payment) return res.status(404).json({ error: "Payment not found." });
 
-  await prisma.payment.delete({ where: { id: payment.id } });
+    res.json({
+      id: payment.id,
+      paymentDate: payment.paymentDate ? payment.paymentDate.toISOString().slice(0, 10) : null,
+      customerName: payment.customer?.name || "Unknown",
+      customerId: payment.customerId,
+      planName: payment.plan?.name || "Unknown",
+      planId: payment.planId,
+      amount: round2(Number(payment.amount)),
+      method: METHOD_DISPLAY[payment.method] || payment.method,
+      reference: payment.reference || "—"
+    });
+  } catch (error) {
+    console.error("GET /api/payments/:id error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
 
-  res.json({ success: true, message: 'Payment deleted successfully' });
-});
+/* =====================================================
+   POST /api/payments
+   Records a new payment.
+   - Auto-generates reference if left blank.
+   - Looks up customer by name if customerId is missing.
+   - Looks up plan by name if planId is missing.
+===================================================== */
+exports.createPayment = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-module.exports = { recordPayment, getPaymentStats, getPayments, updatePayment, deletePayment };
+    let { customerId, customerName, planId, planName, amount, paymentDate, method, reference } = req.body;
+
+    amount = Number(amount);
+    if (!amount || amount <= 0) return res.status(400).json({ error: "Amount must be greater than 0." });
+    if (!paymentDate) return res.status(400).json({ error: "Payment date is required." });
+
+    /* Resolve customer: by ID first, then by name */
+    if (!customerId && customerName) {
+      const cust = await prisma.customer.findFirst({
+        where: { userId, name: customerName }
+      });
+      if (cust) customerId = cust.id;
+    }
+    if (!customerId) return res.status(400).json({ error: "Customer is required. Please select a valid customer." });
+
+    /* Resolve plan: by ID first, then by name */
+    if (!planId && planName) {
+      const plan = await prisma.plan.findFirst({
+        where: { userId, name: planName }
+      });
+      if (plan) planId = plan.id;
+    }
+    if (!planId) return res.status(400).json({ error: "Service Plan is required. Please select a valid plan." });
+
+    /* Auto-generate reference if blank */
+    if (!reference) {
+      const count = await prisma.payment.count({ where: { userId } });
+      reference = "PAY-" + String(count + 1).padStart(5, "0");
+    }
+
+    /* Check for duplicate reference */
+    const existing = await prisma.payment.findFirst({
+      where: { userId, reference }
+    });
+    if (existing) {
+      /* Append timestamp to make it unique */
+      reference = reference + "-" + Date.now().toString(36).toUpperCase();
+    }
+
+    const payment = await prisma.payment.create({
+      data: {
+        userId,
+        customerId,
+        planId,
+        amount,
+        paymentDate: new Date(paymentDate),
+        method: toMethodEnum(method),
+        reference
+      },
+      include: {
+        customer: { select: { id: true, name: true } },
+        plan: { select: { id: true, name: true, price: true } }
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Payment recorded successfully.",
+      payment: {
+        id: payment.id,
+        paymentDate: payment.paymentDate.toISOString().slice(0, 10),
+        customerName: payment.customer?.name || "Unknown",
+        customerId: payment.customerId,
+        planName: payment.plan?.name || "Unknown",
+        planId: payment.planId,
+        amount: round2(Number(payment.amount)),
+        method: METHOD_DISPLAY[payment.method] || payment.method,
+        reference: payment.reference
+      }
+    });
+  } catch (error) {
+    console.error("POST /api/payments error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =====================================================
+   PUT /api/payments/:id
+   Edit a payment (fix amount, method, date, reference)
+===================================================== */
+exports.updatePayment = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const existing = await prisma.payment.findFirst({
+      where: { id: req.params.id, userId }
+    });
+    if (!existing) return res.status(404).json({ error: "Payment not found." });
+
+    const { amount, paymentDate, method, reference, planId, customerId } = req.body;
+
+    const updateData = {};
+    if (amount !== undefined) {
+      const num = Number(amount);
+      if (num <= 0) return res.status(400).json({ error: "Amount must be greater than 0." });
+      updateData.amount = num;
+    }
+    if (paymentDate) updateData.paymentDate = new Date(paymentDate);
+    if (method) updateData.method = toMethodEnum(method);
+    if (reference !== undefined) updateData.reference = reference;
+    if (planId) updateData.planId = planId;
+    if (customerId) updateData.customerId = customerId;
+
+    const payment = await prisma.payment.update({
+      where: { id: req.params.id },
+      data: updateData,
+      include: {
+        customer: { select: { id: true, name: true } },
+        plan: { select: { id: true, name: true, price: true } }
+      }
+    });
+
+    res.json({
+      success: true,
+      message: "Payment updated successfully.",
+      payment: {
+        id: payment.id,
+        paymentDate: payment.paymentDate.toISOString().slice(0, 10),
+        customerName: payment.customer?.name || "Unknown",
+        customerId: payment.customerId,
+        planName: payment.plan?.name || "Unknown",
+        planId: payment.planId,
+        amount: round2(Number(payment.amount)),
+        method: METHOD_DISPLAY[payment.method] || payment.method,
+        reference: payment.reference
+      }
+    });
+  } catch (error) {
+    console.error("PUT /api/payments/:id error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* =====================================================
+   DELETE /api/payments/:id
+   Remove a payment entry
+===================================================== */
+exports.deletePayment = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const existing = await prisma.payment.findFirst({
+      where: { id: req.params.id, userId }
+    });
+    if (!existing) return res.status(404).json({ error: "Payment not found." });
+
+    await prisma.payment.delete({ where: { id: req.params.id } });
+
+    res.json({
+      success: true,
+      message: "Payment deleted successfully."
+    });
+  } catch (error) {
+    console.error("DELETE /api/payments/:id error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -1,21 +1,20 @@
-const router = require('express').Router();
-const { authenticate } = require('../middleware/auth');
-const { validate } = require('../middleware/validation');
-const { paymentSchemas } = require('../utils/validators');
-const {
-  recordPayment,
-  getPaymentStats,
-  getPayments,
-  updatePayment,
-  deletePayment,
-} = require('../controllers/paymentController');
+const express = require("express");
+const router = express.Router();
+const paymentController = require("../controllers/paymentController");
 
-router.use(authenticate);
+// List all payments + summary
+router.get("/", paymentController.getPayments);
 
-router.get('/', getPayments);
-router.get('/stats', getPaymentStats);
-router.post('/', validate(paymentSchemas.create), recordPayment);
-router.patch('/:id', validate(paymentSchemas.update), updatePayment);
-router.delete('/:id', deletePayment);
+// Create a new payment
+router.post("/", paymentController.createPayment);
+
+// Get single payment (MUST be above /:id if you add named routes later)
+router.get("/:id", paymentController.getPaymentById);
+
+// Update a payment
+router.put("/:id", paymentController.updatePayment);
+
+// Delete a payment
+router.delete("/:id", paymentController.deletePayment);
 
 module.exports = router;

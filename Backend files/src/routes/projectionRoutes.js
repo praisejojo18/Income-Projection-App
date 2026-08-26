@@ -6,11 +6,16 @@ const {
   createProjection,
   getProjections,
   getProjectionSummary,
+  getAutoProjections, // 🆕 AUTO engine
   updateProjection,
   deleteProjection,
 } = require('../controllers/projectionController');
 
-router.use(authenticate);
+// 🆕 AUTO engine — same protection level as /api/dashboard (userId header).
+// (Want it behind real login later? Just move this line BELOW router.use(authenticate).)
+router.get('/auto', getAutoProjections);
+
+router.use(authenticate); // 🔒 Locked! Now requires a real login token.
 
 router.get('/', getProjections);
 router.get('/summary', getProjectionSummary);

@@ -1,12 +1,15 @@
-const router = require('express').Router();
-const { authenticate } = require('../middleware/auth');
-const { validate } = require('../middleware/validation');
-const { settingsSchema } = require('../utils/validators');
-const { getSettings, updateSettings } = require('../controllers/settingsController');
+const express = require("express");
+const router = express.Router();
+const settingsController = require("../controllers/settingsController");
 
-router.use(authenticate); // protect everything below
+// General settings
+router.get("/", settingsController.getSettings);
+router.put("/", settingsController.updateSettings);
 
-router.get('/', getSettings);
-router.patch('/', validate(settingsSchema), updateSettings);
+// Plans & pricing (the control room)
+router.get("/plans", settingsController.getPlans);
+router.post("/plans", settingsController.createPlan);
+router.put("/plans/:id", settingsController.updatePlan);
+router.post("/plans/:id/archive", settingsController.togglePlanStatus);
 
 module.exports = router;

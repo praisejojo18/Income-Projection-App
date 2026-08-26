@@ -1,9 +1,10 @@
-const router = require('express').Router();
-const authController = require('../controllers/authController');
+const router = require("express").Router();
+const authController = require("../controllers/authController");
+const { authenticate } = require("../middleware/auth");
 
-// Map both login and register to our quick login function for now
-router.post('/login', authController.login);
-router.post('/register', authController.login); 
+router.post("/register", authController.register);
+router.post("/login", authController.login);
+router.get("/me", authenticate, authController.me);
 
-// ⚠️ THIS LINE IS MANDATORY. WITHOUT IT, THE SERVER CRASHES.
+// 🔑 CRUCIAL: This line MUST be at the very bottom
 module.exports = router; 

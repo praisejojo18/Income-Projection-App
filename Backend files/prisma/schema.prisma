@@ -8,6 +8,8 @@ datasource db {
 }
 
 // USER — colleague's ownership (dependency)
+nt[]
+  projections Project
 model User {
   id        String   @id @default(uuid())
   firstName String
@@ -20,8 +22,7 @@ model User {
   settings    Settings?
   plans       Plan[]
   customers   Customer[]
-  payments    Payment[]
-  projections Projection[]
+  payments    Paymeion[]
 
   @@map("users")
 }

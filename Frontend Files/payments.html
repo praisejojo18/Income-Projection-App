@@ -1080,481 +1080,444 @@
 
     <!-- ─── JAVASCRIPT ─── -->
     <script>
-        (function() {
-            'use strict';
+(function () {
+    'use strict';
 
-            // ============================================================
-            // CONSTANTS & DATA KEYS
-            // ============================================================
-            const PAYMENT_KEY = 'prontox_payments_v1';
-            const CUSTOMER_KEY = 'prontox_customers_v1';
-            const PLAN_KEY = 'prontoxPlans';
+    const API = 'http://localhost:5001/api';
+    const FALLBACK_PRICES = {
+        'silver': 12800, 'gold': 21900, 'platinum': 31800, 'platinum+': 46500,
+        'premium': 75000, 'premium+': 95000,
+        'sme silver': 25000, 'sme gold': 40000,
+        'sme platinum': 50000, 'sme platinum+': 75000
+    };
 
-            const DEFAULT_PLANS = [
-                'Silver', 'Gold', 'Platinum', 'Premium', 'Premium+',
-                'SME Silver', 'SME Gold', 'SME Platinum', 'SME Platinum+'
-            ];
+    const getHeaders = () => {
+        const h = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('prontolog_token');
+        if (token) h['Authorization'] = 'Bearer ' + token;
+        h['x-user-id'] = localStorage.getItem('prontolog_user_id') || 'af606104-2914-4b9c-9c1d-c3a103642103';
+        return h;
+    };
 
-            // ============================================================
-            // DATA ACCESS
-            // ============================================================
-            function getPayments() {
-                try {
-                    const raw = localStorage.getItem(PAYMENT_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    function formatCurrency(n) {
+        const x = Number(n) || 0;
+        try {
+            return new Intl.NumberFormat('en-NG', {
+                style: 'currency', currency: 'NGN',
+                minimumFractionDigits: 0, maximumFractionDigits: 0
+            }).format(x);
+        } catch (e) { return '₦' + x.toLocaleString('en-US'); }
+    }
 
-            function savePayments(list) {
-                try {
-                    localStorage.setItem(PAYMENT_KEY, JSON.stringify(list));
-                    return true;
-                } catch (e) { return false; }
-            }
+    function formatDate(dateStr) {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '—';
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
 
-            function getCustomers() {
-                try {
-                    const raw = localStorage.getItem(CUSTOMER_KEY);
-                    if (!raw) return [];
-                    const parsed = JSON.parse(raw);
-                    return Array.isArray(parsed) ? parsed : [];
-                } catch (e) { return []; }
-            }
+    function getTodayStr() {
+        return new Date().toISOString().slice(0, 10);
+    }
 
-            function getPlans() {
-                try {
-                    const raw = localStorage.getItem(PLAN_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                    }
-                } catch (e) {}
-                // default
-                const plans = DEFAULT_PLANS.map((name, idx) => ({
-                    id: idx + 1,
-                    name: name,
-                    price: '₦' + [5000, 10000, 20000, 35000, 50000, 7500, 15000, 30000, 60000][idx] + '/mo'
-                }));
-                localStorage.setItem(PLAN_KEY, JSON.stringify(plans));
-                return plans;
-            }
+    // ============================================================
+    // DOM REFS
+    // ============================================================
+    const paymentTableBody = document.getElementById('paymentTableBody');
+    const recordCount = document.getElementById('recordCount');
+    const totalReceived = document.getElementById('totalReceived');
+    const monthlyPayments = document.getElementById('monthlyPayments');
+    const averagePayment = document.getElementById('averagePayment');
+    const lastPayment = document.getElementById('lastPayment');
+    const searchInput = document.getElementById('searchInput');
+    const dateFilter = document.getElementById('dateFilter');
+    const planFilterP = document.getElementById('planFilterP');
+    const methodFilter = document.getElementById('methodFilter');
+    const customerInput = document.getElementById('customerInput');
+    const planInput = document.getElementById('planInput');
+    const amountInput = document.getElementById('amountInput');
+    const paymentDateInput = document.getElementById('paymentDateInput');
+    const methodInput = document.getElementById('methodInput');
+    const referenceInput = document.getElementById('referenceInput');
+    const customerList = document.getElementById('customerList');
+    const paymentModal = document.getElementById('paymentModal');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalBox = document.getElementById('modalBox');
 
-            function getPlanNames() {
-                return getPlans().map(p => p.name);
-            }
+    let paymentRecords = [];
+    let allPlans = [];
+    let allCustomers = [];
+    let planPriceMap = {};
 
-            // ============================================================
-            // HELPERS
-            // ============================================================
-            function formatCurrency(amount) {
-                const n = Number(amount) || 0;
-                try {
-                    return new Intl.NumberFormat('en-NG', {
-                        style: 'currency',
-                        currency: 'NGN',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                    }).format(n);
-                } catch (e) {
-                    return '₦' + n.toLocaleString('en-US');
-                }
-            }
+    // ============================================================
+    // LOAD INITIAL DATA
+    // ============================================================
+    async function loadAllData() {
+        try {
+            const [payRes, plansRes, custRes] = await Promise.all([
+                fetch(`${API}/payments`, { headers: getHeaders() }),
+                fetch(`${API}/customers/plans`, { headers: getHeaders() }),
+                fetch(`${API}/customers`, { headers: getHeaders() })
+            ]);
 
-            function formatDate(dateStr) {
-                const d = new Date(dateStr + 'T00:00:00');
-                if (isNaN(d.getTime())) return '—';
-                return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-            }
+            const payData = await payRes.json();
+            paymentRecords = Array.isArray(payData) ? payData : (payData.payments || []);
 
-            function getTodayStr() {
-                return new Date().toISOString().slice(0, 10);
-            }
+            allPlans = await (plansRes.ok ? plansRes.json() : []);
+            allPlans = Array.isArray(allPlans) ? allPlans : [];
+            allPlans.forEach(p => { planPriceMap[String(p.name).toLowerCase()] = Number(p.price); });
 
-            // ============================================================
-            // STATE
-            // ============================================================
-            let paymentRecords = [];
+            const custData = await (custRes.ok ? custRes.json() : []);
+            allCustomers = Array.isArray(custData) ? custData : [];
 
-            // ============================================================
-            // DOM REFS
-            // ============================================================
-            const paymentTableBody = document.getElementById('paymentTableBody');
-            const recordCount = document.getElementById('recordCount');
-            const totalReceived = document.getElementById('totalReceived');
-            const monthlyPayments = document.getElementById('monthlyPayments');
-            const averagePayment = document.getElementById('averagePayment');
-            const lastPayment = document.getElementById('lastPayment');
-            const searchInput = document.getElementById('searchInput');
-            const dateFilter = document.getElementById('dateFilter');
-            const planFilterP = document.getElementById('planFilterP');
-            const methodFilter = document.getElementById('methodFilter');
-            const customerInput = document.getElementById('customerInput');
-            const planInput = document.getElementById('planInput');
-            const amountInput = document.getElementById('amountInput');
-            const paymentDateInput = document.getElementById('paymentDateInput');
-            const methodInput = document.getElementById('methodInput');
-            const referenceInput = document.getElementById('referenceInput');
-            const customerList = document.getElementById('customerList');
+            populatePlanFilter();
+            populatePlanInput();
+            populateCustomerList();
+            filterPayments();
+        } catch (err) {
+            console.error('Failed to load payments data:', err);
+        }
+    }
 
-            // ============================================================
-            // RENDER PAYMENTS
-            // ============================================================
-            function renderPayments(data) {
-                if (!paymentTableBody) return;
-                paymentTableBody.innerHTML = '';
-                if (recordCount) recordCount.textContent = `${data.length} records`;
+    // ============================================================
+    // RENDER PAYMENTS TABLE
+    // ============================================================
+    function renderPayments(data) {
+        if (!paymentTableBody) return;
+        if (recordCount) recordCount.textContent = `${data.length} records`;
 
-                if (data.length === 0) {
-                    paymentTableBody.innerHTML =
-                        `<tr><td colspan="7"><div class="empty">No payment records found.</div></td></tr>`;
-                    return;
-                }
+        if (data.length === 0) {
+            paymentTableBody.innerHTML = `<tr><td colspan="7"><div class="empty">No payment records found.</div></td></tr>`;
+            return;
+        }
 
-                let html = '';
-                data.forEach(p => {
-                    const planClass = p.plan.toLowerCase().replace(/[+ ]/g, '-');
-                    html += `
-                            <tr>
-                                <td>${formatDate(p.date)}</td>
-                                <td>
-                                    <span class="customer-name">${p.customer}</span>
-                                    <span class="customer-id">Customer #${p.id}</span>
-                                </td>
-                                <td><span class="plan-tag ${planClass}">${p.plan}</span></td>
-                                <td><span class="amount">${formatCurrency(p.amount)}</span></td>
-                                <td>${p.method}</td>
-                                <td><span class="reference">${p.reference}</span></td>
-                                <td>
-                                    <button class="view-btn" onclick="viewPayment(${p.id})">View</button>
-                                </td>
-                            </tr>
-                        `;
-                });
-                paymentTableBody.innerHTML = html;
-            }
+        paymentTableBody.innerHTML = data.map(p => {
+            const planName = p.planName || p.plan || '';
+            const planClass = planName.toLowerCase().replace(/[+ ]/g, '-');
+            return `
+                <tr>
+                    <td>${formatDate(p.paymentDate || p.date)}</td>
+                    <td>
+                        <span class="customer-name">${p.customerName || p.customer}</span>
+                        <span class="customer-id">Customer #${(p.customerId || '').slice(0, 8)}</span>
+                    </td>
+                    <td><span class="plan-tag ${planClass}">${planName}</span></td>
+                    <td><span class="amount">${formatCurrency(p.amount)}</span></td>
+                    <td>${p.method || '—'}</td>
+                    <td><span class="reference">${p.reference || '—'}</span></td>
+                    <td>
+                        <button class="view-btn" data-id="${p.id}">View</button>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
 
-            // ============================================================
-            // UPDATE SUMMARY
-            // ============================================================
-            function updateSummary(data) {
-                const total = data.reduce((sum, p) => sum + p.amount, 0);
-                const avg = data.length ? total / data.length : 0;
-                const now = new Date();
-                const monthly = data.filter(p => {
-                    const d = new Date(p.date);
-                    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-                }).length;
-                const latest = data[0] || null;
+    // ============================================================
+    // UPDATE SUMMARY CARDS
+    // ============================================================
+    function updateSummary(data) {
+        const total = data.reduce((s, p) => s + Number(p.amount), 0);
+        const avg = data.length ? total / data.length : 0;
+        const now = new Date();
+        const monthCount = data.filter(p => {
+            const d = new Date(p.paymentDate || p.date);
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        }).length;
+        const latest = data[0] || null;
 
-                totalReceived.textContent = formatCurrency(total);
-                monthlyPayments.textContent = monthly;
-                averagePayment.textContent = formatCurrency(avg);
-                lastPayment.textContent = latest ? formatCurrency(latest.amount) : formatCurrency(0);
-            }
+        if (totalReceived) totalReceived.textContent = formatCurrency(total);
+        if (monthlyPayments) monthlyPayments.textContent = monthCount;
+        if (averagePayment) averagePayment.textContent = formatCurrency(avg);
+        if (lastPayment) lastPayment.textContent = latest ? formatCurrency(latest.amount) : formatCurrency(0);
+    }
 
-            // ============================================================
-            // FILTER PAYMENTS
-            // ============================================================
-            function filterPayments() {
-                const search = searchInput.value.toLowerCase().trim();
-                const plan = planFilterP.value;
-                const method = methodFilter.value;
-                const date = dateFilter.value;
-                const now = new Date();
+    // ============================================================
+    // FILTER PAYMENTS (client-side for instant response)
+    // ============================================================
+    function filterPayments() {
+        const search = (searchInput?.value || '').toLowerCase().trim();
+        const plan = planFilterP?.value || 'all';
+        const method = methodFilter?.value || 'all';
+        const date = dateFilter?.value || 'all';
+        const now = new Date();
 
-                let filtered = paymentRecords.filter(p => {
-                    const matchSearch = p.customer.toLowerCase().includes(search) || p.reference.toLowerCase()
-                        .includes(search);
-                    const matchPlan = plan === 'all' || p.plan === plan;
-                    const matchMethod = method === 'all' || p.method === method;
-                    const d = new Date(p.date);
-                    const matchDate = date === 'all' ||
-                        (date === 'today' && d.toDateString() === now.toDateString()) ||
-                        (date === 'month' && d.getFullYear() === now.getFullYear() && d.getMonth() === now
-                            .getMonth());
-                    return matchSearch && matchPlan && matchMethod && matchDate;
-                });
+        const filtered = paymentRecords.filter(p => {
+            const cust = (p.customerName || p.customer || '').toLowerCase();
+            const ref = (p.reference || '').toLowerCase();
+            const matchSearch = !search || cust.includes(search) || ref.includes(search);
 
-                renderPayments(filtered);
-                updateSummary(filtered);
-            }
+            const planName = p.planName || p.plan || '';
+            const matchPlan = plan === 'all' || planName === plan;
 
-            window.filterPayments = filterPayments;
+            const matchMethod = method === 'all' || (p.method || '').toLowerCase() === method.toLowerCase();
 
-            // ============================================================
-            // CLEAR FILTERS
-            // ============================================================
-            window.clearFilters = function() {
-                searchInput.value = '';
-                dateFilter.value = 'all';
-                planFilterP.value = 'all';
-                methodFilter.value = 'all';
-                filterPayments();
-            };
+            const d = new Date(p.paymentDate || p.date);
+            let matchDate = true;
+            if (date === 'today') matchDate = d.toDateString() === now.toDateString();
+            else if (date === 'month') matchDate = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
 
-            // ============================================================
-            // RECORD PAYMENT MODAL
-            // ============================================================
-            window.openPaymentModal = function() {
-                const modal = document.getElementById('paymentModal');
-                modal.classList.add('active');
+            return matchSearch && matchPlan && matchMethod && matchDate;
+        });
 
-                // Set default date
-                paymentDateInput.value = getTodayStr();
+        renderPayments(filtered);
+        updateSummary(filtered);
+    }
 
-                // Populate customer datalist from existing customers
-                const customers = getCustomers();
-                const names = customers.map(c => c.name);
-                // Also add any customer names from existing payments
-                paymentRecords.forEach(p => {
-                    if (!names.includes(p.customer)) names.push(p.customer);
-                });
-                customerList.innerHTML = names.map(n => `<option value="${n}">`).join('');
+    window.filterPayments = filterPayments;
 
-                // Populate plan dropdown
-                const planNames = getPlanNames();
-                planInput.innerHTML = '<option value="">Select plan</option>' +
-                    planNames.map(p => `<option value="${p}">${p}</option>`).join('');
+    // ============================================================
+    // CLEAR FILTERS
+    // ============================================================
+    window.clearFilters = function () {
+        if (searchInput) searchInput.value = '';
+        if (dateFilter) dateFilter.value = 'all';
+        if (planFilterP) planFilterP.value = 'all';
+        if (methodFilter) methodFilter.value = 'all';
+        filterPayments();
+    };
 
-                // Clear fields
-                customerInput.value = '';
-                planInput.value = '';
-                amountInput.value = '';
-                methodInput.value = '';
-                referenceInput.value = '';
-            };
+    // ============================================================
+    // PLAN FILTER DROPDOWN
+    // ============================================================
+    function populatePlanFilter() {
+        if (!planFilterP) return;
+        const currentVal = planFilterP.value;
+        planFilterP.innerHTML = '<option value="all">All Plans</option>' +
+            allPlans.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+        if (allPlans.some(p => p.name === currentVal)) planFilterP.value = currentVal;
+        else planFilterP.value = 'all';
+    }
 
-            window.closePaymentModal = function() {
-                document.getElementById('paymentModal').classList.remove('active');
-            };
+    function populatePlanInput() {
+        if (!planInput) return;
+        planInput.innerHTML = '<option value="">Select plan</option>' +
+            allPlans.map(p => `<option value="${p.name}">${p.name} (${formatCurrency(p.price)})</option>`).join('');
+    }
 
-            // ============================================================
-            // RECORD PAYMENT
-            // ============================================================
-            window.recordPayment = function() {
-                const customer = customerInput.value.trim();
-                const plan = planInput.value;
-                const amount = Number(amountInput.value);
-                const date = paymentDateInput.value;
-                const method = methodInput.value;
-                const reference = referenceInput.value.trim() || '—';
+    function populateCustomerList() {
+        if (!customerList) return;
+        const names = new Set();
+        allCustomers.forEach(c => names.add(c.name));
+        paymentRecords.forEach(p => { if (p.customerName) names.add(p.customerName); });
+        customerList.innerHTML = Array.from(names).map(n => `<option value="${n}">`).join('');
+    }
 
-                if (!customer || !plan || !amount || !date || !method) {
-                    alert('Please fill all required fields.');
-                    return;
-                }
+    // ============================================================
+    // AUTO-FILL: pick a Service Plan → Amount fills itself
+    // ============================================================
+    if (planInput) {
+        planInput.addEventListener('change', () => {
+            const planName = (planInput.value || '').toLowerCase();
+            const price = planPriceMap[planName] || FALLBACK_PRICES[planName];
+            if (price !== undefined && amountInput) amountInput.value = price;
+        });
+    }
 
-                // Create new payment record
-                const newPayment = {
-                    id: paymentRecords.length + 1,
-                    date: date,
-                    customer: customer,
-                    plan: plan,
-                    amount: amount,
-                    method: method,
-                    reference: reference
-                };
+    // ============================================================
+    // RECORD PAYMENT MODAL
+    // ============================================================
+    window.openPaymentModal = function () {
+        if (!paymentModal) return;
+        paymentModal.classList.add('active');
+        if (paymentDateInput) paymentDateInput.value = getTodayStr();
+        if (customerInput) customerInput.value = '';
+        if (planInput) planInput.value = '';
+        if (amountInput) amountInput.value = '';
+        if (methodInput) methodInput.value = '';
+        if (referenceInput) referenceInput.value = '';
+    };
 
-                paymentRecords.unshift(newPayment);
-                savePayments(paymentRecords);
+    window.closePaymentModal = function () {
+        if (paymentModal) paymentModal.classList.remove('active');
+    };
 
-                closePaymentModal();
-                filterPayments(); // re-render with filters
-                // Also update summary (filterPayments updates summary)
-            };
+    window.recordPayment = async function () {
+        const customerName = (customerInput?.value || '').trim();
+        const planName = planInput?.value;
+        const amount = Number(amountInput?.value);
+        const date = paymentDateInput?.value;
+        const method = methodInput?.value;
+        const reference = (referenceInput?.value || '').trim();
 
-            // ============================================================
-            // VIEW PAYMENT DETAILS (Generic Modal)
-            // ============================================================
-            window.viewPayment = function(id) {
-                const payment = paymentRecords.find(p => p.id === id);
-                if (!payment) return;
+        if (!customerName || !planName || !amount || !date || !method) {
+            alert('Please fill all required fields.');
+            return;
+        }
 
-                const modalOverlay = document.getElementById('modalOverlay');
-                const modalBox = document.getElementById('modalBox');
+        const customer = allCustomers.find(c => c.name === customerName);
+        const plan = allPlans.find(p => p.name === planName);
 
-                modalBox.innerHTML = `
-                        <div class="modal-header">
-                            <h3><i class="fas fa-receipt"></i> Payment Details</h3>
-                            <button type="button" class="modal-close-btn" id="modalCloseBtn"><i class="fas fa-times"></i></button>
-                        </div>
-                        <div class="modal-body">
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.9rem;">
-                                <div><strong>Customer</strong><br>${payment.customer}</div>
-                                <div><strong>Plan</strong><br>${payment.plan}</div>
-                                <div><strong>Amount</strong><br>${formatCurrency(payment.amount)}</div>
-                                <div><strong>Date</strong><br>${formatDate(payment.date)}</div>
-                                <div><strong>Method</strong><br>${payment.method}</div>
-                                <div><strong>Reference</strong><br>${payment.reference}</div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn-secondary" id="modalCloseFooterBtn">Close</button>
-                        </div>
-                    `;
+        const payload = {
+            customerId: customer ? customer.id : null,
+            customerName: customerName,
+            planId: plan ? plan.id : null,
+            planName: planName,
+            amount,
+            paymentDate: date,
+            method: method.toUpperCase().replace(/ /g, '_'),
+            reference: reference || null
+        };
 
-                modalOverlay.classList.add('open');
-
-                const closeModalFn = function() {
-                    modalOverlay.classList.remove('open');
-                };
-                document.getElementById('modalCloseBtn').addEventListener('click', closeModalFn);
-                document.getElementById('modalCloseFooterBtn').addEventListener('click', closeModalFn);
-                modalOverlay.addEventListener('click', function(e) {
-                    if (e.target === modalOverlay) closeModalFn();
-                });
-                document.addEventListener('keydown', function handler(e) {
-                    if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
-                        closeModalFn();
-                        document.removeEventListener('keydown', handler);
-                    }
-                });
-            };
-
-            // ============================================================
-            // POPULATE PLAN FILTER DROPDOWN
-            // ============================================================
-            function populatePlanFilter() {
-                const planNames = getPlanNames();
-                const currentVal = planFilterP.value;
-                planFilterP.innerHTML = '<option value="all">All Plans</option>' +
-                    planNames.map(p => `<option value="${p}">${p}</option>`).join('');
-                if (planNames.includes(currentVal)) planFilterP.value = currentVal;
-                else planFilterP.value = 'all';
-            }
-
-            // ============================================================
-            // SEED DATA (if empty)
-            // ============================================================
-            function seedPayments() {
-                const existing = getPayments();
-                if (existing.length > 0) {
-                    paymentRecords = existing;
-                    return;
-                }
-
-                const customers = getCustomers();
-                if (customers.length === 0) return;
-
-                const methods = ['Bank Transfer', 'Cash', 'POS'];
-                const now = new Date();
-                const records = [];
-                for (let i = 0; i < 30; i++) {
-                    const cust = customers[i % customers.length];
-                    const date = new Date(now);
-                    date.setDate(date.getDate() - Math.floor(Math.random() * 90));
-                    const dateStr = date.toISOString().slice(0, 10);
-                    const amount = Math.round((Math.random() * 30000 + 5000) / 100) * 100; // random 5k-35k
-                    records.push({
-                        id: i + 1,
-                        date: dateStr,
-                        customer: cust.name,
-                        plan: cust.plan,
-                        amount: amount,
-                        method: methods[Math.floor(Math.random() * methods.length)],
-                        reference: 'TRX' + String(i + 1).padStart(5, '0')
-                    });
-                }
-                records.sort((a, b) => b.date.localeCompare(a.date));
-                paymentRecords = records;
-                savePayments(paymentRecords);
-            }
-
-            // ============================================================
-            // SIDEBAR & THEME (shared across pages)
-            // ============================================================
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-
-            function openSidebar() {
-                sidebar.classList.add('open');
-                sidebarOverlay.classList.add('open');
-                hamburgerBtn.classList.add('open');
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('open');
-                hamburgerBtn.classList.remove('open');
-                document.body.style.overflow = '';
-            }
-
-            hamburgerBtn.addEventListener('click', function() {
-                if (sidebar.classList.contains('open')) closeSidebar();
-                else openSidebar();
+        try {
+            const res = await fetch(`${API}/payments`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(payload)
             });
-            closeSidebarBtn.addEventListener('click', closeSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
-            });
-
-            // Theme toggle
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = document.getElementById('themeIcon');
-            let darkMode = false;
-
-            function applyTheme(isDark) {
-                if (isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    themeIcon.className = 'fas fa-sun';
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    themeIcon.className = 'fas fa-moon';
-                }
-                darkMode = isDark;
-                try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || err.message || 'Failed to record payment');
             }
+            closePaymentModal();
+            await loadAllData();
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    };
 
-            try {
-                const saved = localStorage.getItem('prontox-theme');
-                if (saved === 'dark') applyTheme(true);
-                else if (saved === 'light') applyTheme(false);
-                else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-                else applyTheme(false);
-            } catch (_) { applyTheme(false); }
+    // ============================================================
+    // VIEW PAYMENT DETAILS
+    // ============================================================
+    if (paymentTableBody) {
+        paymentTableBody.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.view-btn');
+            if (!btn) return;
+            const id = btn.dataset.id;
+            await openViewModal(id);
+        });
+    }
 
-            themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+    async function openViewModal(id) {
+        const payment = paymentRecords.find(p => p.id === id);
+        if (!payment || !modalOverlay || !modalBox) return;
 
-            // Logo link
-            document.getElementById('logoLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                window.location.href = 'dashboard.html';
-            });
+        modalBox.innerHTML = `
+            <div class="modal-header">
+                <h3><i class="fas fa-receipt"></i> Payment Details</h3>
+                <button type="button" class="modal-close-btn" id="modalCloseBtn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.9rem;">
+                    <div><strong>Customer</strong><br>${payment.customerName || payment.customer}</div>
+                    <div><strong>Plan</strong><br>${payment.planName || payment.plan}</div>
+                    <div><strong>Amount</strong><br>${formatCurrency(payment.amount)}</div>
+                    <div><strong>Date</strong><br>${formatDate(payment.paymentDate || payment.date)}</div>
+                    <div><strong>Method</strong><br>${payment.method || '—'}</div>
+                    <div><strong>Reference</strong><br>${payment.reference || '—'}</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" id="modalCloseFooterBtn">Close</button>
+            </div>`;
 
-            // Avatar click
-            document.getElementById('avatarBtn').addEventListener('click', function() {
-                alert('👤 User profile – would open user settings.');
-            });
+        modalOverlay.classList.add('open');
 
-      // ─── LOGOUT ───
-logoutBtn.addEventListener('click', function(e) {
+        const closeModalFn = () => modalOverlay.classList.remove('open');
+        document.getElementById('modalCloseBtn')?.addEventListener('click', closeModalFn);
+        document.getElementById('modalCloseFooterBtn')?.addEventListener('click', closeModalFn);
+        modalOverlay.addEventListener('click', function handler(e) {
+            if (e.target === modalOverlay) {
+                closeModalFn();
+                modalOverlay.removeEventListener('click', handler);
+            }
+        });
+        document.addEventListener('keydown', function handler(e) {
+            if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+                closeModalFn();
+                document.removeEventListener('keydown', handler);
+            }
+        });
+    }
+
+    // ============================================================
+    // EVENT LISTENERS (filters trigger instant re-render)
+    // ============================================================
+    if (searchInput) searchInput.addEventListener('input', filterPayments);
+    if (dateFilter) dateFilter.addEventListener('change', filterPayments);
+    if (planFilterP) planFilterP.addEventListener('change', filterPayments);
+    if (methodFilter) methodFilter.addEventListener('change', filterPayments);
+
+    // ============================================================
+    // SIDEBAR & THEME (shared across pages)
+    // ============================================================
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+
+    function openSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.add('open');
+        sidebarOverlay && sidebarOverlay.classList.add('open');
+        hamburgerBtn && hamburgerBtn.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+        if (!sidebar) return;
+        sidebar.classList.remove('open');
+        sidebarOverlay && sidebarOverlay.classList.remove('open');
+        hamburgerBtn && hamburgerBtn.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    if (hamburgerBtn) hamburgerBtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) closeSidebar(); });
+
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    let darkMode = false;
+    function applyTheme(isDark) {
+        darkMode = isDark;
+        if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); if (themeIcon) themeIcon.className = 'fas fa-sun'; }
+        else { document.documentElement.removeAttribute('data-theme'); if (themeIcon) themeIcon.className = 'fas fa-moon'; }
+        try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+    }
+    try {
+        const saved = localStorage.getItem('prontox-theme');
+        if (saved === 'dark') applyTheme(true);
+        else if (saved === 'light') applyTheme(false);
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+        else applyTheme(false);
+    } catch (_) { applyTheme(false); }
+    if (themeToggle) themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+    const logoLink = document.getElementById('logoLink');
+    if (logoLink) logoLink.addEventListener('click', (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; });
+    const avatarBtn = document.getElementById('avatarBtn');
+    if (avatarBtn) avatarBtn.addEventListener('click', () => alert('👤 User profile – would open user settings.'));
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm('Are you sure you want to log out?')) {
+            localStorage.removeItem('prontolog_token');
+            localStorage.removeItem('prontolog_user_id');
+            window.location.href = 'login.html';
+        }
+    });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    loadAllData();
+    console.log('✅ Payments page connected to live API.');
+})();
+</script>
+<script>
+// UNIVERSAL LOGOUT FIX - Paste at the bottom of all pages
+document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
     e.preventDefault();
+    e.stopImmediatePropagation(); // Stops the old broken logout from running
     if (confirm('Are you sure you want to log out?')) {
-        // Clear session from localStorage
-        localStorage.removeItem('prontox_session');
-        // Redirect to login page
+        localStorage.clear(); // Nukes all tokens - guaranteed logout
         window.location.href = 'login.html';
     }
-});
-
-            // ============================================================
-            // INIT
-            // ============================================================
-            populatePlanFilter();
-            seedPayments();
-            filterPayments(); // render and update summary
-
-            console.log('✅ Payments page ready.');
-            console.log('✅ Connected to: dashboard, customer, income-projection, monthly-income, projection-vs-actual, settings');
-        })();
-    </script>
+}, true);
+</script>
 
 </body>
 </html>

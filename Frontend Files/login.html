@@ -276,7 +276,6 @@
                                         <input
                                         type="email"
                                         id="loginEmail"
-                                        value="controller@enterprise-accounting.com"
                                         required
                                         class="w-full pl-10 pr-4 py-3 bg-white text-[#1A2332] text-sm rounded-[14px] border border-[#E2E8F0] placeholder-[#94A3B8] focus:outline-none focus:border-[#00AFEF] focus:ring-4 focus:ring-[#E6F6FE] transition-all input-bg"
                                         placeholder="name@company.com"
@@ -296,7 +295,6 @@
                                         <input
                                         type="password"
                                         id="loginPassword"
-                                        value="Password123!"
                                         required
                                         class="w-full pl-10 pr-11 py-3 bg-white text-[#1A2332] text-sm rounded-[14px] border border-[#E2E8F0] placeholder-[#94A3B8] focus:outline-none focus:border-[#00AFEF] focus:ring-4 focus:ring-[#E6F6FE] transition-all input-bg"
                                         placeholder="••••••••••••"
@@ -465,7 +463,7 @@
             'use strict';
 
             // ─── API CONFIGURATION ───
-            const API_BASE_URL = 'http://127.0.0.1:5001/api';
+            const API_BASE_URL = 'http://localhost:5001/api';
             const loginForm = document.getElementById('loginForm');
             const signupForm = document.getElementById('signupForm');
             const forgotForm = document.getElementById('forgotForm');
@@ -601,7 +599,7 @@
                 }
             });
 
-            // ─── LOGIN HANDLER (REAL API) ───
+            // ─── LOGIN HANDLER (REAL API - FIXED STRUCTURE) ───
             async function handleLogin(e) {
                 e.preventDefault();
                 const email = loginEmail.value.trim();
@@ -615,8 +613,10 @@
                     const res = await fetch(`${API_BASE_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
                     const data = await res.json();
                     if (res.ok && data.success) {
-                        localStorage.setItem('prontox_token', data.data.token);
-                        localStorage.setItem('prontox_session', JSON.stringify({ email: data.data.user.email, name: data.data.user.fullName, loggedIn: true }));
+                        // FIX: Read data.token directly, not data.data.token
+                        localStorage.setItem('prontox_token', data.token);
+                        localStorage.setItem('prontox_user_id', data.user.id);
+                        localStorage.setItem('prontox_session', JSON.stringify({ email: data.user.email, name: data.user.firstName + ' ' + data.user.lastName, loggedIn: true }));
                         window.location.href = 'dashboard.html';
                     } else {
                         loginError.textContent = data.message || 'Login failed.';
@@ -642,7 +642,7 @@
                 }
             });
 
-            // ─── SIGNUP HANDLER (REAL API) ───
+            // ─── SIGNUP HANDLER (REAL API - FIXED STRUCTURE) ───
             async function handleSignup(e) {
                 e.preventDefault();
                 const firstName = signupFirstName.value.trim();
@@ -659,8 +659,10 @@
                     const res = await fetch(`${API_BASE_URL}/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ firstName, lastName, email, password }) });
                     const data = await res.json();
                     if (res.ok && data.success) {
-                        localStorage.setItem('prontox_token', data.data.token);
-                        localStorage.setItem('prontox_session', JSON.stringify({ email: data.data.user.email, name: data.data.user.fullName, loggedIn: true }));
+                        // FIX: Read data.token directly, not data.data.token
+                        localStorage.setItem('prontox_token', data.token);
+                        localStorage.setItem('prontox_user_id', data.user.id);
+                        localStorage.setItem('prontox_session', JSON.stringify({ email: data.user.email, name: data.user.firstName + ' ' + data.user.lastName, loggedIn: true }));
                         window.location.href = 'dashboard.html';
                     } else {
                         signupError.textContent = data.message || 'Signup failed.';

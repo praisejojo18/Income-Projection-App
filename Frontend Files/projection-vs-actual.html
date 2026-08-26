@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prontox · Projection vs Actual</title>
 
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
         /* ============================================================
@@ -860,270 +858,242 @@
     </main>
 
     <!-- ─── JAVASCRIPT ─── -->
-   <script>
+    <script>
 (function () {
-  'use strict';
+    'use strict';
 
-  /* ============================================================
-     CONFIG — if any element uses a different ID on your page,
-     fix it HERE in one place only.
-  ============================================================ */
-  const IDS = {
-    // Shared UI (navbar / sidebar / theme)
-    hamburger: 'hamburgerBtn',
-    sidebar: 'sidebar',
-    overlay: 'sidebarOverlay',
-    closeSidebar: 'closeSidebarBtn',
-    themeToggle: 'themeToggle',
-    themeIcon: 'themeIcon',
-    avatar: 'avatarBtn',
-    logout: 'logoutBtn',
-    // Income Projection page
-    openFormBtn: 'openFormBtn',
-    form: 'projectionForm',
-    cancelBtn: 'cancelBtn',
-    saveBtn: 'saveBtn',
-    date: 'projDate',
-    plan: 'projPlan',
-    threeDay: 'projThreeDay',
-    oneWeek: 'projOneWeek',
-    oneMonth: 'projOneMonth',
-    oneYear: 'projOneYear',
-    tableBody: 'projBody',
-    storedTitle: 'storedTitle'
-  };
+    const API = 'http://localhost:5001/api';
 
-  const API = 'http://localhost:5001/api';
-  const $ = (id) => document.getElementById(id);
-
-  const getHeaders = () => {
-    const h = { 'Content-Type': 'application/json' };
-    const token = localStorage.getItem('prontolog_token');
-    if (token) h['Authorization'] = 'Bearer ' + token;
-    h['x-user-id'] = localStorage.getItem('prontolog_user_id') || 'af606104-2914-4b9c-9c1d-c3a103642103';
-    return h;
-  };
-
-  const fmt = (n) => '₦' + Number(n || 0).toLocaleString('en-NG');
-
-  /* ============================================================
-     1) HAMBURGER / SIDEBAR
-  ============================================================ */
-  const sidebar = $(IDS.sidebar);
-  const overlay = $(IDS.overlay);
-  const hamburger = $(IDS.hamburger);
-  const closeSidebarBtn = $(IDS.closeSidebar);
-
-  function openSidebar() {
-    if (!sidebar) return;
-    sidebar.classList.add('open');
-    overlay && overlay.classList.add('open');
-    hamburger && hamburger.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeSidebar() {
-    if (!sidebar) return;
-    sidebar.classList.remove('open');
-    overlay && overlay.classList.remove('open');
-    hamburger && hamburger.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  hamburger && hamburger.addEventListener('click', () =>
-    sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
-  closeSidebarBtn && closeSidebarBtn.addEventListener('click', closeSidebar);
-  overlay && overlay.addEventListener('click', closeSidebar);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) closeSidebar();
-  });
-
-  /* ============================================================
-     2) DARK MODE (same key & logic as your other pages)
-  ============================================================ */
-  const themeToggle = $(IDS.themeToggle);
-  const themeIcon = $(IDS.themeIcon);
-  let darkMode = false;
-
-  function applyTheme(isDark) {
-    darkMode = isDark;
-    if (isDark) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      if (themeIcon) themeIcon.className = 'fas fa-sun';
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      if (themeIcon) themeIcon.className = 'fas fa-moon';
-    }
-    try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
-  }
-
-  try {
-    const saved = localStorage.getItem('prontox-theme');
-    if (saved === 'dark') applyTheme(true);
-    else if (saved === 'light') applyTheme(false);
-    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-    else applyTheme(false);
-  } catch (_) { applyTheme(false); }
-
-  themeToggle && themeToggle.addEventListener('click', () => applyTheme(!darkMode));
-
-  /* Avatar + Logout */
-  $(IDS.avatar) && $(IDS.avatar).addEventListener('click', () => alert('👤 User profile – would open user settings.'));
-  $(IDS.logout) && $(IDS.logout).addEventListener('click', (e) => {
-    e.preventDefault();
-    if (confirm('Are you sure you want to log out?')) {
-      localStorage.removeItem('prontolog_token');
-      localStorage.removeItem('prontolog_user_id');
-      window.location.href = 'login.html';
-    }
-  });
-
-  /* ============================================================
-     3) PROJECTIONS (API wiring)
-  ============================================================ */
-  const TF_MAP = { daily: 'threeDay', weekly: 'oneWeek', monthly: 'oneMonth', annually: 'oneYear' };
-  let projections = [];
-  let editingId = null;
-  let currentTF = 'daily';
-
-  const form = $(IDS.form);
-  const openBtn = $(IDS.openFormBtn);
-  const cancelBtn = $(IDS.cancelBtn);
-  const saveBtn = $(IDS.saveBtn);
-  const tbody = $(IDS.tableBody) || document.querySelector('table tbody');
-
-  function showForm(show) {
-    if (!form) return;
-    form.classList.toggle('hidden', !show);
-    form.style.display = show ? '' : 'none';
-  }
-
-  function resetForm() {
-    editingId = null;
-    form && form.reset();
-    showForm(false);
-    if (saveBtn) saveBtn.textContent = 'Save Projection';
-  }
-
-  async function load() {
-    try {
-      const res = await fetch(API + '/projections', { headers: getHeaders() });
-      const data = await res.json();
-      projections = data.projections || [];
-
-      const sel = $(IDS.plan);
-      if (sel && data.plans) {
-        const keep = sel.value;
-        sel.innerHTML = '<option value="">Select Plan</option>' +
-          data.plans.map((p) => '<option value="' + p.id + '">' + p.name + '</option>').join('');
-        if (keep) sel.value = keep;
-      }
-      render();
-    } catch (err) {
-      console.error('Failed to load projections:', err);
-    }
-  }
-
-  function render() {
-    const title = $(IDS.storedTitle);
-    if (title) title.textContent = 'Stored Projections (' + projections.length + ' entries)';
-    if (!tbody) return;
-
-    const field = TF_MAP[currentTF];
-    if (!projections.length) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-muted);">No projections found. Create your first projection above!</td></tr>';
-      return;
-    }
-
-    tbody.innerHTML = projections.map((p) =>
-      '<tr>' +
-        '<td>' + new Date(p.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + '</td>' +
-        '<td>' + p.planName + '</td>' +
-        '<td>' + (p[field] !== null && p[field] !== undefined ? fmt(p[field]) : '—') + '</td>' +
-        '<td>' +
-          '<button class="btn small" data-edit="' + p.id + '">Edit</button> ' +
-          '<button class="btn small danger" data-del="' + p.id + '">Delete</button>' +
-        '</td>' +
-      '</tr>').join('');
-  }
-
-  /* Edit / Delete (delegated, survives re-renders) */
-  tbody && tbody.addEventListener('click', async (e) => {
-    const editBtn = e.target.closest('[data-edit]');
-    const delBtn = e.target.closest('[data-del]');
-
-    if (editBtn) {
-      const p = projections.find((x) => x.id === editBtn.dataset.edit);
-      if (!p) return;
-      editingId = p.id;
-      showForm(true);
-      $(IDS.plan).value = p.planId;
-      $(IDS.date).value = p.date ? p.date.slice(0, 10) : '';
-      $(IDS.threeDay).value = p.threeDay ?? '';
-      $(IDS.oneWeek).value = p.oneWeek ?? '';
-      $(IDS.oneMonth).value = p.oneMonth ?? '';
-      $(IDS.oneYear).value = p.oneYear ?? '';
-      if (saveBtn) saveBtn.textContent = 'Update Projection';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    if (delBtn) {
-      if (!confirm('Delete this projection?')) return;
-      await fetch(API + '/projections/' + delBtn.dataset.del, { method: 'DELETE', headers: getHeaders() });
-      load();
-    }
-  });
-
-  /* Open / Cancel */
-  openBtn && openBtn.addEventListener('click', () => {
-    const hiddenNow = !form || form.classList.contains('hidden') ||
-      form.style.display === 'none' || getComputedStyle(form).display === 'none';
-    showForm(hiddenNow);
-    const d = $(IDS.date);
-    if (hiddenNow && d && !d.value) d.value = new Date().toISOString().slice(0, 10);
-  });
-
-  cancelBtn && cancelBtn.addEventListener('click', resetForm);
-
-  /* Save / Update */
-  form && form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const payload = {
-      planId: $(IDS.plan).value,
-      date: $(IDS.date).value,
-      threeDay: $(IDS.threeDay).value === '' ? null : Number($(IDS.threeDay).value),
-      oneWeek: $(IDS.oneWeek).value === '' ? null : Number($(IDS.oneWeek).value),
-      oneMonth: $(IDS.oneMonth).value === '' ? null : Number($(IDS.oneMonth).value),
-      oneYear: $(IDS.oneYear).value === '' ? null : Number($(IDS.oneYear).value)
+    const getHeaders = () => {
+        const h = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('prontolog_token');
+        if (token) h['Authorization'] = 'Bearer ' + token;
+        h['x-user-id'] = localStorage.getItem('prontolog_user_id') || 'af606104-2914-4b9c-9c1d-c3a103642103';
+        return h;
     };
-    if (!payload.planId || !payload.date) { alert('Pick a plan and a date.'); return; }
 
-    const res = await fetch(
-      editingId ? API + '/projections/' + editingId : API + '/projections',
-      { method: editingId ? 'PUT' : 'POST', headers: getHeaders(), body: JSON.stringify(payload) }
-    );
-    const data = await res.json();
-    if (res.ok) { resetForm(); load(); }
-    else alert(data.message || 'Save failed');
-  });
+    const fmt = (n) => '₦' + Math.abs(Number(n) || 0).toLocaleString('en-NG');
 
-  /* Timeframe tabs — by data-tf attribute OR by button text */
-  let tabButtons = Array.from(document.querySelectorAll('[data-tf]'));
-  if (!tabButtons.length) {
-    tabButtons = Array.from(document.querySelectorAll('button, .tab')).filter((b) =>
-      /^(Daily|Weekly|Monthly|Annually)/i.test(b.textContent.trim()));
-  }
-  tabButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      tabButtons.forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentTF = btn.dataset.tf || btn.textContent.trim().toLowerCase().split(' ')[0] || 'daily';
-      render();
+    let chartInstance = null;
+
+    // ============================================================
+    // AUTO-DETECT ELEMENTS
+    // ============================================================
+    function setValueByLabel(labelText, value, color) {
+        const leaves = Array.from(document.querySelectorAll('div, span, h3, p, dt'))
+            .filter(n => n.children.length === 0)
+            .find(n => n.textContent.trim().toLowerCase() === labelText);
+        if (!leaves) { console.warn('PVA: label not found →', labelText); return; }
+        const container = leaves.closest('.summary-card') || leaves.parentElement;
+        const valueEl = container.querySelector('.value') || leaves.nextElementSibling;
+        if (!valueEl) return;
+        valueEl.textContent = value;
+        if (color) valueEl.style.color = color;
+    }
+
+    const selects = Array.from(document.querySelectorAll('select'));
+    let timeframeSelect = null, planSelect = null;
+    selects.forEach(s => {
+        const opts = Array.from(s.options).map(o => o.textContent.toLowerCase());
+        if (opts.some(t => t.includes('daily') || t.includes('3-day'))) timeframeSelect = s;
+        else if (opts.some(t => t.includes('all plans'))) planSelect = s;
     });
-  });
 
-  load();
-  console.log('✅ Income Projection wired: API + sidebar + dark mode.');
+    const tbody = document.querySelector('table tbody');
+
+    function findEmptyState() {
+        const cands = Array.from(document.querySelectorAll('div, section, p'))
+            .filter(n => n.textContent.includes('No projection data available'));
+        if (!cands.length) return null;
+        const withLink = cands.filter(n => n.textContent.includes('Go to Income Projection'));
+        return (withLink.length ? withLink : cands)
+            .sort((a, b) => a.textContent.length - b.textContent.length)[0];
+    }
+    const emptyState = findEmptyState();
+
+    function tfValue() {
+        if (!timeframeSelect) return 'monthly';
+        const t = (timeframeSelect.selectedOptions[0] ? timeframeSelect.selectedOptions[0].textContent : '').toLowerCase();
+        if (t.includes('daily') || t.includes('3-day')) return 'daily';
+        if (t.includes('weekly')) return 'weekly';
+        if (t.includes('annual')) return 'annually';
+        return 'monthly';
+    }
+
+    function statusHtml(status) {
+        const s = String(status).toLowerCase();
+        let color = '#94A3B8', bg = 'rgba(148,163,184,.12)';
+        if (s === 'achieved') { color = '#10b981'; bg = 'rgba(16,185,129,.12)'; }
+        else if (s === 'on track') { color = '#f59e0b'; bg = 'rgba(245,158,11,.12)'; }
+        else if (s === 'below target') { color = '#ef4444'; bg = 'rgba(239,68,68,.12)'; }
+        else if (s === 'in progress') { color = '#00AFEF'; bg = 'rgba(0,175,239,.12)'; }
+        return '<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;color:' + color + ';background:' + bg + ';">' + status + '</span>';
+    }
+
+    // ============================================================
+    // LOAD + RENDER
+    // ============================================================
+    async function load() {
+        try {
+            const tf = tfValue();
+            const planId = planSelect ? planSelect.value : '';
+            const url = API + '/actual/projection-vs-actual?timeframe=' + tf +
+                (planId && planId !== 'all' ? '&planId=' + planId : '');
+
+            const res = await fetch(url, { headers: getHeaders() });
+            const d = await res.json();
+            if (!res.ok) throw new Error(d.error || 'Failed to load');
+
+            // Summary cards
+            setValueByLabel('total projected', fmt(d.summary.totalProjected));
+            setValueByLabel('total actual', fmt(d.summary.totalActual));
+            setValueByLabel('variance', (d.summary.variance >= 0 ? '+' : '−') + fmt(d.summary.variance),
+                d.summary.variance >= 0 ? '#10b981' : '#ef4444');
+            setValueByLabel('accuracy', d.summary.accuracy + '%');
+
+            // Populate plan dropdown once
+            if (planSelect && !planSelect.dataset.filled) {
+                (d.plans || []).forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id; opt.textContent = p.name;
+                    planSelect.appendChild(opt);
+                });
+                planSelect.dataset.filled = '1';
+            }
+
+            // Table
+            if (tbody) {
+                if (!d.rows.length) {
+                    tbody.innerHTML = '';
+                    if (emptyState) emptyState.style.display = '';
+                } else {
+                    if (emptyState) emptyState.style.display = 'none';
+                    tbody.innerHTML = d.rows.map(r =>
+                        '<tr>' +
+                        '<td>' + r.period + '</td>' +
+                        '<td>' + r.plan + '</td>' +
+                        '<td>' + fmt(r.projection) + '</td>' +
+                        '<td>' + fmt(r.actual) + '</td>' +
+                        '<td style="color:' + (r.variance >= 0 ? '#10b981' : '#ef4444') + ';">' + (r.variance >= 0 ? '+' : '−') + fmt(r.variance) + '</td>' +
+                        '<td>' + statusHtml(r.status) + '</td>' +
+                        '</tr>').join('');
+                }
+            }
+
+            // ============================================================
+            // BULLETPROOF CHART: destroys hijacker charts, creates canvas if missing
+            // ============================================================
+            let chartCanvas = document.querySelector('canvas');
+            if (!chartCanvas) {
+                chartCanvas = document.createElement('canvas');
+                const box = document.createElement('div');
+                box.style.cssText = 'margin:24px 0;height:320px;position:relative;';
+                box.appendChild(chartCanvas);
+                const tableEl = document.querySelector('table');
+                if (tableEl) (tableEl.closest('div') || tableEl.parentElement).before(box);
+                else if (document.querySelector('main')) document.querySelector('main').appendChild(box);
+            }
+
+            if (window.Chart) {
+                const hijacker = Chart.getChart(chartCanvas);   // colleague's chart squatting on the canvas
+                if (hijacker) hijacker.destroy();
+                if (chartInstance) chartInstance.destroy();
+
+                const parent = chartCanvas.parentElement;
+                if (parent) {
+                    parent.style.position = 'relative';
+                    if (parent.clientHeight < 50) parent.style.height = '320px';
+                }
+
+                chartInstance = new Chart(chartCanvas.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: d.chart.map(c => c.period),
+                        datasets: [
+                            { label: 'Projection', data: d.chart.map(c => c.projection), backgroundColor: '#00AFEF', borderRadius: 4 },
+                            { label: 'Actual', data: d.chart.map(c => c.actual), backgroundColor: '#10b981', borderRadius: 4 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'bottom' },
+                            tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ₦' + ctx.parsed.y.toLocaleString() } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { callback: (v) => v >= 1000000 ? (v / 1000000) + 'M' : v >= 1000 ? (v / 1000) + 'k' : v } }
+                        }
+                    }
+                });
+            } else {
+                console.warn('PVA: Chart.js NOT loaded — check the CDN line inside <head>.');
+            }
+        } catch (err) {
+            console.error('PVA load error:', err);
+        }
+    }
+
+    if (timeframeSelect) timeframeSelect.addEventListener('change', load);
+    if (planSelect) planSelect.addEventListener('change', load);
+
+    // ============================================================
+    // SIDEBAR & THEME (shared)
+    // ============================================================
+    const sidebar = document.getElementById('sidebar'), sidebarOverlay = document.getElementById('sidebarOverlay'),
+        hamburgerBtn = document.getElementById('hamburgerBtn'), closeSidebarBtn = document.getElementById('closeSidebarBtn');
+    function openSidebar() { if (!sidebar) return; sidebar.classList.add('open'); sidebarOverlay && sidebarOverlay.classList.add('open'); hamburgerBtn && hamburgerBtn.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeSidebar() { if (!sidebar) return; sidebar.classList.remove('open'); sidebarOverlay && sidebarOverlay.classList.remove('open'); hamburgerBtn && hamburgerBtn.classList.remove('open'); document.body.style.overflow = ''; }
+    if (hamburgerBtn) hamburgerBtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+    if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sidebar && sidebar.classList.contains('open')) closeSidebar(); });
+
+    const themeToggle = document.getElementById('themeToggle'), themeIcon = document.getElementById('themeIcon');
+    let darkMode = false;
+    function applyTheme(isDark) {
+        darkMode = isDark;
+        if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); if (themeIcon) themeIcon.className = 'fas fa-sun'; }
+        else { document.documentElement.removeAttribute('data-theme'); if (themeIcon) themeIcon.className = 'fas fa-moon'; }
+        try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+    }
+    try {
+        const saved = localStorage.getItem('prontox-theme');
+        if (saved === 'dark') applyTheme(true);
+        else if (saved === 'light') applyTheme(false);
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+        else applyTheme(false);
+    } catch (_) { applyTheme(false); }
+    if (themeToggle) themeToggle.addEventListener('click', () => applyTheme(!darkMode));
+
+    const logoLink = document.getElementById('logoLink');
+    if (logoLink) logoLink.addEventListener('click', (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; });
+    const avatarBtn = document.getElementById('avatarBtn');
+    if (avatarBtn) avatarBtn.addEventListener('click', () => alert('👤 User profile – would open user settings.'));
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm('Are you sure you want to log out?')) {
+            localStorage.removeItem('prontolog_token');
+            localStorage.removeItem('prontolog_user_id');
+            window.location.href = 'login.html';
+        }
+    });
+
+    load();
+    console.log('✅ Projection vs Actual connected to live API (bulletproof chart).');
 })();
+</script>
+<script>
+// UNIVERSAL LOGOUT FIX - Paste at the bottom of all pages
+document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopImmediatePropagation(); // Stops the old broken logout from running
+    if (confirm('Are you sure you want to log out?')) {
+        localStorage.clear(); // Nukes all tokens - guaranteed logout
+        window.location.href = 'login.html';
+    }
+}, true);
 </script>
 
 </body>
