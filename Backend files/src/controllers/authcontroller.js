@@ -26,48 +26,15 @@ const verifyPassword = (password, stored) => {
 const signToken = (user) =>
   jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
-const publicUser = (user) => ({
+  const publicUser = (user) => ({
   id: user.id,
   firstName: user.firstName,
   lastName: user.lastName,
-  email: user.email
+  email: user.email,
+  role: user.role  // 👈 ADD THIS LINE
 });
 
-/* ---- POST /api/auth/register ---- */
-exports.register = async (req, res) => {
-  try {
-    const { firstName, lastName, email, password } = req.body;
 
-    if (!firstName || !lastName || !email || !password) {
-      return res.status(400).json({ success: false, message: "All fields are required." });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
-    }
-
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      return res.status(409).json({ success: false, message: "Email already registered." });
-    }
-
-    const user = await prisma.user.create({
-      data: { firstName, lastName, email, password: hashPassword(password) }
-    });
-
-    // Auto-create empty settings so the Settings page doesn't crash later
-    await prisma.settings.create({ data: { userId: user.id } }).catch(() => {});
-
-    res.status(201).json({
-      success: true,
-      message: "Account created successfully.",
-      token: signToken(user),
-      user: publicUser(user)
-    });
-  } catch (error) {
-    console.error("Register error:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
 
 /* ---- POST /api/auth/login ---- */
 exports.login = async (req, res) => {

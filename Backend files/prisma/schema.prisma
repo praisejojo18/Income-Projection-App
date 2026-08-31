@@ -7,58 +7,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// USER — colleague's ownership (dependency)
-nt[]
-  projections Project
 model User {
   id        String   @id @default(uuid())
   firstName String
   lastName  String
   email     String   @unique
+  role      Role     @default(USER)
   password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
 
-  settings    Settings?
+  settings    Setting?
   plans       Plan[]
   customers   Customer[]
-  payments    Paymeion[]
+  payments    Payment[]
+  projections Projection[]
 
   @@map("users")
 }
 
-// SETTINGS — your page
-model Settings {
-  id            String   @id @default(uuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Setting {
+  id            String  @id @default(uuid())
+  userId        String  @unique
+  workspaceName String  @default("My Workspace")
+  darkMode      Boolean @default(false)
+  language      String  @default("en-US")
+  notifications Boolean @default(true)
+  currency      String  @default("NGN")
+  createdAt     DateTime @default(now()) @db.DateTime(3)
+  updatedAt     DateTime @updatedAt @db.DateTime(3)
 
-  workspaceName String   @default("My Workspace")
-  darkMode      Boolean  @default(false)
-  language      String   @default("en-US")
-  notifications Boolean  @default(true)
-  currency      String   @default("NGN")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("settings")
 }
 
-// PLAN — your page (Plans & Pricing)
 model Plan {
-  id           String     @id @default(uuid())
+  id           String   @id @default(uuid())
   userId       String
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   name         String
-  price        Decimal    @db.Decimal(12, 2)
+  price        Decimal  @db.Decimal(12, 2)
   durationDays Int
   status       PlanStatus @default(ACTIVE)
+  createdAt    DateTime @default(now()) @db.DateTime(3)
+  updatedAt    DateTime @updatedAt @db.DateTime(3)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   customers   Customer[]
   payments    Payment[]
   projections Projection[]
@@ -73,24 +67,21 @@ enum PlanStatus {
   ARCHIVED
 }
 
-// CUSTOMER — colleague's ownership (dependency)
 model Customer {
   id            String         @id @default(uuid())
   userId        String
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   name          String
   email         String?
   phone         String?
   planId        String
-  plan          Plan           @relation(fields: [planId], references: [id])
-  expiryDate    DateTime
+  expiryDate    DateTime       @db.DateTime(3)
   status        CustomerStatus @default(ACTIVE)
-  customerSince DateTime       @default(now())
+  customerSince DateTime       @default(now()) @db.DateTime(3)
+  createdAt     DateTime       @default(now()) @db.DateTime(3)
+  updatedAt     DateTime       @updatedAt @db.DateTime(3)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
   payments Payment[]
 
   @@index([userId])
@@ -104,24 +95,21 @@ enum CustomerStatus {
   INACTIVE
 }
 
-// PAYMENT — your page
 model Payment {
-  id          String        @id @default(uuid())
+  id          String         @id @default(uuid())
   userId      String
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   customerId  String
-  customer    Customer      @relation(fields: [customerId], references: [id])
   planId      String
-  plan        Plan          @relation(fields: [planId], references: [id])
-
-  amount      Decimal       @db.Decimal(12, 2)
-  paymentDate DateTime      @default(now())
+  amount      Decimal        @db.Decimal(12, 2)
+  paymentDate DateTime       @default(now()) @db.DateTime(3)
   method      PaymentMethod
   reference   String
+  createdAt   DateTime       @default(now()) @db.DateTime(3)
+  updatedAt   DateTime       @updatedAt @db.DateTime(3)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id])
+  plan     Plan     @relation(fields: [planId], references: [id])
 
   @@unique([userId, reference])
   @@index([userId, paymentDate])
@@ -136,25 +124,27 @@ enum PaymentMethod {
   POS
 }
 
-// PROJECTION — your page
 model Projection {
-  id       String   @id @default(uuid())
-  userId   String
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  userId    String
+  planId    String
+  date      DateTime @db.Date
+  threeDay  Decimal? @db.Decimal(12, 2)
+  oneWeek   Decimal? @db.Decimal(12, 2)
+  oneMonth  Decimal? @db.Decimal(12, 2)
+  oneYear   Decimal? @db.Decimal(12, 2)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @updatedAt @db.DateTime(3)
 
-  planId   String
-  plan     Plan     @relation(fields: [planId], references: [id])
-  date     DateTime @db.Date
-
-  threeDay Decimal? @db.Decimal(12, 2)
-  oneWeek  Decimal? @db.Decimal(12, 2)
-  oneMonth Decimal? @db.Decimal(12, 2)
-  oneYear  Decimal? @db.Decimal(12, 2)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id])
 
   @@unique([userId, planId, date])
   @@index([userId, date])
   @@map("projections")
+}
+
+enum Role {
+  SUPER_ADMIN
+  USER
 }

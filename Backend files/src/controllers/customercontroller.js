@@ -1,5 +1,5 @@
 const prisma = require("../config/database");
-const Customer = require("../models/Customer");
+const Customer = require("../models/customer");
 const {
   validateCustomerData,
   validateExtendData
@@ -384,14 +384,25 @@ exports.getUserPlans = async (req, res) => {
    POST /api/customers/import — bulk import from CSV rows
    Body: { rows: [ { name, plan, expiryDate, email?, phone? }, ... ] }
 ===================================================== */
+  /* =====================================================
+   POST /api/customers/import — bulk import from CSV rows
+   Body: { rows: [ { name, plan, expiryDate, email?, phone? }, ... ], replace: boolean }
+===================================================== */
 exports.importCustomers = async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ error: "User ID is required." });
 
     const rows = req.body.rows;
+    const replace = req.body.replace === true; // 🆕 Clear existing customers first
+
     if (!Array.isArray(rows) || rows.length === 0)
       return res.status(400).json({ error: "No rows provided. Send { rows: [...] }." });
+
+    // 🆕 If replace mode, delete all existing customers for this user
+    if (replace) {
+      await prisma.customer.deleteMany({ where: { userId } });
+    }
 
     const plans = await prisma.plan.findMany({ where: { userId } });
     const planByName = {};
@@ -411,7 +422,6 @@ exports.importCustomers = async (req, res) => {
 
       let expiryDate = new Date(r.expiryDate || r.expiry || "");
       if (isNaN(expiryDate.getTime())) {
-        // No valid date given → default to today + plan duration
         expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + (plan.durationDays || 30));
       }
@@ -437,9 +447,12 @@ exports.importCustomers = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: `Imported ${created.length} customer(s), ${errors.length} error(s).`,
+      message: replace 
+        ? `Replaced all customers. Imported ${created.length} new customer(s), ${errors.length} error(s).`
+        : `Imported ${created.length} customer(s), ${errors.length} error(s).`,
       imported: created.length,
       failed: errors.length,
+      replaced: replace,
       errors
     });
   } catch (error) {
