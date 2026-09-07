@@ -1151,6 +1151,7 @@
     let allPlans = [];
     let allCustomers = [];
     let planPriceMap = {};
+    let selectedCustomer = null; // 🆕 Tracks the currently selected customer
 
     // ============================================================
     // LOAD INITIAL DATA
@@ -1175,7 +1176,7 @@
 
             populatePlanFilter();
             populatePlanInput();
-            populateCustomerList();
+            setupCustomerSearch(); // 🆕 Replace old datalist with searchable dropdown
             filterPayments();
         } catch (err) {
             console.error('Failed to load payments data:', err);
@@ -1246,8 +1247,9 @@
 
         const filtered = paymentRecords.filter(p => {
             const cust = (p.customerName || p.customer || '').toLowerCase();
+            const custId = (p.customerId || '').toLowerCase();
             const ref = (p.reference || '').toLowerCase();
-            const matchSearch = !search || cust.includes(search) || ref.includes(search);
+            const matchSearch = !search || cust.includes(search) || custId.includes(search) || ref.includes(search);
 
             const planName = p.planName || p.plan || '';
             const matchPlan = plan === 'all' || planName === plan;
@@ -1297,12 +1299,184 @@
             allPlans.map(p => `<option value="${p.name}">${p.name} (${formatCurrency(p.price)})</option>`).join('');
     }
 
-    function populateCustomerList() {
-        if (!customerList) return;
-        const names = new Set();
-        allCustomers.forEach(c => names.add(c.name));
-        paymentRecords.forEach(p => { if (p.customerName) names.add(p.customerName); });
-        customerList.innerHTML = Array.from(names).map(n => `<option value="${n}">`).join('');
+    // ============================================================
+    // 🆕 CUSTOMER SEARCH DROPDOWN (replaces old datalist)
+    // Searches by name OR customer ID
+    // ============================================================
+    function setupCustomerSearch() {
+        if (!customerInput) return;
+
+        // Remove autocomplete attribute to kill browser suggestions
+        customerInput.setAttribute('autocomplete', 'off');
+        customerInput.placeholder = 'Search by name or customer ID...';
+
+        // Create dropdown container if it doesn't exist
+        let dropdown = document.getElementById('customerSearchDropdown');
+        if (!dropdown) {
+            dropdown = document.createElement('div');
+            dropdown.id = 'customerSearchDropdown';
+            dropdown.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                max-height: 240px;
+                overflow-y: auto;
+                z-index: 1000;
+                margin-top: 4px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+                display: none;
+            `;
+            // Wrap customerInput in a relative container if needed
+            let wrapper = customerInput.parentElement;
+            if (getComputedStyle(wrapper).position === 'static') {
+                wrapper.style.position = 'relative';
+            }
+            wrapper.appendChild(dropdown);
+        }
+
+        // Render dropdown items
+        function renderDropdown(matches) {
+            if (!matches.length) {
+                dropdown.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:0.85rem;text-align:center;">No customers found</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            dropdown.innerHTML = matches.map(c => {
+                const planName = c.plan?.name || 'No plan';
+                const shortId = (c.id || '').slice(0, 8);
+                return `
+                    <div class="customer-search-item" data-customer-id="${c.id}" style="
+                        padding: 10px 14px;
+                        cursor: pointer;
+                        border-bottom: 1px solid var(--border);
+                        transition: background 0.15s;
+                    " onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='transparent'">
+                        <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">${c.name}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
+                            <span style="font-family:monospace;">ID: ${shortId}...</span>
+                            &nbsp;·&nbsp;
+                            <span>${planName}</span>
+                            ${c.amount ? `&nbsp;·&nbsp;<span style="color:var(--accent);">${formatCurrency(c.amount)}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            dropdown.style.display = 'block';
+
+            // Attach click handlers
+            dropdown.querySelectorAll('.customer-search-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const customerId = item.dataset.customerId;
+                    selectCustomer(customerId);
+                });
+            });
+        }
+
+        // Select a customer → auto-fill form
+        function selectCustomer(customerId) {
+            const customer = allCustomers.find(c => c.id === customerId);
+            if (!customer) return;
+
+            selectedCustomer = customer;
+            customerInput.value = customer.name;
+            dropdown.style.display = 'none';
+
+            // Auto-fill plan
+            if (planInput && customer.plan?.name) {
+                planInput.value = customer.plan.name;
+            }
+
+            // Auto-fill amount
+            if (amountInput) {
+                const price = customer.amount || customer.plan?.price || 0;
+                if (price > 0) amountInput.value = price;
+            }
+
+            // Show selected customer info hint
+            showSelectedCustomerHint(customer);
+        }
+
+        // Search handler
+        customerInput.addEventListener('input', () => {
+            selectedCustomer = null; // Clear selection when typing
+            const query = customerInput.value.trim().toLowerCase();
+            hideSelectedCustomerHint();
+
+            if (!query) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            // Filter by name OR customer ID
+            const matches = allCustomers.filter(c => {
+                const nameMatch = c.name && c.name.toLowerCase().includes(query);
+                const idMatch = c.id && String(c.id).toLowerCase().includes(query);
+                return nameMatch || idMatch;
+            }).slice(0, 20); // Limit to 20 results
+
+            renderDropdown(matches);
+        });
+
+        // Show dropdown on focus
+        customerInput.addEventListener('focus', () => {
+            const query = customerInput.value.trim().toLowerCase();
+            if (!query) {
+                // Show first 10 customers on empty focus
+                renderDropdown(allCustomers.slice(0, 10));
+            } else {
+                const matches = allCustomers.filter(c => {
+                    const nameMatch = c.name && c.name.toLowerCase().includes(query);
+                    const idMatch = c.id && String(c.id).toLowerCase().includes(query);
+                    return nameMatch || idMatch;
+                }).slice(0, 20);
+                renderDropdown(matches);
+            }
+        });
+
+        // Close dropdown on outside click
+        document.addEventListener('click', (e) => {
+            if (!customerInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Close dropdown on Escape
+        customerInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+
+    // Show/hide selected customer hint
+    function showSelectedCustomerHint(customer) {
+        let hint = document.getElementById('selectedCustomerHint');
+        if (!hint) {
+            hint = document.createElement('div');
+            hint.id = 'selectedCustomerHint';
+            hint.style.cssText = `
+                margin-top: 8px;
+                padding: 8px 12px;
+                background: var(--accent-light, #E6F6FE);
+                color: var(--accent-dark, #0088CC);
+                border-radius: 6px;
+                font-size: 0.8rem;
+                font-weight: 500;
+            `;
+            customerInput.parentElement.appendChild(hint);
+        }
+        hint.innerHTML = `✓ <strong>${customer.name}</strong> selected · Plan: ${customer.plan?.name || '—'} · ${(customer.id || '').slice(0, 8)}...`;
+        hint.style.display = 'block';
+    }
+
+    function hideSelectedCustomerHint() {
+        const hint = document.getElementById('selectedCustomerHint');
+        if (hint) hint.style.display = 'none';
     }
 
     // ============================================================
@@ -1328,10 +1502,16 @@
         if (amountInput) amountInput.value = '';
         if (methodInput) methodInput.value = '';
         if (referenceInput) referenceInput.value = '';
+        selectedCustomer = null;
+        hideSelectedCustomerHint();
+        const dropdown = document.getElementById('customerSearchDropdown');
+        if (dropdown) dropdown.style.display = 'none';
     };
 
     window.closePaymentModal = function () {
         if (paymentModal) paymentModal.classList.remove('active');
+        const dropdown = document.getElementById('customerSearchDropdown');
+        if (dropdown) dropdown.style.display = 'none';
     };
 
     window.recordPayment = async function () {
@@ -1347,13 +1527,19 @@
             return;
         }
 
-        const customer = allCustomers.find(c => c.name === customerName);
+        // 🆕 Prefer selected customer, fallback to name match
+        const customer = selectedCustomer || allCustomers.find(c => c.name === customerName);
         const plan = allPlans.find(p => p.name === planName);
 
+        if (!customer) {
+            alert(`Customer "${customerName}" not found. Please select a customer from the dropdown.`);
+            return;
+        }
+
         const payload = {
-            customerId: customer ? customer.id : null,
-            customerName: customerName,
-            planId: plan ? plan.id : null,
+            customerId: customer.id,
+            customerName: customer.name,
+            planId: plan ? plan.id : (customer.planId || null),
             planName: planName,
             amount,
             paymentDate: date,
@@ -1402,6 +1588,7 @@
             <div class="modal-body">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.9rem;">
                     <div><strong>Customer</strong><br>${payment.customerName || payment.customer}</div>
+                    <div><strong>Customer ID</strong><br><span style="font-family:monospace;font-size:0.75rem;">${payment.customerId || '—'}</span></div>
                     <div><strong>Plan</strong><br>${payment.planName || payment.plan}</div>
                     <div><strong>Amount</strong><br>${formatCurrency(payment.amount)}</div>
                     <div><strong>Date</strong><br>${formatDate(payment.paymentDate || payment.date)}</div>
@@ -1504,7 +1691,7 @@
     // INIT
     // ============================================================
     loadAllData();
-    console.log('✅ Payments page connected to live API.');
+    console.log('✅ Payments page connected to live API with searchable customer dropdown.');
 })();
 </script>
 <script>
@@ -1518,6 +1705,6 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
     }
 }, true);
 </script>
-
+<script src="admin-link.js"></script>
 </body>
 </html>

@@ -20,6 +20,7 @@ mount("/settings", () => require("./settingsRoutes"), "settingsRoutes");
 mount("/payments", () => require("./paymentRoutes"), "paymentRoutes");
 mount("/projections", () => require("./projectionRoutes"), "projectionRoutes");
 mount("/customers", () => require("./customerRoutes"), "customerRoutes");
+router.use('/import', require('./importRoutes'));
 mount("/actual", () => require("./actualRoutes"), "actualRoutes");
 mount("/dashboard", () => require("./dashboardRoutes"), "dashboardRoutes");
 

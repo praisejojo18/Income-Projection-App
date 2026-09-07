@@ -73,6 +73,7 @@ model Customer {
   name          String
   email         String?
   phone         String?
+  externalId    String?
   planId        String
   expiryDate    DateTime       @db.DateTime(3)
   status        CustomerStatus @default(ACTIVE)

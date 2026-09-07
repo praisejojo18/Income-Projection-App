@@ -1,5 +1,5 @@
 const prisma = require("../config/database");
-const Customer = require("../models/customer");
+// ✅ REMOVED the dead models/customer line!
 const {
   validateCustomerData,
   validateExtendData
@@ -7,11 +7,12 @@ const {
 
 /*
   Helper to get the current user ID.
-  For Postman testing, we use the "x-user-id" header.
+  With Company Mode active, req.userId is secretly the Super Admin's ID,
+  so everyone sees the same shared pool of customers!
 */
 const getUserId = (req) => {
   return (
-    req.userId ||          // 🔑 THIS IS THE MISSING PIECE (his auth.js sets this!)
+    req.userId ||          
     req.user?.id ||
     req.user?.userId ||
     req.headers["x-user-id"] ||
@@ -19,9 +20,6 @@ const getUserId = (req) => {
   );
 };
 
-/*
-  Display status for frontend: Active, Expired, Inactive
-*/
 const getDisplayStatus = (customer) => {
   if (customer.status === "INACTIVE") return "Inactive";
   const now = new Date();
@@ -29,9 +27,6 @@ const getDisplayStatus = (customer) => {
   return expiryDate < now ? "Expired" : "Active";
 };
 
-/*
-  Stored status for database: ACTIVE, EXPIRED, INACTIVE
-*/
 const normalizeStoredStatus = (expiryDate, currentStatus) => {
   if (currentStatus === "INACTIVE") return "INACTIVE";
   const now = new Date();
@@ -39,29 +34,24 @@ const normalizeStoredStatus = (expiryDate, currentStatus) => {
   return expiry < now ? "EXPIRED" : "ACTIVE";
 };
 
-/*
-  Format customer for response
-*/
 const formatCustomer = (customer) => {
   return {
     ...customer,
-    amount: customer.plan?.price || null, // Amount comes from the Plan!
+    amount: customer.plan?.price || null, 
     displayStatus: getDisplayStatus(customer)
   };
 };
 
-/*
-  GET /api/customers
-*/
+/* GET /api/customers */
 exports.getCustomers = async (req, res) => {
   try {
     const userId = getUserId(req);
-    if (!userId) return res.status(401).json({ error: "User ID is required. Provide x-user-id header." });
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
 
     const { plan, status, search } = req.query;
     const where = { userId };
 
-    if (plan) where.planId = plan; // String UUID
+    if (plan) where.planId = plan; 
     if (search) where.name = { contains: search };
 
     const now = new Date();
@@ -80,7 +70,8 @@ exports.getCustomers = async (req, res) => {
       }
     }
 
-    const customers = await Customer.findMany({
+    // ✅ FIXED: Changed Customer to prisma.customer
+    const customers = await prisma.customer.findMany({
       where,
       include: { plan: true },
       orderBy: { createdAt: "desc" }
@@ -92,16 +83,14 @@ exports.getCustomers = async (req, res) => {
   }
 };
 
-/*
-  GET /api/customers/:id
-*/
+/* GET /api/customers/:id */
 exports.getCustomerById = async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-    const customer = await Customer.findFirst({
-      where: { id: req.params.id, userId }, // String UUID
+    const customer = await prisma.customer.findFirst({
+      where: { id: req.params.id, userId }, 
       include: { plan: true }
     });
 
@@ -112,9 +101,7 @@ exports.getCustomerById = async (req, res) => {
   }
 };
 
-/*
-  POST /api/customers
-*/
+/* POST /api/customers */
 exports.createCustomer = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -132,16 +119,15 @@ exports.createCustomer = async (req, res) => {
     const expiryDate = new Date(req.body.expiryDate);
     const status = normalizeStoredStatus(expiryDate, req.body.status || "ACTIVE");
 
-    const newCustomer = await Customer.create({
+    const newCustomer = await prisma.customer.create({
       data: {
-        userId,             // 🔥 REQUIRED by your schema
+        userId,             
         name: req.body.name,
         email: req.body.email || null,
         phone: req.body.phone || null,
-        planId: req.body.planId, // 🔥 String UUID (no parseInt)
+        planId: req.body.planId, 
         expiryDate,
         status
-        // 🔥 Removed "amount" because it doesn't exist in the customers table
       },
       include: { plan: true }
     });
@@ -152,9 +138,7 @@ exports.createCustomer = async (req, res) => {
   }
 };
 
-/*
-  PUT /api/customers/:id
-*/
+/* PUT /api/customers/:id */
 exports.updateCustomer = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -163,7 +147,7 @@ exports.updateCustomer = async (req, res) => {
     const { isValid, errors } = validateCustomerData(req.body, { isUpdate: true });
     if (!isValid) return res.status(400).json({ errors });
 
-    const existingCustomer = await Customer.findFirst({
+    const existingCustomer = await prisma.customer.findFirst({
       where: { id: req.params.id, userId }
     });
 
@@ -179,7 +163,7 @@ exports.updateCustomer = async (req, res) => {
     const updatedExpiryDate = req.body.expiryDate ? new Date(req.body.expiryDate) : existingCustomer.expiryDate;
     const updatedStatus = normalizeStoredStatus(updatedExpiryDate, req.body.status || existingCustomer.status);
 
-    const updatedCustomer = await Customer.update({
+    const updatedCustomer = await prisma.customer.update({
       where: { id: existingCustomer.id },
       data: {
         name: req.body.name,
@@ -198,15 +182,7 @@ exports.updateCustomer = async (req, res) => {
   }
 };
 
-/*
-  POST /api/customers/:id/extend
-
-  Matches the frontend "Extend Service" modal:
-  - The modal's quick buttons (+1/+3/+6/+12 months) update the date picker.
-  - The frontend then sends the FINAL date as `newExpiryDate`.
-  - We also keep extensionType/extensionValue for flexibility.
-  - Optional: recordPayment = true creates a payment in the same transaction.
-*/
+/* POST /api/customers/:id/extend */
 exports.extendService = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -215,7 +191,7 @@ exports.extendService = async (req, res) => {
     const { isValid, errors } = validateExtendData(req.body);
     if (!isValid) return res.status(400).json({ errors });
 
-    const customer = await Customer.findFirst({
+    const customer = await prisma.customer.findFirst({
       where: { id: req.params.id, userId },
       include: { plan: true }
     });
@@ -223,78 +199,52 @@ exports.extendService = async (req, res) => {
     if (!customer) return res.status(404).json({ error: "Customer not found." });
 
     if (customer.status === "INACTIVE") {
-      return res.status(400).json({
-        error: "Cannot extend an inactive customer. Reactivate first."
-      });
+      return res.status(400).json({ error: "Cannot extend an inactive customer." });
     }
 
     const {
-      newExpiryDate,
-      extensionType,
-      extensionValue,
-      recordPayment,
-      paymentMethod,
-      paymentReference,
-      paymentAmount
+      newExpiryDate, extensionType, extensionValue,
+      recordPayment, paymentMethod, paymentReference, paymentAmount
     } = req.body;
 
-    /* 1) Determine the target expiry date */
     let targetExpiry;
-
     if (newExpiryDate) {
-      // Frontend modal sends the final picked date
       targetExpiry = new Date(newExpiryDate);
     } else {
-      // Fallback: add days/weeks/months (if expired, start from today)
       const base = new Date(customer.expiryDate);
       const now = new Date();
       targetExpiry = base > now ? base : now;
-
       const value = Number(extensionValue);
       if (extensionType === "days") targetExpiry.setDate(targetExpiry.getDate() + value);
       if (extensionType === "weeks") targetExpiry.setDate(targetExpiry.getDate() + value * 7);
       if (extensionType === "months") targetExpiry.setMonth(targetExpiry.getMonth() + value);
     }
 
-    /* 2) Apply update (+ optional payment in one transaction) */
-    const generatedReference =
-      paymentReference || `PAY-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-    const amountToCharge =
-      paymentAmount !== undefined ? Number(paymentAmount) : Number(customer.plan.price);
+    const generatedReference = paymentReference || `PAY-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const amountToCharge = paymentAmount !== undefined ? Number(paymentAmount) : Number(customer.plan.price);
 
     if (recordPayment) {
       await prisma.$transaction([
         prisma.customer.update({
           where: { id: customer.id },
-          data: {
-            expiryDate: targetExpiry,
-            status: normalizeStoredStatus(targetExpiry, customer.status)
-          }
+          data: { expiryDate: targetExpiry, status: normalizeStoredStatus(targetExpiry, customer.status) }
         }),
         prisma.payment.create({
           data: {
-            userId,
-            customerId: customer.id,
-            planId: customer.planId,
-            amount: amountToCharge,
-            paymentDate: new Date(),
-            method: paymentMethod || "CASH",
-            reference: generatedReference
+            userId, customerId: customer.id, planId: customer.planId,
+            amount: amountToCharge, paymentDate: new Date(),
+            method: paymentMethod || "CASH", reference: generatedReference
           }
         })
       ]);
     } else {
       await prisma.customer.update({
         where: { id: customer.id },
-        data: {
-          expiryDate: targetExpiry,
-          status: normalizeStoredStatus(targetExpiry, customer.status)
-        }
+        data: { expiryDate: targetExpiry, status: normalizeStoredStatus(targetExpiry, customer.status) }
       });
     }
 
-    const updatedCustomer = await Customer.findFirst({
+    const updatedCustomer = await prisma.customer.findFirst({
       where: { id: customer.id },
       include: { plan: true }
     });
@@ -310,9 +260,7 @@ exports.extendService = async (req, res) => {
   }
 };
 
-/*
-  POST /api/customers/:id/change-plan
-*/
+/* POST /api/customers/:id/change-plan */
 exports.changePlan = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -321,13 +269,13 @@ exports.changePlan = async (req, res) => {
     const { planId } = req.body;
     if (!planId || typeof planId !== "string") return res.status(400).json({ error: "A valid planId is required." });
 
-    const customer = await Customer.findFirst({ where: { id: req.params.id, userId } });
+    const customer = await prisma.customer.findFirst({ where: { id: req.params.id, userId } });
     if (!customer) return res.status(404).json({ error: "Customer not found." });
 
     const newPlan = await prisma.plan.findFirst({ where: { id: planId, userId, status: "ACTIVE" } });
     if (!newPlan) return res.status(404).json({ error: "Active plan not found." });
 
-    const updatedCustomer = await Customer.update({
+    const updatedCustomer = await prisma.customer.update({
       where: { id: customer.id },
       data: { planId: newPlan.id },
       include: { plan: true }
@@ -339,18 +287,16 @@ exports.changePlan = async (req, res) => {
   }
 };
 
-/*
-  POST /api/customers/:id/deactivate
-*/
+/* POST /api/customers/:id/deactivate */
 exports.deactivateCustomer = async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-    const customer = await Customer.findFirst({ where: { id: req.params.id, userId } });
+    const customer = await prisma.customer.findFirst({ where: { id: req.params.id, userId } });
     if (!customer) return res.status(404).json({ error: "Customer not found." });
 
-    const updatedCustomer = await Customer.update({
+    const updatedCustomer = await prisma.customer.update({
       where: { id: customer.id },
       data: { status: "INACTIVE" },
       include: { plan: true }
@@ -362,10 +308,7 @@ exports.deactivateCustomer = async (req, res) => {
   }
 };
 
-/*
-  GET /api/customers/plans
-  Returns the user's plans securely (bypasses his broken /api/plans auth)
-*/
+/* GET /api/customers/plans */
 exports.getUserPlans = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -380,82 +323,5 @@ exports.getUserPlans = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-};/* =====================================================
-   POST /api/customers/import — bulk import from CSV rows
-   Body: { rows: [ { name, plan, expiryDate, email?, phone? }, ... ] }
-===================================================== */
-  /* =====================================================
-   POST /api/customers/import — bulk import from CSV rows
-   Body: { rows: [ { name, plan, expiryDate, email?, phone? }, ... ], replace: boolean }
-===================================================== */
-exports.importCustomers = async (req, res) => {
-  try {
-    const userId = getUserId(req);
-    if (!userId) return res.status(401).json({ error: "User ID is required." });
-
-    const rows = req.body.rows;
-    const replace = req.body.replace === true; // 🆕 Clear existing customers first
-
-    if (!Array.isArray(rows) || rows.length === 0)
-      return res.status(400).json({ error: "No rows provided. Send { rows: [...] }." });
-
-    // 🆕 If replace mode, delete all existing customers for this user
-    if (replace) {
-      await prisma.customer.deleteMany({ where: { userId } });
-    }
-
-    const plans = await prisma.plan.findMany({ where: { userId } });
-    const planByName = {};
-    plans.forEach((p) => (planByName[p.name.toLowerCase()] = p));
-
-    const created = [];
-    const errors = [];
-
-    for (let i = 0; i < rows.length; i++) {
-      const r = rows[i] || {};
-      const line = i + 1;
-      const name = String(r.name || "").trim();
-      const plan = planByName[String(r.plan || "").trim().toLowerCase()];
-
-      if (!name) { errors.push(`Row ${line}: missing customer name.`); continue; }
-      if (!plan) { errors.push(`Row ${line} (${name}): unknown plan "${r.plan}".`); continue; }
-
-      let expiryDate = new Date(r.expiryDate || r.expiry || "");
-      if (isNaN(expiryDate.getTime())) {
-        expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + (plan.durationDays || 30));
-      }
-
-      const data = {
-        userId,
-        name,
-        planId: plan.id,
-        expiryDate,
-        amount: plan.price,
-        status: "ACTIVE"
-      };
-      if (r.email) data.email = String(r.email).trim();
-      if (r.phone) data.phone = String(r.phone).trim();
-
-      const customer = await prisma.customer.create({ data });
-      created.push({
-        name,
-        plan: plan.name,
-        expiryDate: customer.expiryDate.toISOString().slice(0, 10)
-      });
-    }
-
-    res.status(201).json({
-      success: true,
-      message: replace 
-        ? `Replaced all customers. Imported ${created.length} new customer(s), ${errors.length} error(s).`
-        : `Imported ${created.length} customer(s), ${errors.length} error(s).`,
-      imported: created.length,
-      failed: errors.length,
-      replaced: replace,
-      errors
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 };
+// ✅ REMOVED the old "dumb" importCustomers function. We use the new Smart Importer now!
