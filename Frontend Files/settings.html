@@ -547,31 +547,6 @@
         .general-settings .toggle.active::after {
             transform: translateX(18px);
         }
-        .general-settings .select-input {
-            padding: 6px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .general-settings .select-input:focus {
-            border-color: var(--accent);
-        }
-        .general-settings .text-input {
-            padding: 6px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            min-width: 180px;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .general-settings .text-input:focus {
-            border-color: var(--accent);
-        }
 
         /* ─── Plans Settings ─── */
         .plan-settings-header {
@@ -1006,43 +981,11 @@
                         <div class="general-settings">
                             <div class="setting-row">
                                 <div class="setting-label">
-                                    Workspace Name
-                                    <small>Your workspace display name</small>
-                                </div>
-                                <div class="setting-control">
-                                    <input type="text" class="text-input" id="workspaceNameInput" value="Prontox Inc." />
-                                </div>
-                            </div>
-                            <div class="setting-row">
-                                <div class="setting-label">
                                     Dark Mode
                                     <small>Toggle dark theme across the app</small>
                                 </div>
                                 <div class="setting-control">
                                     <div class="toggle" id="settingsDarkToggle"></div>
-                                </div>
-                            </div>
-                            <div class="setting-row">
-                                <div class="setting-label">
-                                    Default Language
-                                    <small>Interface language</small>
-                                </div>
-                                <div class="setting-control">
-                                    <select class="select-input" id="languageSelect">
-                                        <option value="en">English (US)</option>
-                                        <option value="es">Spanish</option>
-                                        <option value="fr">French</option>
-                                        <option value="de">German</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="setting-row">
-                                <div class="setting-label">
-                                    Notifications
-                                    <small>Email and in-app notifications</small>
-                                </div>
-                                <div class="setting-control">
-                                    <div class="toggle active" id="notifToggle"></div>
                                 </div>
                             </div>
                             <div class="setting-row">
@@ -1117,7 +1060,7 @@
 (function () {
     'use strict';
 
-    const API = 'http://localhost:5001/api';
+    const API = 'http://172.23.63.10:5001/api';
 
     const getToken = () => localStorage.getItem('prontox_token') || localStorage.getItem('prontolog_token');
     const getUserId = () =>
@@ -1163,9 +1106,6 @@
     const newPlanName = document.getElementById('newPlanName');
     const newPlanPrice = document.getElementById('newPlanPrice');
     const settingsDarkToggle = document.getElementById('settingsDarkToggle');
-    const notifToggle = document.getElementById('notifToggle');
-    const workspaceNameInput = document.getElementById('workspaceNameInput');
-    const languageSelect = document.getElementById('languageSelect');
 
     // ============================================================
     // SUB-NAVIGATION (General / Plans)
@@ -1302,37 +1242,6 @@
     if (closePlanEditorBtn) closePlanEditorBtn.addEventListener('click', () => planEditorOverlay && planEditorOverlay.classList.remove('open'));
 
     // ============================================================
-    // GENERAL SETTINGS (saved to DB)
-    // ============================================================
-    async function saveSetting(payload, showAlert) {
-        try {
-            await apiFetch('/settings', { method: 'PUT', body: JSON.stringify(payload) });
-            return true;
-        } catch (err) {
-            if (showAlert) alert('Failed to save: ' + err.message);
-            else console.warn('Settings save skipped:', err.message);
-            return false;
-        }
-    }
-
-    async function loadGeneralSettings() {
-        try {
-            const data = await apiFetch('/settings');
-            const s = data.settings || {};
-            if (workspaceNameInput && s.workspaceName) workspaceNameInput.value = s.workspaceName;
-            if (languageSelect && s.language) languageSelect.value = s.language;
-            if (notifToggle) notifToggle.classList.toggle('active', !!s.notifications);
-        } catch (err) { console.error('Failed to load settings:', err); }
-    }
-
-    if (workspaceNameInput) workspaceNameInput.addEventListener('change', function () { saveSetting({ workspaceName: this.value }, true); });
-    if (languageSelect) languageSelect.addEventListener('change', function () { saveSetting({ language: this.value }, true); });
-    if (notifToggle) notifToggle.addEventListener('click', function () {
-        this.classList.toggle('active');
-        saveSetting({ notifications: this.classList.contains('active') }, true);
-    });
-
-    // ============================================================
     // THEME (navbar toggle + settings toggle, synced & saved)
     // ============================================================
     const themeToggle = document.getElementById('themeToggle');
@@ -1345,7 +1254,6 @@
         else { document.documentElement.removeAttribute('data-theme'); if (themeIcon) themeIcon.className = 'fas fa-moon'; }
         if (settingsDarkToggle) settingsDarkToggle.classList.toggle('active', isDark);
         try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
-        saveSetting({ darkMode: isDark }, false);
     }
 
     try {
@@ -1397,7 +1305,6 @@
     // ============================================================
     // INIT
     // ============================================================
-    loadGeneralSettings();
     renderSettingsPlanPreview();
     showSettingsPage('general');
 

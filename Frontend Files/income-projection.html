@@ -385,297 +385,10 @@
             transition: color var(--transition);
         }
 
-        /* ============================================================
-           INCOME PROJECTION STYLES
-           ============================================================ */
-        .add-projection-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 28px;
-            box-shadow: var(--shadow);
-            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
-        }
-
-        .add-projection-card .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        }
-        .add-projection-card .card-header h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .add-projection-card .card-header h3 i {
-            color: var(--accent);
-        }
-        .add-projection-card .card-header .toggle-form-btn {
-            padding: 6px 16px;
-            border-radius: var(--radius-xs);
-            font-weight: 600;
-            font-size: 0.85rem;
-            background: var(--accent);
-            color: #fff;
-            transition: background 0.2s;
-        }
-        .add-projection-card .card-header .toggle-form-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        .projection-form {
-            display: none;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-            transition: border-color var(--transition);
-        }
-        .projection-form.open {
-            display: grid;
-        }
-
-        .projection-form .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .projection-form .form-group label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-        .projection-form .form-group input,
-        .projection-form .form-group select {
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-xs);
-            background: var(--surface);
-            color: var(--text-primary);
-            font-size: 0.9rem;
-            transition: border-color 0.2s, background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .projection-form .form-group input:focus,
-        .projection-form .form-group select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-light);
-        }
-        .projection-form .form-group .input-hint {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-        }
-
-        .projection-form .form-actions {
-            grid-column: 1 / -1;
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 8px;
-        }
-        .projection-form .form-actions .save-btn {
-            padding: 10px 28px;
-            background: var(--success);
-            color: #fff;
-            border-radius: var(--radius-xs);
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: background 0.2s;
-        }
-        .projection-form .form-actions .save-btn:hover {
-            background: #059669;
-        }
-        .projection-form .form-actions .cancel-btn {
-            padding: 10px 20px;
-            background: var(--surface-2);
-            color: var(--text-secondary);
-            border-radius: var(--radius-xs);
-            font-weight: 500;
-            font-size: 0.9rem;
-            border: 1px solid var(--border);
-            transition: all 0.2s;
-        }
-        .projection-form .form-actions .cancel-btn:hover {
-            background: var(--border);
-        }
-
-        .view-projection-section {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
-        }
-
-        .view-projection-section .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .view-projection-section .section-header h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .view-projection-section .section-header h3 i {
-            color: var(--accent);
-        }
-
-        .filter-tabs {
-            display: flex;
-            gap: 6px;
-            background: var(--surface-2);
-            padding: 4px;
-            border-radius: var(--radius-xs);
-            border: 1px solid var(--border);
-            flex-wrap: wrap;
-        }
-        .filter-tabs .filter-btn {
-            padding: 6px 16px;
-            border-radius: var(--radius-xs);
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            transition: all 0.2s;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-        .filter-tabs .filter-btn:hover {
-            color: var(--text-primary);
-            background: var(--surface-3);
-        }
-        .filter-tabs .filter-btn.active {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        .projection-table-wrap {
-            overflow-x: auto;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            transition: border-color var(--transition);
-        }
-        .projection-table-wrap table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            min-width: 500px;
-        }
-        .projection-table-wrap th {
-            text-align: left;
-            padding: 12px 16px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            background: var(--surface-2);
-            border-bottom: 2px solid var(--border);
-            transition: background var(--transition), color var(--transition), border-color var(--transition);
-        }
-        .projection-table-wrap td {
-            padding: 10px 16px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
-            transition: border-color var(--transition), color var(--transition);
-        }
-        .projection-table-wrap tr:last-child td {
-            border-bottom: none;
-        }
-        .projection-table-wrap .total-row td {
-            font-weight: 700;
-            background: var(--accent-light);
-            color: var(--text-primary);
-            border-top: 2px solid var(--border);
-        }
-
-        .no-projection {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
-        .no-projection i {
-            font-size: 2.5rem;
-            color: var(--border);
-            margin-bottom: 12px;
-            display: block;
-        }
-        .no-projection p {
-            font-size: 0.95rem;
-        }
-
-        .projection-count {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-left: 8px;
-            font-weight: 400;
-        }
-
-        .delete-btn {
-            padding: 4px 12px;
-            background: var(--danger);
-            color: #fff;
-            border-radius: var(--radius-xs);
-            font-size: 0.7rem;
-            font-weight: 600;
-            transition: background 0.2s;
-            cursor: pointer;
-            border: none;
-        }
-        .delete-btn:hover {
-            background: var(--danger-hover);
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .main-content {
                 padding: 20px 16px;
-            }
-            .projection-form {
-                grid-template-columns: 1fr;
-            }
-            .projection-form .form-actions {
-                flex-direction: column;
-            }
-            .projection-form .form-actions button {
-                width: 100%;
-                justify-content: center;
-            }
-            .view-projection-section .section-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .filter-tabs {
-                justify-content: stretch;
-            }
-            .filter-tabs .filter-btn {
-                flex: 1;
-                text-align: center;
-            }
-            .add-projection-card .card-header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .projection-table-wrap table {
-                font-size: 0.75rem;
-                min-width: 400px;
-            }
-            .projection-table-wrap th,
-            .projection-table-wrap td {
-                padding: 8px 10px;
             }
         }
     </style>
@@ -734,89 +447,7 @@
 
         <div class="page-header">
             <h2>Income Projection</h2>
-            <p>Create and view projected income for each plan across different timeframes.</p>
-        </div>
-
-        <!-- ─── Add Projection Card ─── -->
-        <div class="add-projection-card">
-            <div class="card-header">
-                <h3><i class="fas fa-plus-circle"></i> Create New Projection</h3>
-                <button class="toggle-form-btn" id="toggleFormBtn"><i class="fas fa-chevron-down"></i> Open Form</button>
-            </div>
-
-            <div class="projection-form" id="projectionForm">
-                <div class="form-group">
-                    <label for="projDate">Date</label>
-                    <input type="date" id="projDate" />
-                </div>
-                <div class="form-group">
-                    <label for="projPlan">Plan</label>
-                    <select id="projPlan">
-                        <!-- populated by JS from localStorage -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="proj3Days">3-Day Projection (₦)</label>
-                    <input type="number" id="proj3Days" placeholder="e.g. 150000" min="0" step="1000" />
-                    <span class="input-hint">Expected revenue in the next 3 days</span>
-                </div>
-                <div class="form-group">
-                    <label for="proj1Week">1-Week Projection (₦)</label>
-                    <input type="number" id="proj1Week" placeholder="e.g. 350000" min="0" step="1000" />
-                    <span class="input-hint">Expected revenue in the next week</span>
-                </div>
-                <div class="form-group">
-                    <label for="proj1Month">1-Month Projection (₦)</label>
-                    <input type="number" id="proj1Month" placeholder="e.g. 1500000" min="0" step="1000" />
-                    <span class="input-hint">Expected revenue in the next month</span>
-                </div>
-                <div class="form-group">
-                    <label for="proj1Year">1-Year Projection (₦)</label>
-                    <input type="number" id="proj1Year" placeholder="e.g. 18000000" min="0" step="1000" />
-                    <span class="input-hint">Expected revenue in the next year</span>
-                </div>
-                <div class="form-actions">
-                    <button class="cancel-btn" id="cancelFormBtn">Cancel</button>
-                    <button class="save-btn" id="saveProjectionBtn"><i class="fas fa-save"></i> Save Projection</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ─── View Projections ─── -->
-        <div class="view-projection-section">
-            <div class="section-header" id="projectionToggleHeader">
-                <h3><i class="fas fa-filter"></i> Stored Projections <span class="projection-count" id="projectionCount">(0 entries)</span></h3>
-                <div>
-                    <i class="fas fa-chevron-down toggle-icon" id="projectionToggleIcon"></i>
-                </div>
-            </div>
-            <div class="view-projection-body expanded" id="projectionBody">
-                <div class="filter-tabs" id="filterTabs">
-                    <button class="filter-btn active" data-filter="daily">Daily (3-day)</button>
-                    <button class="filter-btn" data-filter="weekly">Weekly</button>
-                    <button class="filter-btn" data-filter="monthly">Monthly</button>
-                    <button class="filter-btn" data-filter="annually">Annually</button>
-                </div>
-                <div class="projection-table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Plan</th>
-                                <th id="projectionHeader">Projected Amount (₦)</th>
-                                <th style="text-align:center;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="projectionTableBody">
-                            <!-- rendered by JS -->
-                        </tbody>
-                    </table>
-                    <div id="noProjection" class="no-projection" style="display:none;">
-                        <i class="fas fa-chart-simple"></i>
-                        <p>No projections found. Create your first projection above!</p>
-                    </div>
-                </div>
-            </div>
+            <p>View projected income for each plan across different timeframes, computed automatically from your customers.</p>
         </div>
 
     </main>
@@ -826,7 +457,7 @@
 (function () {
   'use strict';
 
-  const API = 'http://localhost:5001/api';
+  const API = 'http://172.23.63.10:5001/api';
   const $ = (id) => document.getElementById(id);
 
   /* SAME identity as your other working pages */
@@ -981,8 +612,7 @@
     const rows = filter === 'all' ? AUTO.perPlan : AUTO.perPlan.filter(p => p.planId === filter);
 
     $('autoTransparency').textContent =
-      'Computed from ' + AUTO.counts.billable + ' billable customers (' + AUTO.counts.active + ' Active + ' + AUTO.counts.expired + ' Expired)' +
-      (AUTO.manualCount ? ' · ✍️ ' + AUTO.manualCount + ' custom target(s)' : '');
+      'Computed from ' + AUTO.counts.billable + ' billable customers (' + AUTO.counts.active + ' Active + ' + AUTO.counts.expired + ' Expired)';
 
     const t = rows.reduce((s, p) => ({
       b: s.b + p.billableCustomers, d3: s.d3 + p.threeDay, w: s.w + p.oneWeek, m: s.m + p.oneMonth, y: s.y + p.oneYear
@@ -1002,7 +632,7 @@
 
     $('ppBody').innerHTML = rows.map(p => `
       <tr>
-        <td style="${td}"><strong>${p.planName}</strong>${p.source === 'manual' ? ' <span style="font-size:10px;color:var(--accent);">✍️ custom</span>' : ''}</td>
+        <td style="${td}"><strong>${p.planName}</strong></td>
         <td style="${tdr}">${p.billableCustomers}</td>
         <td style="${tdr}">${fmt(p.price)}</td>
         <td style="${tdr}">${fmt(p.threeDay)}</td>
@@ -1022,143 +652,7 @@
   }
 
   /* ============================================================
-     3) FORM + SAVED TARGETS (structure-based, ID-agnostic)
-  ============================================================ */
-  const TF_MAP = { daily: 'threeDay', weekly: 'oneWeek', monthly: 'oneMonth', annually: 'oneYear' };
-  let saved = [];
-  let editingId = null;
-  let currentTF = 'daily';
-
-  const openBtn = Array.from(document.querySelectorAll('button, a, [role="button"]')).find(b => b.textContent.trim().startsWith('Open Form'));
-  const dateInput = document.querySelector('input[type="date"]');
-  const formEl = dateInput ? dateInput.closest('form') : null;
-  const formBox = dateInput ? (formEl || dateInput.closest('[class*="card"]') || dateInput.closest('section') || dateInput.parentElement.parentElement.parentElement) : null;
-  const planSelect = formBox ? formBox.querySelector('select') : null;
-  const numInputs = formBox ? formBox.querySelectorAll('input[type="number"]') : [];
-  const [inThreeDay, inOneWeek, inOneMonth, inOneYear] = numInputs;
-  const cancelBtn = formBox ? Array.from(formBox.querySelectorAll('button')).find(b => b.textContent.trim() === 'Cancel') : null;
-  const saveBtn = formBox ? (formBox.querySelector('button[type="submit"]') || Array.from(formBox.querySelectorAll('button')).find(b => b.textContent.includes('Save'))) : null;
-  const storedTbody = Array.from(document.querySelectorAll('tbody')).pop();
-
-  function formHidden() {
-    if (!formBox) return true;
-    return formBox.classList.contains('hidden') || getComputedStyle(formBox).display === 'none';
-  }
-  function showForm(show) {
-    if (!formBox) return;
-    formBox.classList.toggle('hidden', !show);
-    formBox.style.display = show ? '' : 'none';
-  }
-  function resetForm() {
-    editingId = null;
-    if (formEl) formEl.reset();
-    else if (formBox) formBox.querySelectorAll('input').forEach(i => { if (i.type !== 'date') i.value = ''; });
-    showForm(false);
-    if (saveBtn) saveBtn.textContent = 'Save Projection';
-  }
-
-  openBtn && openBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    const wasHidden = formHidden();
-    showForm(wasHidden);
-    if (wasHidden && dateInput && !dateInput.value) dateInput.value = new Date().toISOString().slice(0, 10);
-  });
-  cancelBtn && cancelBtn.addEventListener('click', (e) => { e.preventDefault(); resetForm(); });
-
-  async function doSave() {
-    const payload = {
-      planId: planSelect ? planSelect.value : '',
-      date: dateInput ? dateInput.value : '',
-      threeDay: inThreeDay && inThreeDay.value !== '' ? Number(inThreeDay.value) : null,
-      oneWeek: inOneWeek && inOneWeek.value !== '' ? Number(inOneWeek.value) : null,
-      oneMonth: inOneMonth && inOneMonth.value !== '' ? Number(inOneMonth.value) : null,
-      oneYear: inOneYear && inOneYear.value !== '' ? Number(inOneYear.value) : null
-    };
-    if (!payload.planId || !payload.date) { alert('Pick a plan and a date.'); return; }
-    const res = await fetch(
-      editingId ? API + '/projections/' + editingId : API + '/projections',
-      { method: editingId ? 'PATCH' : 'POST', headers: headers(), body: JSON.stringify(payload) }
-    );
-    const data = await res.json();
-    if (res.ok) { resetForm(); loadSaved(); loadAuto(); }
-    else alert(data.message || data.error || 'Save failed (are you logged in?)');
-  }
-
-  if (formEl) formEl.addEventListener('submit', (e) => { e.preventDefault(); doSave(); });
-  else saveBtn && saveBtn.addEventListener('click', (e) => { e.preventDefault(); doSave(); });
-
-  async function loadSaved() {
-    try {
-      const res = await fetch(API + '/projections', { headers: headers() });
-      if (res.status === 401) {
-        if (storedTbody) storedTbody.innerHTML = '<tr><td colspan="4" style="' + td + 'text-align:center;color:var(--text-muted);">Log in to manage custom targets.</td></tr>';
-        return;
-      }
-      const data = await res.json();
-      saved = data.projections || data.data || (Array.isArray(data) ? data : []);
-      renderSaved();
-    } catch (err) { console.error('Saved projections error:', err); }
-  }
-
-  function renderSaved() {
-    const title = Array.from(document.querySelectorAll('h2,h3')).find(h => h.textContent.includes('Stored Projections'));
-    if (title) title.textContent = 'Stored Projections (' + saved.length + ' entries)';
-    if (!storedTbody) return;
-    const field = TF_MAP[currentTF];
-    if (!saved.length) {
-      storedTbody.innerHTML = '<tr><td colspan="4" style="' + td + 'text-align:center;color:var(--text-muted);">No custom targets saved. The Live Projection above is your automatic baseline.</td></tr>';
-      return;
-    }
-    storedTbody.innerHTML = saved.map(p => `
-      <tr>
-        <td style="${td}">${new Date(p.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-        <td style="${td}">${p.planName || (p.plan && p.plan.name) || '—'}</td>
-        <td style="${tdr}">${p[field] != null ? fmt(p[field]) : '—'}</td>
-        <td style="${td}">
-          <button class="btn small" data-edit="${p.id}">Edit</button>
-          <button class="btn small danger" data-del="${p.id}">Delete</button>
-        </td>
-      </tr>`).join('');
-  }
-
-  storedTbody && storedTbody.addEventListener('click', async (e) => {
-    const editBtn = e.target.closest('[data-edit]');
-    const delBtn = e.target.closest('[data-del]');
-    if (editBtn) {
-      const p = saved.find(x => x.id === editBtn.dataset.edit);
-      if (!p) return;
-      editingId = p.id;
-      showForm(true);
-      if (planSelect) planSelect.value = p.planId;
-      if (dateInput) dateInput.value = p.date ? p.date.slice(0, 10) : '';
-      if (inThreeDay) inThreeDay.value = p.threeDay ?? '';
-      if (inOneWeek) inOneWeek.value = p.oneWeek ?? '';
-      if (inOneMonth) inOneMonth.value = p.oneMonth ?? '';
-      if (inOneYear) inOneYear.value = p.oneYear ?? '';
-      if (saveBtn) saveBtn.textContent = 'Update Projection';
-    }
-    if (delBtn) {
-      if (!confirm('Delete this custom target?')) return;
-      await fetch(API + '/projections/' + delBtn.dataset.del, { method: 'DELETE', headers: headers() });
-      loadSaved(); loadAuto();
-    }
-  });
-
-  let tabButtons = Array.from(document.querySelectorAll('[data-tf]'));
-  if (!tabButtons.length) {
-    tabButtons = Array.from(document.querySelectorAll('button, .tab')).filter(b => /^(Daily|Weekly|Monthly|Annually)/i.test(b.textContent.trim()));
-  }
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentTF = btn.dataset.tf || btn.textContent.trim().toLowerCase().split(' ')[0] || 'daily';
-      renderSaved();
-    });
-  });
-
-  /* ============================================================
-     4) SHARED UI
+     3) SHARED UI
   ============================================================ */
   const sidebar = $('sidebar'), overlay = $('sidebarOverlay'), hamburger = $('hamburgerBtn'), closeSidebarBtn = $('closeSidebarBtn');
   function openSidebar() { if (!sidebar) return; sidebar.classList.add('open'); overlay && overlay.classList.add('open'); hamburger && hamburger.classList.add('open'); document.body.style.overflow = 'hidden'; }
@@ -1189,15 +683,14 @@
   if (logoutBtn) logoutBtn.addEventListener('click', e => {
     e.preventDefault();
     if (confirm('Are you sure you want to log out?')) {
-      localStorage.removeItem('prontox_token');
-      localStorage.removeItem('prontox_user_id');
+      localStorage.removeItem('prontolog_token');
+      localStorage.removeItem('prontolog_user_id');
       window.location.href = 'login.html';
     }
   });
 
   loadAuto();
-  loadSaved();
-  console.log('✅ Income Projection v3: numbers guaranteed + full plan filter.');
+  console.log('✅ Income Projection: Live Auto-Computed only.');
 })();
 </script>
 <script src="admin-link.js"></script>

@@ -34,6 +34,7 @@
             --warning: #f59e0b;
             --warning-light: #fef3c7;
 
+            --shadow: #00AFEF;
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
             --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.08);
@@ -277,7 +278,7 @@
             font-size: 1.2rem;
             padding: 4px 8px;
             border-radius: var(--radius-xs);
-            transition: background 0.2s, color 0.2s;
+            transition: background 0.2s;
         }
         .sidebar-header .close-sidebar:hover {
             background: var(--surface-2);
@@ -397,6 +398,14 @@
             align-items: flex-start;
             gap: 16px;
             flex-wrap: wrap;
+        }
+
+        /* 🎯 NEW: Button group wrapper */
+        .customer-actions-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         .btn-primary {
@@ -522,6 +531,7 @@
         }
         .customer-table-scroll {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .customer-table {
             width: 100%;
@@ -979,7 +989,7 @@
         }
         .confirm-text strong { color: var(--text-primary); }
 
-        /* responsive for customer table */
+        /* responsive for customer page (table KEEPS desktop layout + horizontal scroll) */
         @media (max-width: 768px) {
             .main-content {
                 padding: 20px 16px;
@@ -988,8 +998,13 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            .customer-page-header .btn-primary {
+            /* 🎯 UPDATED: Target buttons inside the group */
+            .customer-actions-group {
                 width: 100%;
+            }
+            .customer-actions-group button {
+                flex: 1 1 auto;
+                min-width: fit-content;
                 justify-content: center;
             }
             .customer-toolbar {
@@ -1028,6 +1043,14 @@
         }
 
         @media (max-width: 480px) {
+            /* 🎯 NEW: Stack buttons fully on tiny screens */
+            .customer-actions-group {
+                flex-direction: column;
+            }
+            .customer-actions-group button {
+                width: 100%;
+                flex: 1 1 100%;
+            }
             .settings-content {
                 padding: 14px 12px 18px;
             }
@@ -1037,50 +1060,9 @@
             .plan-preview-grid {
                 grid-template-columns: 1fr 1fr;
             }
-            .customer-table {
-                min-width: 0;
-            }
-            .customer-table thead {
-                display: none;
-            }
-            .customer-table, .customer-table tbody, .customer-table tr, .customer-table td {
-                display: block;
-                width: 100%;
-            }
-            .customer-table tbody tr {
-                margin-bottom: 12px;
-                border: 1px solid var(--border);
-                border-radius: var(--radius-sm);
-                padding: 6px 16px;
-                background: var(--surface);
-            }
-            .customer-table tbody tr:hover { background: var(--surface-2); }
-            .customer-table tbody td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 12px;
-                padding: 10px 0;
-                border-bottom: 1px dashed var(--border);
-                text-align: right;
-            }
-            .customer-table tbody tr td:last-child { border-bottom: none; }
-            .customer-table tbody td::before {
-                content: attr(data-label);
-                font-weight: 600;
-                font-size: 0.72rem;
-                text-transform: uppercase;
-                letter-spacing: 0.03em;
-                color: var(--text-muted);
-                text-align: left;
-            }
-            .customer-table tbody td.action-cell {
-                justify-content: flex-end;
-            }
-            .customer-table tbody td.action-cell::before {
-                display: none;
-            }
-            .customer-table .cust-name-cell { font-size: 0.95rem; }
+            /* ✅ CHANGE: The old "card layout" rules for .customer-table were
+               REMOVED here on purpose. The table now keeps its desktop look
+               on mobile and scrolls sideways inside .customer-table-scroll. */
         }
     </style>
 </head>
@@ -1142,9 +1124,12 @@
                     <h2>Customers</h2>
                     <p>View and manage all your customer accounts and interactions.</p>
                 </div>
-                <button id="addCustomerBtn" class="btn-primary" type="button">
-                    <i class="fas fa-plus"></i> Add Customer
-                </button>
+                <!-- 🎯 CHANGE 1: Button group wrapper -->
+                <div class="customer-actions-group" id="customerActionsGroup">
+                    <button id="addCustomerBtn" class="btn-primary" type="button">
+                        <i class="fas fa-plus"></i> Add Customer
+                    </button>
+                </div>
             </div>
 
             <!-- ===================== LIST VIEW ===================== -->
@@ -1269,7 +1254,7 @@
     // ============================================================
     // API CONFIG & STATE
     // ============================================================
-    const API = 'http://localhost:5001/api';
+    const API = 'http://172.23.63.10:5001/api';
     const PAGE_SIZE = 50;
 
     let allCustomers = [];
@@ -1562,9 +1547,11 @@
     // ============================================================
     // ACTIONS (ADD, EXTEND, CHANGE PLAN, DEACTIVATE)
     // ============================================================
+    // 🎯 CHANGE 2: Added Customer ID field + sending externalId
     function openAddCustomerModal() {
         const todayIso = new Date().toISOString().slice(0, 10);
         const body = `
+            <div class="form-field"><label>Customer ID <span style="color:var(--text-muted);font-weight:400;font-size:0.75rem;"></span></label><input type="text" id="addCustomerId" placeholder="" /></div>
             <div class="form-field" id="addNameField"><label>Customer Name</label><input type="text" id="addCustomerName" /><div class="field-error">Please enter a name.</div></div>
             <div class="form-field"><label>Plan</label><select id="addCustomerPlan">${planOptionsHtml(allPlans[0]?.id)}</select></div>
             <div class="form-field" id="addExpiryField"><label>Expiry Date</label><input type="date" id="addCustomerExpiry" min="${todayIso}" /><div class="field-error">Choose a valid date.</div></div>`;
@@ -1572,13 +1559,17 @@
         
         document.getElementById('cancelAdd').onclick = closeModal;
         document.getElementById('confirmAdd').onclick = async () => {
+            const externalId = document.getElementById('addCustomerId').value.trim();
             const name = document.getElementById('addCustomerName').value.trim();
             const planId = document.getElementById('addCustomerPlan').value;
             const expiryDate = document.getElementById('addCustomerExpiry').value;
                        if (!name || !expiryDate) return alert('Please fill all fields');
             if (!planId) return alert('No plans available! Please create a plan in Prisma Studio first.');
             
-            const res = await fetch(`${API}/customers`, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ name, planId, expiryDate }) });
+            const payload = { name, planId, expiryDate };
+            if (externalId) payload.externalId = externalId;
+            
+            const res = await fetch(`${API}/customers`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) });
             if (res.ok) {
                 const newC = await res.json();
                 allCustomers.unshift(newC);
@@ -1777,22 +1768,21 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
         });
     }
 
-    /* ---------- inject buttons next to Add Customer ---------- */
-    const addBtn = document.getElementById('addCustomerBtn') ||
-        Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Add Customer'));
-    if (!addBtn) { console.warn('CSV import: Add Customer button not found.'); return; }
+    /* 🎯 CHANGE 3: Inject buttons INTO the group (not outside it) */
+    const actionsGroup = document.getElementById('customerActionsGroup');
+    if (!actionsGroup) { console.warn('CSV import: Actions group not found.'); return; }
+
+    const addBtn = document.getElementById('addCustomerBtn');
 
     const impBtn = document.createElement('button');
     impBtn.className = addBtn.className;
     impBtn.innerHTML = '<i class="fas fa-file-import"></i> Import CSV / Excel';
-    impBtn.style.marginLeft = '10px';
-    addBtn.parentNode.insertBefore(impBtn, addBtn.nextSibling);
+    actionsGroup.appendChild(impBtn);
 
     const expBtn = document.createElement('button');
     expBtn.className = addBtn.className;
     expBtn.innerHTML = '<i class="fas fa-file-export"></i> Export All Data';
-    expBtn.style.marginLeft = '10px';
-    addBtn.parentNode.insertBefore(expBtn, impBtn.nextSibling);
+    actionsGroup.appendChild(expBtn);
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
