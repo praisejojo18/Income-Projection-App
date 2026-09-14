@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prontox · Customers</title>
 
+
     <!-- Font Awesome 6 (Free) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
@@ -1124,10 +1125,13 @@
                     <h2>Customers</h2>
                     <p>View and manage all your customer accounts and interactions.</p>
                 </div>
-                <!-- 🎯 CHANGE 1: Button group wrapper -->
+                <!-- 🎯 CHANGE 1: Button group wrapper + DELETE ALL button added -->
                 <div class="customer-actions-group" id="customerActionsGroup">
                     <button id="addCustomerBtn" class="btn-primary" type="button">
                         <i class="fas fa-plus"></i> Add Customer
+                    </button>
+                    <button id="deleteAllCustomersBtn" class="btn-danger" type="button">
+                        <i class="fas fa-trash"></i> Delete All Customers
                     </button>
                 </div>
             </div>
@@ -1254,9 +1258,10 @@
     // ============================================================
     // API CONFIG & STATE
     // ============================================================
-    const API = 'http://172.23.63.10:5001/api';
+       const API = (location.protocol === 'file:' || !location.hostname)
+        ? 'http://172.23.63.10:5001/api'
+        : 'http://' + location.hostname + ':5001/api';
     const PAGE_SIZE = 50;
-
     let allCustomers = [];
     let allPlans = [];
 
@@ -1280,6 +1285,7 @@
     // DOM REFS (Exact same IDs as his HTML)
     // ============================================================
     const addCustomerBtn = document.getElementById('addCustomerBtn');
+    const deleteAllCustomersBtn = document.getElementById('deleteAllCustomersBtn');
     const customerListView = document.getElementById('customerListView');
     const customerProfileView = document.getElementById('customerProfileView');
     const customerSearchInput = document.getElementById('customerSearchInput');
@@ -1378,10 +1384,11 @@
         const search = state.search.trim().toLowerCase();
         return list.filter(c => {
             if (search) {
-                const nameMatch = c.name && c.name.toLowerCase().indexOf(search) !== -1;
-                const idMatch = c.id && String(c.id).toLowerCase().indexOf(search) !== -1;
-                if (!nameMatch && !idMatch) return false;
-            }
+            const nameMatch = c.name && c.name.toLowerCase().indexOf(search) !== -1;
+            const idMatch = (c.id && String(c.id).toLowerCase().indexOf(search) !== -1) || 
+            (c.externalId && String(c.externalId).toLowerCase().indexOf(search) !== -1);
+            if (!nameMatch && !idMatch) return false;
+        }
             if (state.plan !== 'all' && c.planId !== state.plan) return false;
             if (state.status !== 'all' && calculateStatus(c) !== state.status) return false;
             return true;
@@ -1442,7 +1449,7 @@
             const safeId = escapeHtml(c.id || '');
             return `
                 <tr data-id="${c.id}" tabindex="0" role="button">
-                    <td class="customer-id-cell">${safeId}</td>
+                    <td class="customer-id-cell">${escapeHtml(c.externalId || c.id || '')}</td>
                     <td class="cust-name-cell">${safeName}</td>
                     <td>${safePlan}</td>
                     <td><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td>
@@ -1519,7 +1526,7 @@
         document.getElementById('profilePlan').textContent = c.plan?.name || 'Unknown';
         document.getElementById('profileExpiry').textContent = formatDate(c.expiryDate);
         document.getElementById('profileAmount').textContent = formatCurrency(c.amount || c.plan?.price);
-        document.getElementById('profileId').textContent = c.id;
+        document.getElementById('profileId').textContent = c.externalId || c.id;
         document.getElementById('profileCreatedAt').textContent = formatDate(c.createdAt);
         
         const isDeactivated = c.status === 'INACTIVE';
@@ -1660,6 +1667,36 @@
     }
 
     // ============================================================
+    // 🆕 DELETE ALL CUSTOMERS HANDLER
+    // ============================================================
+    deleteAllCustomersBtn.addEventListener('click', async () => {
+        if (allCustomers.length === 0) {
+            alert('No customers to delete.');
+            return;
+        }
+        if (!confirm(`⚠️ DELETE ALL ${allCustomers.length} CUSTOMERS?\n\nThis will remove EVERY customer and their payments from the system.\nUse this before re-importing a fresh CSV to avoid duplicates.\n\nThis CANNOT be undone!`)) return;
+
+        try {
+            deleteAllCustomersBtn.disabled = true;
+            deleteAllCustomersBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            const res = await fetch(`${API}/customers/all`, { method: 'DELETE', headers: getHeaders() });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message || 'All customers deleted.');
+                allCustomers = [];
+                renderCustomerList();
+            } else {
+                alert('Failed: ' + (data.error || data.message || 'Unknown error'));
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        } finally {
+            deleteAllCustomersBtn.disabled = false;
+            deleteAllCustomersBtn.innerHTML = '<i class="fas fa-trash"></i> Delete All Customers';
+        }
+    });
+
+    // ============================================================
     // EVENT WIRING
     // ============================================================
     addCustomerBtn.addEventListener('click', openAddCustomerModal);
@@ -1704,7 +1741,7 @@
         else { document.documentElement.removeAttribute('data-theme'); themeIcon.className = 'fas fa-moon'; }
         try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
     }
-    try { const saved = localStorage.getItem('prontox-theme'); if (saved === 'dark') applyTheme(true); else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true); else applyTheme(false); } catch (_) { applyTheme(false); }
+    try { const saved = localStorage.getItem('prontox-theme'); if (saved === 'dark') applyTheme(true); else if (saved === 'light') applyTheme(false); else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true); else applyTheme(false); } catch (_) { applyTheme(false); }
     themeToggle.addEventListener('click', () => applyTheme(!darkMode));
 
     const logoLink = document.getElementById('logoLink');
@@ -1725,7 +1762,7 @@
     // INIT
     // ============================================================
     loadInitialData();
-    console.log('✅ Customer page connected to live API.');
+    console.log('✅ Customer page connected to live API with Delete All button.');
 })();
 </script>
 
@@ -1747,7 +1784,9 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
 (function () {
     'use strict';
 
-    const API = 'http://' + (location.hostname || 'localhost') + ':5001/api';
+        const API = (location.protocol === 'file:' || !location.hostname)
+        ? 'http://172.23.63.10:5001/api'
+        : 'http://' + location.hostname + ':5001/api';
     const getHeaders = () => {
         const h = { 'Content-Type': 'application/json' };
         const token = localStorage.getItem('prontolog_token');
@@ -1823,7 +1862,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
             const projections = await projRes.json();
             const wb = XLSX.utils.book_new();
             const custData = (Array.isArray(customers) ? customers : []).map(c => ({
-                'Customer ID': c.id, 'Name': c.name, 'Plan': c.plan?.name || 'Unknown',
+                'Customer ID': c.externalId || c.id, 'Name': c.name, 'Plan': c.plan?.name || 'Unknown',
                 'Plan ID': c.planId, 'Expiry Date': c.expiryDate ? c.expiryDate.slice(0, 10) : '',
                 'Amount': c.amount || c.plan?.price || 0, 'Status': c.displayStatus || c.status || 'Unknown',
                 'Created': c.createdAt ? c.createdAt.slice(0, 10) : ''
@@ -1831,7 +1870,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
             XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(custData), 'Customers');
             const payData = (Array.isArray(payments) ? payments : (payments.payments || [])).map(p => ({
                 'Date': p.paymentDate || p.date || '', 'Customer': p.customerName || p.customer || 'Unknown',
-                'Customer ID': p.customerId || '', 'Plan': p.planName || p.plan || 'Unknown',
+                'Customer ID': p.customerExternalId || p.customerId || '', 'Plan': p.planName || p.plan || 'Unknown',
                 'Plan ID': p.planId || '', 'Amount': p.amount || 0, 'Method': p.method || '', 'Reference': p.reference || ''
             }));
             XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(payData), 'Payments');
@@ -1898,7 +1937,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
             if (preview.discarded.length) {
                 html += `<h3 style="font-size:14px;margin:0 0 8px;">🗑️ Discarding these columns:</h3><p style="margin:0 0 14px;color:#666;font-size:13px;">${preview.discarded.join(', ')}</p>`;
             }
-            html += `<h3 style="font-size:14px;margin:0 0 8px;">📝 Sample rows (first 5):</h3><table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr><th style="text-align:left;padding:6px;border:1px solid #ddd;">Name</th><th style="text-align:left;padding:6px;border:1px solid #ddd;">Plan</th><th style="text-align:left;padding:6px;border:1px solid #ddd;">Amount</th><th style="text-align:left;padding:6px;border:1px solid #ddd;">Expiry</th><th style="text-align:left;padding:6px;border:1px solid #ddd;">Client ID</th></tr></thead><tbody>`;
+            html += `<h3 style="font-size:14px;margin:0 0 8px;">📝 Sample rows (first 5):</h3><table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr><th style="text-align:left;padding:6px;border:1px solid #ddd;">Name</th><th style="text-align:left;padding:6px;border:1px solid #ddd;">Plan</th><th style="text-align:left;padding:6px;border:1px solid #ddd;">Amount</th><th style="text-align:left;padding:6px;border:1px solid #ddd;">Expiry</th><th style="text-align:left;padding:6px;border:1px solid #ddd;">Customer ID</th></tr></thead><tbody>`;
             preview.sample.forEach(s => {
                 html += `<tr><td style="padding:6px;border:1px solid #ddd;">${s.name || '—'}</td><td style="padding:6px;border:1px solid #ddd;">${s.plan || '—'}</td><td style="padding:6px;border:1px solid #ddd;">${s.amount || '—'}</td><td style="padding:6px;border:1px solid #ddd;">${s.expiryDate || '—'}</td><td style="padding:6px;border:1px solid #ddd;">${s.externalId || '—'}</td></tr>`;
             });
@@ -1929,7 +1968,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
             });
             const exec = await execRes.json();
             if (!exec.success) { alert('Import failed: ' + exec.message); confirmBtn.disabled = false; confirmBtn.innerHTML = '✅ Confirm Import'; return; }
-            let msg = `✅ Imported: ${exec.imported}\n🔁 Duplicates skipped: ${exec.duplicates}\n⚠️ Skipped: ${exec.skipped.length}`;
+                let msg = `✅ Imported: ${exec.imported}\n💳 Payments auto-recorded: ${exec.paymentsRecorded || 0}\n🔁 Duplicates skipped: ${exec.duplicates}\n⚠️ Skipped: ${exec.skipped.length}`;
             if (exec.priceOverrides) msg += `\n💰 ${exec.priceOverrides} row(s): document amount ignored — the plan's REAL price was used.`;
             if (exec.plansCreated.length) msg += `\n\n🆕 Plans auto-created: ${exec.plansCreated.join(', ')}`;
             if (exec.skipped.length) msg += `\n\nSkipped rows:\n` + exec.skipped.slice(0, 10).map(s => `Row ${s.row}: ${s.name || '—'} — ${s.reason}`).join('\n');

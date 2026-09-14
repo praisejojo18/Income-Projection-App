@@ -124,33 +124,6 @@
             gap: 16px;
         }
 
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 1.15rem;
-            color: var(--text-primary);
-            transition: color var(--transition);
-        }
-        .nav-logo .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--accent);
-            border-radius: var(--radius-xs);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 700;
-            transition: background var(--transition);
-        }
-        .nav-logo span {
-            color: var(--accent);
-            transition: color var(--transition);
-        }
-
         .hamburger {
             display: flex;
             flex-direction: column;
@@ -457,10 +430,9 @@
 (function () {
   'use strict';
 
-  const API = 'http://172.23.63.10:5001/api';
+  const API = 'http://' + (location.hostname || 'localhost') + ':5001/api';
   const $ = (id) => document.getElementById(id);
 
-  /* SAME identity as your other working pages */
   const headers = () => {
     const h = { 'Content-Type': 'application/json' };
     const token = localStorage.getItem('prontolog_token');
@@ -476,7 +448,7 @@
   const sod = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
   /* ============================================================
-     1) INJECT LIVE AUTO SECTION (with full plan filter)
+     1) INJECT LIVE AUTO SECTION (Plans + Status filters)
   ============================================================ */
   const main = document.querySelector('main') || document.body;
   const headerEl = document.querySelector('.page-header');
@@ -487,6 +459,11 @@
       <h2 style="font-size:16px;font-weight:600;color:var(--text-primary);">📡 Live Projection (Auto-Computed)</h2>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span id="autoTransparency" style="font-size:12px;color:var(--text-muted);"></span>
+        <select id="autoStatusFilter" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-primary);padding:7px 10px;border-radius:8px;font-size:13px;">
+          <option value="all">All Customers</option>
+          <option value="active">Active Only</option>
+          <option value="expired">Expired Only</option>
+        </select>
         <select id="autoPlanFilter" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-primary);padding:7px 10px;border-radius:8px;font-size:13px;"></select>
       </div>
     </div>
@@ -495,7 +472,7 @@
       <table style="width:100%;border-collapse:collapse;font-size:13px;">
         <thead><tr>
           <th style="${th}text-align:left;">Service Plan</th>
-          <th style="${th}text-align:right;">Billable Customers</th>
+          <th style="${th}text-align:right;">Customers</th>
           <th style="${th}text-align:right;">Price</th>
           <th style="${th}text-align:right;">3-Day</th>
           <th style="${th}text-align:right;">1-Week</th>
@@ -509,9 +486,11 @@
   else main.prepend(autoWrap);
 
   /* ============================================================
-     2) AUTO DATA — server first, browser fallback (never empty)
+     2) AUTO DATA — browser fallback (gives us full control)
   ============================================================ */
   let AUTO = null;
+  let ALL_CUSTOMERS = [];
+  let ALL_PLANS = [];
 
   async function fetchPlans() {
     try {
@@ -521,98 +500,95 @@
     } catch (e) { return []; }
   }
 
-  async function computeLocalAuto(plans) {
-    let customers = [];
+  async function fetchCustomers() {
     try {
       const r = await fetch(API + '/customers', { headers: headers() });
       const d = await r.json();
-      customers = Array.isArray(d) ? d : (d.customers || []);
-    } catch (e) {}
+      return Array.isArray(d) ? d : (d.customers || []);
+    } catch (e) { return []; }
+  }
 
+  function computeAuto(plans, customers, statusFilter) {
     const now = new Date(), today = sod(now);
     const in3 = new Date(today.getTime() + 3 * 86400000);
     const in7 = new Date(today.getTime() + 7 * 86400000);
 
+    const st = (c) => String(c.displayStatus || c.status || '').toUpperCase();
+
     const rows = plans.map(pl => {
       const price = Number(pl.price) || 0;
       const mine = customers.filter(c => c.planId === pl.id);
-      const billable = mine.filter(c => {
-        const st = String(c.displayStatus || c.status || '').toUpperCase();
-        return st === 'ACTIVE' || st === 'EXPIRED';
-      }).length;
+
+      // Filter by status
+      const filtered = mine.filter(c => {
+        const s = st(c);
+        if (statusFilter === 'active') return s === 'ACTIVE';
+        if (statusFilter === 'expired') return s === 'EXPIRED';
+        return s === 'ACTIVE' || s === 'EXPIRED';
+      });
+
       let f3 = 0, f7 = 0;
-      mine.forEach(c => {
+      filtered.forEach(c => {
         const exp = new Date(c.expiryDate);
         if (exp >= today && exp <= in3) f3 += price;
         if (exp >= today && exp <= in7) f7 += price;
       });
+
+      const billable = filtered.length;
       return {
         planId: pl.id, planName: pl.name, price,
-        billableCustomers: billable, source: 'auto',
+        billableCustomers: billable,
         threeDay: f3, oneWeek: f7,
         oneMonth: billable * price, oneYear: billable * price * 12
       };
     });
 
-    const totals = rows.reduce((t, p) => ({
-      threeDay: t.threeDay + p.threeDay, oneWeek: t.oneWeek + p.oneWeek,
-      oneMonth: t.oneMonth + p.oneMonth, oneYear: t.oneYear + p.oneYear
-    }), { threeDay: 0, oneWeek: 0, oneMonth: 0, oneYear: 0 });
+    const allFiltered = customers.filter(c => {
+      const s = st(c);
+      if (statusFilter === 'active') return s === 'ACTIVE';
+      if (statusFilter === 'expired') return s === 'EXPIRED';
+      return s === 'ACTIVE' || s === 'EXPIRED';
+    });
 
-    const st = (c) => String(c.displayStatus || c.status || '').toUpperCase();
-    return {
-      perPlan: rows, totals,
-      counts: {
-        billable: customers.filter(c => st(c) === 'ACTIVE' || st(c) === 'EXPIRED').length,
-        active: customers.filter(c => st(c) === 'ACTIVE').length,
-        expired: customers.filter(c => st(c) === 'EXPIRED').length
-      },
-      manualCount: 0
+    const counts = {
+      billable: allFiltered.length,
+      active: customers.filter(c => st(c) === 'ACTIVE').length,
+      expired: customers.filter(c => st(c) === 'EXPIRED').length
     };
+
+    return { perPlan: rows, counts };
   }
 
   async function loadAuto() {
     const plans = await fetchPlans();
-    let d = null;
+    const customers = await fetchCustomers();
+    ALL_PLANS = plans;
+    ALL_CUSTOMERS = customers;
 
-    try {
-      const res = await fetch(API + '/projections/auto', { headers: headers() });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.perPlan && data.perPlan.length) d = data;
-      }
-    } catch (e) {}
-
-    if (!d) d = await computeLocalAuto(plans);
-
-    /* Make sure EVERY plan appears (even with 0 customers) */
-    plans.forEach(pl => {
-      if (!d.perPlan.some(p => p.planId === pl.id)) {
-        d.perPlan.push({
-          planId: pl.id, planName: pl.name, price: Number(pl.price) || 0,
-          billableCustomers: 0, source: 'auto',
-          threeDay: 0, oneWeek: 0, oneMonth: 0, oneYear: 0
-        });
-      }
-    });
-
-    AUTO = d;
+    AUTO = computeAuto(plans, customers, 'all');
 
     const sel = $('autoPlanFilter');
     sel.innerHTML = '<option value="all">All Plans (combined)</option>' +
       plans.map(p => '<option value="' + p.id + '">' + p.name + '</option>').join('');
     sel.onchange = renderAuto;
 
+    $('autoStatusFilter').onchange = function () {
+      AUTO = computeAuto(ALL_PLANS, ALL_CUSTOMERS, this.value);
+      renderAuto();
+    };
+
     renderAuto();
   }
 
   function renderAuto() {
     if (!AUTO) return;
-    const filter = $('autoPlanFilter') ? $('autoPlanFilter').value : 'all';
-    const rows = filter === 'all' ? AUTO.perPlan : AUTO.perPlan.filter(p => p.planId === filter);
+    const planFilter = $('autoPlanFilter') ? $('autoPlanFilter').value : 'all';
+    const statusFilter = $('autoStatusFilter') ? $('autoStatusFilter').value : 'all';
+    const rows = planFilter === 'all' ? AUTO.perPlan : AUTO.perPlan.filter(p => p.planId === planFilter);
 
-    $('autoTransparency').textContent =
-      'Computed from ' + AUTO.counts.billable + ' billable customers (' + AUTO.counts.active + ' Active + ' + AUTO.counts.expired + ' Expired)';
+    const statusLabel = statusFilter === 'active' ? 'ACTIVE customers' : statusFilter === 'expired' ? 'EXPIRED customers' : 'customers (Active + Expired)';
+    $('autoTransparency').textContent = 'Showing ' + AUTO.counts.billable + ' ' + statusLabel +
+      ' (' + AUTO.counts.active + ' Active · ' + AUTO.counts.expired + ' Expired total)';
 
     const t = rows.reduce((s, p) => ({
       b: s.b + p.billableCustomers, d3: s.d3 + p.threeDay, w: s.w + p.oneWeek, m: s.m + p.oneMonth, y: s.y + p.oneYear
@@ -641,7 +617,7 @@
         <td style="${tdr}">${fmt(p.oneYear)}</td>
       </tr>`).join('') + `
       <tr>
-        <td style="${td}"><strong style="color:var(--accent);">TOTAL${filter !== 'all' ? ' (this plan)' : ' (all plans)'}</strong></td>
+        <td style="${td}"><strong style="color:var(--accent);">TOTAL${planFilter !== 'all' ? ' (this plan)' : ' (all plans)'}</strong></td>
         <td style="${tdr}"><strong>${t.b}</strong></td>
         <td style="${tdr}">—</td>
         <td style="${tdr}"><strong>${fmt(t.d3)}</strong></td>
@@ -683,14 +659,13 @@
   if (logoutBtn) logoutBtn.addEventListener('click', e => {
     e.preventDefault();
     if (confirm('Are you sure you want to log out?')) {
-      localStorage.removeItem('prontolog_token');
-      localStorage.removeItem('prontolog_user_id');
+      localStorage.clear();
       window.location.href = 'login.html';
     }
   });
 
   loadAuto();
-  console.log('✅ Income Projection: Live Auto-Computed only.');
+  console.log('✅ Income Projection v4: Active vs Expired split.');
 })();
 </script>
 <script src="admin-link.js"></script>

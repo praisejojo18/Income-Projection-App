@@ -10,6 +10,6 @@ router.put("/", settingsController.updateSettings);
 router.get("/plans", settingsController.getPlans);
 router.post("/plans", settingsController.createPlan);
 router.put("/plans/:id", settingsController.updatePlan);
-router.post("/plans/:id/archive", settingsController.togglePlanStatus);
+router.delete("/plans/:id", settingsController.deletePlan);  // 🆕 Permanent delete
 
 module.exports = router;

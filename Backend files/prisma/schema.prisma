@@ -105,6 +105,9 @@ model Payment {
   paymentDate DateTime       @default(now()) @db.DateTime(3)
   method      PaymentMethod
   reference   String
+  paymentType     String?
+  monthsPaid      Int?
+  discountPercent Decimal?       @db.Decimal(5, 2)
   createdAt   DateTime       @default(now()) @db.DateTime(3)
   updatedAt   DateTime       @updatedAt @db.DateTime(3)
 

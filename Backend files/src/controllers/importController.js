@@ -5,8 +5,8 @@ const prisma = new PrismaClient();
 function parseCSV(text) {
   text = String(text || '').replace(/^\uFEFF/, '');
   const rows = [];
-  
-  // 🧠 SMART DETECT: Is this CSV separated by commas, semicolons, or tabs?
+
+  // 🧠 SMART DETECT: comma, semicolon or tab separated?
   const firstLine = text.split(/\r?\n/)[0] || '';
   let sep = ',';
   const counts = { ',': 0, ';': 0, '\t': 0 };
@@ -55,12 +55,13 @@ function buildMapping(headers) {
   find('amount',        n => n.includes('amount') || n.includes('price') || n.includes('fee'));
   find('customerSince', n => n.includes('subscribed') || n.includes('since') || n.includes('start') || n.includes('join') || n.includes('regist'));
   find('billingDate',   n => n.includes('biling') || n.includes('billing') || n.includes('billdate'));
+  find('paymentDate',   n => n.includes('paymentdate') || n.includes('datepaid') || n.includes('paiddate') || n.includes('lastpaid') || n.includes('paidon') || n.includes('payment'));
   find('email',         n => n.includes('mail'));
   find('phone',         n => n.includes('phone') || n.includes('tel') || n.includes('whatsapp') || n === 'contact');
-  
+
   // 🧠 RELAXED NAME FINDER (Accepts almost anything)
   find('name', n => n === 'customer' || n === 'client' || n === 'name' || n.includes('customername') || n.includes('clientname') || n.includes('fullname') || n.includes('firstname') || n.includes('member') || n.includes('tenant') || n.includes('user') || n.includes('holder') || n.includes('subscriber'));
-  
+
   // 🛡️ ULTIMATE FALLBACK: If name is STILL missing, just grab the first unused column!
   if (map.name === undefined) {
     for (let i = 0; i < headers.length; i++) {
@@ -101,7 +102,7 @@ function cleanStatus(v) {
 
 const LABELS = {
   externalId: 'Client ID (PBS…)', name: 'Customer Name', plan: 'Service Plan', amount: 'Amount (ignored if plan exists)',
-  customerSince: 'Date Subscribed', billingDate: 'Billing Date', expiryDate: 'Expiry Date',
+  customerSince: 'Date Subscribed', billingDate: 'Billing Date', paymentDate: 'Payment Date', expiryDate: 'Expiry Date',
   email: 'Email', phone: 'Phone', status: 'Expired / Status'
 };
 
@@ -132,8 +133,7 @@ exports.execute = async (req, res) => {
     if (rows.length < 2) return res.status(400).json({ success: false, message: 'CSV is empty.' });
     const headers = rows[0];
     const { map, discarded } = buildMapping(headers);
-    
-    // 🛡️ BETTER ERROR MESSAGE (No more hardcoded "customer-name" ghost!)
+
     if (map.name === undefined) return res.status(400).json({ success: false, message: 'Could not identify a customer name column. Please ensure one column contains the word "Name", "Client", or "Customer".' });
 
     const ownerId = req.userId;
@@ -147,7 +147,7 @@ exports.execute = async (req, res) => {
     const existing = await prisma.customer.findMany({ where: { userId: ownerId }, select: { externalId: true } });
     const seenIds = new Set(existing.map(e => e.externalId).filter(Boolean));
 
-    let imported = 0, duplicates = 0, priceOverrides = 0;
+    let imported = 0, duplicates = 0, priceOverrides = 0, paymentsRecorded = 0;
     const skipped = [];
     const plansCreated = new Set();
     const dataRows = rows.slice(1);
@@ -163,7 +163,7 @@ exports.execute = async (req, res) => {
         const externalId = pick('externalId') || null;
         if (externalId && seenIds.has(externalId)) { duplicates++; continue; }
 
-        // 🧠 RELAXED PLAN FINDER (If plan is missing, fallback to the first plan in the system!)
+        // 🧠 RELAXED PLAN FINDER
         const planName = pick('plan');
         let plan = planName ? planCache[normPlan(planName)] : null;
         if (!plan && planName) {
@@ -177,7 +177,6 @@ exports.execute = async (req, res) => {
             planCache[normPlan(planName)] = plan;
             plansCreated.add(planName);
           } else {
-            // 🛡️ NO PLAN COLUMN AT ALL? Fallback to the FIRST available plan
             const fallbackPlan = myPlans[0];
             if (!fallbackPlan) {
                skipped.push({ row: rowNo, name, reason: 'No plans exist in your system. Create a plan first.' }); continue;
@@ -196,7 +195,7 @@ exports.execute = async (req, res) => {
 
         const status = map.status !== undefined ? cleanStatus(r[map.status]) : (expiry.getTime() < Date.now() ? 'EXPIRED' : 'ACTIVE');
 
-        await prisma.customer.create({
+        const created = await prisma.customer.create({
           data: {
             userId: ownerId,
             name,
@@ -211,12 +210,29 @@ exports.execute = async (req, res) => {
         });
         if (externalId) seenIds.add(externalId);
         imported++;
+
+        // 💳 AUTO-PAYMENT: ACTIVE + EXPIRED customers get a payment at the plan's REAL price
+        if (status !== 'INACTIVE') {
+          const payDate = parseDate(pick('paymentDate')) || new Date();
+          await prisma.payment.create({
+            data: {
+              userId: ownerId,
+              customerId: created.id,
+              planId: plan.id,
+              amount: plan.price,
+              paymentDate: payDate,
+              method: 'CASH',
+              reference: 'IMP-' + (externalId || created.id)
+            }
+          });
+          paymentsRecorded++;
+        }
       } catch (e) {
         skipped.push({ row: rowNo, reason: e.message });
       }
     }
 
-    res.json({ success: true, imported, duplicates, skipped, plansCreated: [...plansCreated], priceOverrides, discarded });
+    res.json({ success: true, imported, duplicates, skipped, plansCreated: [...plansCreated], priceOverrides, paymentsRecorded, discarded });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }

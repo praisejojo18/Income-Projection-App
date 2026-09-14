@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../config/database');
 const { ApiError } = require('../utils/helpers');
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
     return next(new ApiError(401, 'Authentication required'));
@@ -10,25 +10,40 @@ const authenticate = (req, res, next) => {
   try {
     const token = header.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
+
+    // COMPANY MODE: all staff share the Super Admin's data pool
+    const superAdmin = await prisma.user.findFirst({ where: { role: 'SUPER_ADMIN' } });
+    req.userId = superAdmin ? superAdmin.id : decoded.userId;
+
+    // Keep the REAL logged-in user for names & permission checks
+    req.realUserId = decoded.userId;
+    const currentUser = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    req.userRole = currentUser ? currentUser.role : 'USER';
+
     next();
-  } catch {
+  } catch (err) {
     next(new ApiError(401, 'Invalid or expired token'));
   }
 };
 
-// 🛡️ NEW: Super Admin Check
 const requireSuperAdmin = async (req, res, next) => {
   try {
-    if (!req.userId) return next(new ApiError(401, 'Authentication required'));
-    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    let userId = req.realUserId;
+    if (!userId) {
+      const header = req.headers.authorization;
+      if (!header || !header.startsWith('Bearer ')) return next(new ApiError(401, 'Authentication required'));
+      const decoded = jwt.verify(header.split(' ')[1], process.env.JWT_SECRET);
+      userId = decoded.userId;
+    }
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.role !== 'SUPER_ADMIN') {
       return next(new ApiError(403, 'Forbidden: Super Admin access required'));
     }
+    req.realUserId = userId;
     req.userRole = user.role;
     next();
   } catch (error) {
-    next(new ApiError(500, 'Authorization check failed'));
+    next(new ApiError(401, 'Authentication required'));
   }
 };
 

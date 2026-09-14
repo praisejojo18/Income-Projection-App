@@ -148,25 +148,40 @@ exports.createPlan = async (req, res) => {
 };
 
 /* =====================================================
-   POST /api/settings/plans/:id/archive — archive / re-activate
+   DELETE /api/settings/plans/:id — PERMANENTLY DELETE
+   🔥 Cascades: removes ALL customers, payments, projections
+      on this plan, then the plan itself. Gone forever.
 ===================================================== */
-exports.togglePlanStatus = async (req, res) => {
+exports.deletePlan = async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ error: "User ID is required." });
 
-    const existing = await prisma.plan.findFirst({ where: { id: req.params.id, userId } });
-    if (!existing) return res.status(404).json({ error: "Plan not found." });
+    const plan = await prisma.plan.findFirst({ where: { id: req.params.id, userId } });
+    if (!plan) return res.status(404).json({ error: "Plan not found." });
 
-    const plan = await prisma.plan.update({
-      where: { id: existing.id },
-      data: { status: existing.status === "ACTIVE" ? "ARCHIVED" : "ACTIVE" }
-    });
+    // Count related data before deletion (for the confirmation message)
+    const customerCount = await prisma.customer.count({ where: { planId: plan.id } });
+    const paymentCount = await prisma.payment.count({ where: { planId: plan.id } });
+    const projectionCount = await prisma.projection.count({ where: { planId: plan.id } });
+
+    // CASCADE DELETE in a single transaction (all-or-nothing)
+    await prisma.$transaction([
+      prisma.payment.deleteMany({ where: { planId: plan.id } }),
+      prisma.projection.deleteMany({ where: { planId: plan.id } }),
+      prisma.customer.deleteMany({ where: { planId: plan.id } }),
+      prisma.plan.delete({ where: { id: plan.id } })
+    ]);
+
+    const parts = [];
+    if (customerCount) parts.push(`${customerCount} customer(s)`);
+    if (paymentCount) parts.push(`${paymentCount} payment(s)`);
+    if (projectionCount) parts.push(`${projectionCount} projection(s)`);
 
     res.json({
       success: true,
-      message: plan.status === "ACTIVE" ? "Plan re-activated." : "Plan archived (hidden from dropdowns).",
-      plan
+      message: `🗑️ Plan "${plan.name}" deleted permanently.` +
+        (parts.length ? ` Also removed ${parts.join(", ")}.` : '')
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

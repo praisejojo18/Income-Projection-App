@@ -1170,7 +1170,7 @@
                     </div>
                     <div class="plan-actions">
                         <button class="save-price-btn" data-id="${p.id}"><i class="fas fa-check"></i> Save</button>
-                        <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-${p.status === 'ACTIVE' ? 'archive' : 'undo'}"></i> ${p.status === 'ACTIVE' ? 'Archive' : 'Restore'}</button>
+                        <button class="remove-plan-btn" data-id="${p.id}"><i class="fas fa-trash"></i> Delete</button>
                     </div>
                 </div>`).join('');
 
@@ -1193,13 +1193,17 @@
             });
 
             // Archive / Restore plan
-            planListContainer.querySelectorAll('.remove-plan-btn').forEach(btn => {
+                       planListContainer.querySelectorAll('.remove-plan-btn').forEach(btn => {
                 btn.addEventListener('click', async function (e) {
                     e.stopPropagation();
                     const id = this.dataset.id;
+                    const planName = (this.closest('.plan-item')?.querySelector('.plan-name')?.textContent || 'this plan').replace('(archived)', '').trim();
+                    
+                    if (!confirm(`⚠️ PERMANENTLY DELETE "${planName}"?\n\nALL customers, payments, and projections on this plan will also be deleted.\n\nThis CANNOT be undone!`)) return;
+                    
                     try {
-                        const res = await apiFetch('/settings/plans/' + id + '/archive', { method: 'POST' });
-                        alert(res.message || 'Done.');
+                        const res = await apiFetch('/settings/plans/' + id, { method: 'DELETE' });
+                        alert(res.message || 'Plan deleted permanently.');
                         await renderPlanList();
                         await renderSettingsPlanPreview();
                     } catch (err) { alert('Failed: ' + err.message); }

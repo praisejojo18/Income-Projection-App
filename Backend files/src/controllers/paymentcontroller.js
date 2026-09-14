@@ -1,4 +1,5 @@
 const prisma = require("../config/database");
+const { analyzePayment } = require("../utils/paymentBrain");
 
 const getUserId = (req) => {
   return (
@@ -27,8 +28,6 @@ const toMethodEnum = (str) => {
 
 /* =====================================================
    GET /api/payments
-   Returns all payments (newest first) + summary cards
-   + plans list + customers list (for modal dropdowns)
 ===================================================== */
 exports.getPayments = async (req, res) => {
   try {
@@ -38,13 +37,12 @@ exports.getPayments = async (req, res) => {
     const payments = await prisma.payment.findMany({
       where: { userId },
       include: {
-        customer: { select: { id: true, name: true } },
+        customer: { select: { id: true, name: true, externalId: true } },
         plan: { select: { id: true, name: true, price: true } }
       },
       orderBy: { paymentDate: "desc" }
     });
 
-    /* Format each payment row for the frontend table */
     const formatted = payments.map((p) => ({
       id: p.id,
       date: p.paymentDate ? p.paymentDate.toISOString().slice(0, 10) : null,
@@ -52,15 +50,18 @@ exports.getPayments = async (req, res) => {
       customer: p.customer?.name || "Unknown",
       customerName: p.customer?.name || "Unknown",
       customerId: p.customerId,
+      customerExternalId: p.customer?.externalId || null,
       plan: p.plan?.name || "Unknown",
       planName: p.plan?.name || "Unknown",
       planId: p.planId,
       amount: round2(Number(p.amount)),
       method: METHOD_DISPLAY[p.method] || p.method,
-      reference: p.reference || "—"
+      reference: p.reference || "—",
+      paymentType: p.paymentType || "manual",
+      monthsPaid: p.monthsPaid || null,
+      discountPercent: p.discountPercent ? Number(p.discountPercent) : 0
     }));
 
-    /* Summary card values */
     const total = formatted.reduce((s, p) => s + p.amount, 0);
     const avg = formatted.length > 0 ? total / formatted.length : 0;
     const now = new Date();
@@ -88,7 +89,6 @@ exports.getPayments = async (req, res) => {
 
 /* =====================================================
    GET /api/payments/:id
-   Returns a single payment's full details
 ===================================================== */
 exports.getPaymentById = async (req, res) => {
   try {
@@ -98,7 +98,7 @@ exports.getPaymentById = async (req, res) => {
     const payment = await prisma.payment.findFirst({
       where: { id: req.params.id, userId },
       include: {
-        customer: { select: { id: true, name: true } },
+        customer: { select: { id: true, name: true, externalId: true } },
         plan: { select: { id: true, name: true, price: true } }
       }
     });
@@ -110,11 +110,15 @@ exports.getPaymentById = async (req, res) => {
       paymentDate: payment.paymentDate ? payment.paymentDate.toISOString().slice(0, 10) : null,
       customerName: payment.customer?.name || "Unknown",
       customerId: payment.customerId,
+      customerExternalId: payment.customer?.externalId || null,
       planName: payment.plan?.name || "Unknown",
       planId: payment.planId,
       amount: round2(Number(payment.amount)),
       method: METHOD_DISPLAY[payment.method] || payment.method,
-      reference: payment.reference || "—"
+      reference: payment.reference || "—",
+      paymentType: payment.paymentType || "manual",
+      monthsPaid: payment.monthsPaid || null,
+      discountPercent: payment.discountPercent ? Number(payment.discountPercent) : 0
     });
   } catch (error) {
     console.error("GET /api/payments/:id error:", error);
@@ -124,10 +128,6 @@ exports.getPaymentById = async (req, res) => {
 
 /* =====================================================
    POST /api/payments
-   Records a new payment.
-   - Auto-generates reference if left blank.
-   - Looks up customer by name if customerId is missing.
-   - Looks up plan by name if planId is missing.
 ===================================================== */
 exports.createPayment = async (req, res) => {
   try {
@@ -140,20 +140,16 @@ exports.createPayment = async (req, res) => {
     if (!amount || amount <= 0) return res.status(400).json({ error: "Amount must be greater than 0." });
     if (!paymentDate) return res.status(400).json({ error: "Payment date is required." });
 
-    /* Resolve customer: by ID first, then by name */
+    /* Resolve customer */
     if (!customerId && customerName) {
-      const cust = await prisma.customer.findFirst({
-        where: { userId, name: customerName }
-      });
+      const cust = await prisma.customer.findFirst({ where: { userId, name: customerName } });
       if (cust) customerId = cust.id;
     }
     if (!customerId) return res.status(400).json({ error: "Customer is required. Please select a valid customer." });
 
-    /* Resolve plan: by ID first, then by name */
+    /* Resolve plan */
     if (!planId && planName) {
-      const plan = await prisma.plan.findFirst({
-        where: { userId, name: planName }
-      });
+      const plan = await prisma.plan.findFirst({ where: { userId, name: planName } });
       if (plan) planId = plan.id;
     }
     if (!planId) return res.status(400).json({ error: "Service Plan is required. Please select a valid plan." });
@@ -164,15 +160,18 @@ exports.createPayment = async (req, res) => {
       reference = "PAY-" + String(count + 1).padStart(5, "0");
     }
 
-    /* Check for duplicate reference */
-    const existing = await prisma.payment.findFirst({
-      where: { userId, reference }
-    });
+    const existing = await prisma.payment.findFirst({ where: { userId, reference } });
     if (existing) {
-      /* Append timestamp to make it unique */
       reference = reference + "-" + Date.now().toString(36).toUpperCase();
     }
 
+    /* 🧠 RUN THE BRAIN */
+    const fullCustomer = await prisma.customer.findUnique({
+      where: { id: customerId }, include: { plan: true }
+    });
+    const brain = await analyzePayment(userId, fullCustomer, amount);
+
+    /* 💾 CREATE PAYMENT */
     const payment = await prisma.payment.create({
       data: {
         userId,
@@ -181,27 +180,58 @@ exports.createPayment = async (req, res) => {
         amount,
         paymentDate: new Date(paymentDate),
         method: toMethodEnum(method),
-        reference
+        reference,
+        paymentType: brain.type,
+        monthsPaid: brain.monthsPaid,
+        discountPercent: brain.discountPercent
       },
       include: {
-        customer: { select: { id: true, name: true } },
+        customer: { select: { id: true, name: true, externalId: true } },
         plan: { select: { id: true, name: true, price: true } }
       }
     });
 
+    /* 🎯 AUTO-APPLY BRAIN EFFECT: extend expiry + switch plan on upgrade */
+    try {
+      const effect = brain.applyEffect || { addMonths: 1 };
+      const currentExpiry = new Date(fullCustomer.expiryDate);
+      const base = currentExpiry > new Date() ? currentExpiry : new Date();
+      if (effect.addMonths) base.setMonth(base.getMonth() + effect.addMonths);
+
+      const customerUpdate = {
+        expiryDate: base,
+        status: base < new Date() ? "EXPIRED" : "ACTIVE"
+      };
+      if (effect.changePlanId) customerUpdate.planId = effect.changePlanId;
+
+      await prisma.customer.update({ where: { id: customerId }, data: customerUpdate });
+    } catch (applyErr) {
+      console.warn("Brain auto-apply failed (payment was still saved):", applyErr.message);
+    }
+
     res.status(201).json({
       success: true,
-      message: "Payment recorded successfully.",
+      message: "Payment recorded successfully. " + (brain.description || ""),
+      brain: {
+        type: brain.type,
+        monthsPaid: brain.monthsPaid,
+        discountPercent: brain.discountPercent,
+        description: brain.description
+      },
       payment: {
         id: payment.id,
         paymentDate: payment.paymentDate.toISOString().slice(0, 10),
         customerName: payment.customer?.name || "Unknown",
         customerId: payment.customerId,
+        customerExternalId: payment.customer?.externalId || null,
         planName: payment.plan?.name || "Unknown",
         planId: payment.planId,
         amount: round2(Number(payment.amount)),
         method: METHOD_DISPLAY[payment.method] || payment.method,
-        reference: payment.reference
+        reference: payment.reference,
+        paymentType: payment.paymentType || "manual",
+        monthsPaid: payment.monthsPaid || null,
+        discountPercent: payment.discountPercent ? Number(payment.discountPercent) : 0
       }
     });
   } catch (error) {
@@ -212,7 +242,6 @@ exports.createPayment = async (req, res) => {
 
 /* =====================================================
    PUT /api/payments/:id
-   Edit a payment (fix amount, method, date, reference)
 ===================================================== */
 exports.updatePayment = async (req, res) => {
   try {
@@ -242,7 +271,7 @@ exports.updatePayment = async (req, res) => {
       where: { id: req.params.id },
       data: updateData,
       include: {
-        customer: { select: { id: true, name: true } },
+        customer: { select: { id: true, name: true, externalId: true } },
         plan: { select: { id: true, name: true, price: true } }
       }
     });
@@ -255,11 +284,15 @@ exports.updatePayment = async (req, res) => {
         paymentDate: payment.paymentDate.toISOString().slice(0, 10),
         customerName: payment.customer?.name || "Unknown",
         customerId: payment.customerId,
+        customerExternalId: payment.customer?.externalId || null,
         planName: payment.plan?.name || "Unknown",
         planId: payment.planId,
         amount: round2(Number(payment.amount)),
         method: METHOD_DISPLAY[payment.method] || payment.method,
-        reference: payment.reference
+        reference: payment.reference,
+        paymentType: payment.paymentType || "manual",
+        monthsPaid: payment.monthsPaid || null,
+        discountPercent: payment.discountPercent ? Number(payment.discountPercent) : 0
       }
     });
   } catch (error) {
@@ -270,7 +303,6 @@ exports.updatePayment = async (req, res) => {
 
 /* =====================================================
    DELETE /api/payments/:id
-   Remove a payment entry
 ===================================================== */
 exports.deletePayment = async (req, res) => {
   try {

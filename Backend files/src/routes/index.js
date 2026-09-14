@@ -17,6 +17,7 @@ const mount = (path, loader, name) => {
 mount("/auth", () => require("./authRoutes"), "authRoutes");
 mount("/plans", () => require("./planRoutes"), "planRoutes");
 mount("/settings", () => require("./settingsRoutes"), "settingsRoutes");
+app.use("/api/payments-import", require("./routes/paymentImportRoutes"));
 mount("/payments", () => require("./paymentRoutes"), "paymentRoutes");
 mount("/projections", () => require("./projectionRoutes"), "projectionRoutes");
 mount("/customers", () => require("./customerRoutes"), "customerRoutes");

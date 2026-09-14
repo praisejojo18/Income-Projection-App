@@ -119,12 +119,13 @@ exports.createCustomer = async (req, res) => {
     const expiryDate = new Date(req.body.expiryDate);
     const status = normalizeStoredStatus(expiryDate, req.body.status || "ACTIVE");
 
-    const newCustomer = await prisma.customer.create({
+        const newCustomer = await prisma.customer.create({
       data: {
         userId,             
         name: req.body.name,
         email: req.body.email || null,
         phone: req.body.phone || null,
+        externalId: req.body.externalId || null,
         planId: req.body.planId, 
         expiryDate,
         status
@@ -163,12 +164,13 @@ exports.updateCustomer = async (req, res) => {
     const updatedExpiryDate = req.body.expiryDate ? new Date(req.body.expiryDate) : existingCustomer.expiryDate;
     const updatedStatus = normalizeStoredStatus(updatedExpiryDate, req.body.status || existingCustomer.status);
 
-    const updatedCustomer = await prisma.customer.update({
+      const updatedCustomer = await prisma.customer.update({
       where: { id: existingCustomer.id },
       data: {
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
+        externalId: req.body.externalId || null,
         planId: req.body.planId,
         expiryDate: updatedExpiryDate,
         status: updatedStatus
@@ -324,4 +326,25 @@ exports.getUserPlans = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// ✅ REMOVED the old "dumb" importCustomers function. We use the new Smart Importer now!
+/* DELETE /api/customers/all — wipe ALL customers + payments for fresh re-import */
+exports.deleteAllCustomers = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const customerCount = await prisma.customer.count({ where: { userId } });
+    const paymentCount = await prisma.payment.count({ where: { userId } });
+
+    await prisma.$transaction([
+      prisma.payment.deleteMany({ where: { userId } }),
+      prisma.customer.deleteMany({ where: { userId } })
+    ]);
+
+    res.json({
+      success: true,
+      message: `🗑️ Deleted ${customerCount} customer(s) and ${paymentCount} payment(s). Ready for fresh import.`
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

@@ -270,7 +270,7 @@
             font-size: 1.2rem;
             padding: 4px 8px;
             border-radius: var(--radius-xs);
-            transition: background 0.2s, color 0.2s;
+            transition: background 0.2s;
         }
         .sidebar-header .close-sidebar:hover {
             background: var(--surface-2);
@@ -389,6 +389,13 @@
             justify-content: space-between;
             align-items: flex-start;
             gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        /*  Action buttons group (Record + Import) */
+        .payments-actions {
+            display: flex;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
@@ -529,12 +536,13 @@
 
         .table-wrapper {
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .table-wrapper table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 800px;
+            min-width: 1100px;
         }
 
         .table-wrapper th {
@@ -568,6 +576,7 @@
             font-size: 10px;
             color: var(--text-muted);
             margin-top: 2px;
+            font-family: monospace;
         }
         .amount {
             font-weight: 700;
@@ -598,6 +607,25 @@
             color: var(--text-muted);
             font-size: 13px;
         }
+
+        /* 🆕 Payment type tags */
+        .type-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .t-renewal { background: #d1fae5; color: #059669; }
+        .t-multi { background: var(--accent-light); color: var(--accent-dark); }
+        .t-upgrade { background: #ede9fe; color: #6d28d9; }
+        .t-manual { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+        [data-theme="dark"] .t-renewal { background: #0a3a2a; color: #34d399; }
+        [data-theme="dark"] .t-multi { background: #1a3a5a; color: #60a5fa; }
+        [data-theme="dark"] .t-upgrade { background: #2e1065; color: #a78bfa; }
 
         .plan-tag {
             display: inline-block;
@@ -864,8 +892,12 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            .customer-page-header .btn-primary {
+            .payments-actions {
                 width: 100%;
+            }
+            .payments-actions .btn-primary,
+            .payments-actions .btn-secondary {
+                flex: 1;
                 justify-content: center;
             }
         }
@@ -944,9 +976,15 @@
                 <h2>Payments</h2>
                 <p>Record and monitor customer payments.</p>
             </div>
-            <button class="btn-primary" onclick="openPaymentModal()">
-                <i class="fas fa-plus"></i> Record Payment
-            </button>
+            <!-- 🆕 Action buttons group -->
+            <div class="payments-actions">
+                <button class="btn-primary" onclick="openPaymentModal()">
+                    <i class="fas fa-plus"></i> Record Payment
+                </button>
+                <button class="btn-secondary" id="importPaymentsBtn">
+                    <i class="fas fa-file-import"></i> Import Payments
+                </button>
+            </div>
         </div>
 
         <!-- Summary Cards -->
@@ -972,7 +1010,7 @@
         <!-- Filters -->
         <div class="filter-box">
             <div class="filters">
-                <input type="text" id="searchInput" class="input" placeholder="Search customer or reference..." oninput="filterPayments()">
+                <input type="text" id="searchInput" class="input" placeholder="Search customer, PBS ID or reference..." oninput="filterPayments()">
                 <select id="dateFilter" class="select" onchange="filterPayments()">
                     <option value="all">All Dates</option>
                     <option value="today">Today</option>
@@ -1006,6 +1044,9 @@
                             <th>Customer</th>
                             <th>Service Plan</th>
                             <th>Amount</th>
+                            <th>Type</th>
+                            <th>Months</th>
+                            <th>Discount</th>
                             <th>Payment Method</th>
                             <th>Reference</th>
                             <th>Action</th>
@@ -1027,7 +1068,7 @@
         </div>
     </div>
 
-    <!-- ─── RECORD PAYMENT MODAL ─── -->
+    <!-- ─── RECORD PAYMENT MODAL (simplified: no method / reference) ─── -->
     <div class="payment-modal-bg" id="paymentModal">
         <div class="payment-modal">
             <div class="modal-header">
@@ -1038,8 +1079,7 @@
                 <div class="form-grid">
                     <div class="form-group full">
                         <label>Customer</label>
-                        <input type="text" id="customerInput" class="input" placeholder="Type customer name..." list="customerList" autocomplete="off">
-                        <datalist id="customerList"></datalist>
+                        <input type="text" id="customerInput" class="input" placeholder="Search by name or customer ID..." autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label>Service Plan</label>
@@ -1052,22 +1092,9 @@
                         <label>Amount (₦)</label>
                         <input type="number" id="amountInput" class="input" placeholder="50000" min="1" step="100">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group full">
                         <label>Payment Date</label>
                         <input type="date" id="paymentDateInput" class="input">
-                    </div>
-                    <div class="form-group">
-                        <label>Payment Method</label>
-                        <select id="methodInput" class="select">
-                            <option value="">Select method</option>
-                            <option>Bank Transfer</option>
-                            <option>Cash</option>
-                            <option>POS</option>
-                        </select>
-                    </div>
-                    <div class="form-group full">
-                        <label>Payment Reference</label>
-                        <input type="text" id="referenceInput" class="input" placeholder="e.g. TRX001">
                     </div>
                 </div>
             </div>
@@ -1083,7 +1110,7 @@
 (function () {
     'use strict';
 
-    const API = 'http://localhost:5001/api';
+    const API = 'http://' + (location.hostname || 'localhost') + ':5001/api';
     const FALLBACK_PRICES = {
         'silver': 12800, 'gold': 21900, 'platinum': 31800, 'platinum+': 46500,
         'premium': 75000, 'premium+': 95000,
@@ -1123,6 +1150,23 @@
         return new Date().toISOString().slice(0, 10);
     }
 
+    // 🆕 Payment type tag renderer
+    function typeTagHtml(p) {
+        const t = p.paymentType || 'manual';
+        if (t === 'renewal') return '<span class="type-tag t-renewal">Renewal</span>';
+        if (t === 'multi_month') return '<span class="type-tag t-multi">' + (p.monthsPaid || '?') + '-Month</span>';
+        if (t === 'upgrade') return '<span class="type-tag t-upgrade">Upgrade</span>';
+        return '<span class="type-tag t-manual">Manual</span>';
+    }
+
+    function typeLabel(p) {
+        const t = p.paymentType || 'manual';
+        if (t === 'renewal') return 'Renewal (1 month)';
+        if (t === 'multi_month') return (p.monthsPaid || '?') + '-month renewal';
+        if (t === 'upgrade') return 'Plan upgrade';
+        return 'Manual payment';
+    }
+
     // ============================================================
     // DOM REFS
     // ============================================================
@@ -1140,9 +1184,6 @@
     const planInput = document.getElementById('planInput');
     const amountInput = document.getElementById('amountInput');
     const paymentDateInput = document.getElementById('paymentDateInput');
-    const methodInput = document.getElementById('methodInput');
-    const referenceInput = document.getElementById('referenceInput');
-    const customerList = document.getElementById('customerList');
     const paymentModal = document.getElementById('paymentModal');
     const modalOverlay = document.getElementById('modalOverlay');
     const modalBox = document.getElementById('modalBox');
@@ -1151,7 +1192,7 @@
     let allPlans = [];
     let allCustomers = [];
     let planPriceMap = {};
-    let selectedCustomer = null; // 🆕 Tracks the currently selected customer
+    let selectedCustomer = null;
 
     // ============================================================
     // LOAD INITIAL DATA
@@ -1176,7 +1217,7 @@
 
             populatePlanFilter();
             populatePlanInput();
-            setupCustomerSearch(); // 🆕 Replace old datalist with searchable dropdown
+            setupCustomerSearch();
             filterPayments();
         } catch (err) {
             console.error('Failed to load payments data:', err);
@@ -1184,29 +1225,33 @@
     }
 
     // ============================================================
-    // RENDER PAYMENTS TABLE
+    // RENDER PAYMENTS TABLE (now with Type / Months / Discount)
     // ============================================================
     function renderPayments(data) {
         if (!paymentTableBody) return;
         if (recordCount) recordCount.textContent = `${data.length} records`;
 
         if (data.length === 0) {
-            paymentTableBody.innerHTML = `<tr><td colspan="7"><div class="empty">No payment records found.</div></td></tr>`;
+            paymentTableBody.innerHTML = `<tr><td colspan="10"><div class="empty">No payment records found.</div></td></tr>`;
             return;
         }
 
         paymentTableBody.innerHTML = data.map(p => {
             const planName = p.planName || p.plan || '';
             const planClass = planName.toLowerCase().replace(/[+ ]/g, '-');
+            const subId = p.customerExternalId || ('#' + (p.customerId || '').slice(0, 8));
             return `
                 <tr>
                     <td>${formatDate(p.paymentDate || p.date)}</td>
                     <td>
                         <span class="customer-name">${p.customerName || p.customer}</span>
-                        <span class="customer-id">Customer #${(p.customerId || '').slice(0, 8)}</span>
+                        <span class="customer-id">${subId}</span>
                     </td>
                     <td><span class="plan-tag ${planClass}">${planName}</span></td>
                     <td><span class="amount">${formatCurrency(p.amount)}</span></td>
+                    <td>${typeTagHtml(p)}</td>
+                    <td>${p.monthsPaid || '—'}</td>
+                    <td>${p.discountPercent ? p.discountPercent + '%' : '—'}</td>
                     <td>${p.method || '—'}</td>
                     <td><span class="reference">${p.reference || '—'}</span></td>
                     <td>
@@ -1236,7 +1281,7 @@
     }
 
     // ============================================================
-    // FILTER PAYMENTS (client-side for instant response)
+    // FILTER PAYMENTS (now also matches PBS Customer ID)
     // ============================================================
     function filterPayments() {
         const search = (searchInput?.value || '').toLowerCase().trim();
@@ -1248,8 +1293,9 @@
         const filtered = paymentRecords.filter(p => {
             const cust = (p.customerName || p.customer || '').toLowerCase();
             const custId = (p.customerId || '').toLowerCase();
+            const extId = (p.customerExternalId || '').toLowerCase();
             const ref = (p.reference || '').toLowerCase();
-            const matchSearch = !search || cust.includes(search) || custId.includes(search) || ref.includes(search);
+            const matchSearch = !search || cust.includes(search) || custId.includes(search) || extId.includes(search) || ref.includes(search);
 
             const planName = p.planName || p.plan || '';
             const matchPlan = plan === 'all' || planName === plan;
@@ -1282,7 +1328,7 @@
     };
 
     // ============================================================
-    // PLAN FILTER DROPDOWN
+    // PLAN DROPDOWNS
     // ============================================================
     function populatePlanFilter() {
         if (!planFilterP) return;
@@ -1300,17 +1346,13 @@
     }
 
     // ============================================================
-    // 🆕 CUSTOMER SEARCH DROPDOWN (replaces old datalist)
-    // Searches by name OR customer ID
+    // CUSTOMER SEARCH DROPDOWN (searches name OR ID / PBS ID)
     // ============================================================
     function setupCustomerSearch() {
         if (!customerInput) return;
 
-        // Remove autocomplete attribute to kill browser suggestions
         customerInput.setAttribute('autocomplete', 'off');
-        customerInput.placeholder = 'Search by name or customer ID...';
 
-        // Create dropdown container if it doesn't exist
         let dropdown = document.getElementById('customerSearchDropdown');
         if (!dropdown) {
             dropdown = document.createElement('div');
@@ -1330,7 +1372,6 @@
                 box-shadow: 0 8px 24px rgba(0,0,0,0.12);
                 display: none;
             `;
-            // Wrap customerInput in a relative container if needed
             let wrapper = customerInput.parentElement;
             if (getComputedStyle(wrapper).position === 'static') {
                 wrapper.style.position = 'relative';
@@ -1338,7 +1379,6 @@
             wrapper.appendChild(dropdown);
         }
 
-        // Render dropdown items
         function renderDropdown(matches) {
             if (!matches.length) {
                 dropdown.innerHTML = '<div style="padding:12px;color:var(--text-muted);font-size:0.85rem;text-align:center;">No customers found</div>';
@@ -1348,7 +1388,7 @@
 
             dropdown.innerHTML = matches.map(c => {
                 const planName = c.plan?.name || 'No plan';
-                const shortId = (c.id || '').slice(0, 8);
+                const pbs = c.externalId || ((c.id || '').slice(0, 8) + '...');
                 return `
                     <div class="customer-search-item" data-customer-id="${c.id}" style="
                         padding: 10px 14px;
@@ -1358,26 +1398,22 @@
                     " onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='transparent'">
                         <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">${c.name}</div>
                         <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">
-                            <span style="font-family:monospace;">ID: ${shortId}...</span>
+                            <span style="font-family:monospace;">${pbs}</span>
                             &nbsp;·&nbsp;
                             <span>${planName}</span>
-                            ${c.amount ? `&nbsp;·&nbsp;<span style="color:var(--accent);">${formatCurrency(c.amount)}</span>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
             dropdown.style.display = 'block';
 
-            // Attach click handlers
             dropdown.querySelectorAll('.customer-search-item').forEach(item => {
                 item.addEventListener('click', () => {
-                    const customerId = item.dataset.customerId;
-                    selectCustomer(customerId);
+                    selectCustomer(item.dataset.customerId);
                 });
             });
         }
 
-        // Select a customer → auto-fill form
         function selectCustomer(customerId) {
             const customer = allCustomers.find(c => c.id === customerId);
             if (!customer) return;
@@ -1386,24 +1422,27 @@
             customerInput.value = customer.name;
             dropdown.style.display = 'none';
 
-            // Auto-fill plan
             if (planInput && customer.plan?.name) {
                 planInput.value = customer.plan.name;
             }
-
-            // Auto-fill amount
             if (amountInput) {
                 const price = customer.amount || customer.plan?.price || 0;
                 if (price > 0) amountInput.value = price;
             }
-
-            // Show selected customer info hint
             showSelectedCustomerHint(customer);
         }
 
-        // Search handler
+        function findMatches(query) {
+            return allCustomers.filter(c => {
+                const nameMatch = c.name && c.name.toLowerCase().includes(query);
+                const idMatch = c.id && String(c.id).toLowerCase().includes(query);
+                const pbsMatch = c.externalId && String(c.externalId).toLowerCase().includes(query);
+                return nameMatch || idMatch || pbsMatch;
+            }).slice(0, 20);
+        }
+
         customerInput.addEventListener('input', () => {
-            selectedCustomer = null; // Clear selection when typing
+            selectedCustomer = null;
             const query = customerInput.value.trim().toLowerCase();
             hideSelectedCustomerHint();
 
@@ -1411,49 +1450,26 @@
                 dropdown.style.display = 'none';
                 return;
             }
-
-            // Filter by name OR customer ID
-            const matches = allCustomers.filter(c => {
-                const nameMatch = c.name && c.name.toLowerCase().includes(query);
-                const idMatch = c.id && String(c.id).toLowerCase().includes(query);
-                return nameMatch || idMatch;
-            }).slice(0, 20); // Limit to 20 results
-
-            renderDropdown(matches);
+            renderDropdown(findMatches(query));
         });
 
-        // Show dropdown on focus
         customerInput.addEventListener('focus', () => {
             const query = customerInput.value.trim().toLowerCase();
-            if (!query) {
-                // Show first 10 customers on empty focus
-                renderDropdown(allCustomers.slice(0, 10));
-            } else {
-                const matches = allCustomers.filter(c => {
-                    const nameMatch = c.name && c.name.toLowerCase().includes(query);
-                    const idMatch = c.id && String(c.id).toLowerCase().includes(query);
-                    return nameMatch || idMatch;
-                }).slice(0, 20);
-                renderDropdown(matches);
-            }
+            if (!query) renderDropdown(allCustomers.slice(0, 10));
+            else renderDropdown(findMatches(query));
         });
 
-        // Close dropdown on outside click
         document.addEventListener('click', (e) => {
             if (!customerInput.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.style.display = 'none';
             }
         });
 
-        // Close dropdown on Escape
         customerInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                dropdown.style.display = 'none';
-            }
+            if (e.key === 'Escape') dropdown.style.display = 'none';
         });
     }
 
-    // Show/hide selected customer hint
     function showSelectedCustomerHint(customer) {
         let hint = document.getElementById('selectedCustomerHint');
         if (!hint) {
@@ -1470,7 +1486,7 @@
             `;
             customerInput.parentElement.appendChild(hint);
         }
-        hint.innerHTML = `✓ <strong>${customer.name}</strong> selected · Plan: ${customer.plan?.name || '—'} · ${(customer.id || '').slice(0, 8)}...`;
+        hint.innerHTML = `✓ <strong>${customer.name}</strong> selected · Plan: ${customer.plan?.name || '—'} · ${customer.externalId || ((customer.id || '').slice(0, 8) + '...')}`;
         hint.style.display = 'block';
     }
 
@@ -1491,7 +1507,7 @@
     }
 
     // ============================================================
-    // RECORD PAYMENT MODAL
+    // RECORD PAYMENT MODAL (simplified)
     // ============================================================
     window.openPaymentModal = function () {
         if (!paymentModal) return;
@@ -1500,8 +1516,6 @@
         if (customerInput) customerInput.value = '';
         if (planInput) planInput.value = '';
         if (amountInput) amountInput.value = '';
-        if (methodInput) methodInput.value = '';
-        if (referenceInput) referenceInput.value = '';
         selectedCustomer = null;
         hideSelectedCustomerHint();
         const dropdown = document.getElementById('customerSearchDropdown');
@@ -1519,15 +1533,12 @@
         const planName = planInput?.value;
         const amount = Number(amountInput?.value);
         const date = paymentDateInput?.value;
-        const method = methodInput?.value;
-        const reference = (referenceInput?.value || '').trim();
 
-        if (!customerName || !planName || !amount || !date || !method) {
-            alert('Please fill all required fields.');
+        if (!customerName || !planName || !amount || !date) {
+            alert('Please fill all fields (Customer, Plan, Amount, Date).');
             return;
         }
 
-        // 🆕 Prefer selected customer, fallback to name match
         const customer = selectedCustomer || allCustomers.find(c => c.name === customerName);
         const plan = allPlans.find(p => p.name === planName);
 
@@ -1542,9 +1553,7 @@
             planId: plan ? plan.id : (customer.planId || null),
             planName: planName,
             amount,
-            paymentDate: date,
-            method: method.toUpperCase().replace(/ /g, '_'),
-            reference: reference || null
+            paymentDate: date
         };
 
         try {
@@ -1553,10 +1562,14 @@
                 headers: getHeaders(),
                 body: JSON.stringify(payload)
             });
+            const data = await res.json().catch(() => ({}));
             if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || err.message || 'Failed to record payment');
+                throw new Error(data.error || data.message || 'Failed to record payment');
             }
+            let msg = '✅ Payment recorded!';
+            if (data.brain && data.brain.description) msg += '\n🧠 Detected: ' + data.brain.description;
+            msg += '\n📅 Customer expiry updated automatically.';
+            alert(msg);
             closePaymentModal();
             await loadAllData();
         } catch (err) {
@@ -1565,14 +1578,13 @@
     };
 
     // ============================================================
-    // VIEW PAYMENT DETAILS
+    // VIEW PAYMENT DETAILS (now shows type / months / discount / PBS)
     // ============================================================
     if (paymentTableBody) {
         paymentTableBody.addEventListener('click', async (e) => {
             const btn = e.target.closest('.view-btn');
             if (!btn) return;
-            const id = btn.dataset.id;
-            await openViewModal(id);
+            await openViewModal(btn.dataset.id);
         });
     }
 
@@ -1588,12 +1600,15 @@
             <div class="modal-body">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.9rem;">
                     <div><strong>Customer</strong><br>${payment.customerName || payment.customer}</div>
-                    <div><strong>Customer ID</strong><br><span style="font-family:monospace;font-size:0.75rem;">${payment.customerId || '—'}</span></div>
+                    <div><strong>PBS / Customer ID</strong><br><span style="font-family:monospace;font-size:0.75rem;">${payment.customerExternalId || payment.customerId || '—'}</span></div>
                     <div><strong>Plan</strong><br>${payment.planName || payment.plan}</div>
                     <div><strong>Amount</strong><br>${formatCurrency(payment.amount)}</div>
                     <div><strong>Date</strong><br>${formatDate(payment.paymentDate || payment.date)}</div>
                     <div><strong>Method</strong><br>${payment.method || '—'}</div>
                     <div><strong>Reference</strong><br>${payment.reference || '—'}</div>
+                    <div><strong>Type</strong><br>${typeLabel(payment)}</div>
+                    <div><strong>Months Paid</strong><br>${payment.monthsPaid || '—'}</div>
+                    <div><strong>Discount</strong><br>${payment.discountPercent ? payment.discountPercent + '%' : '—'}</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1620,7 +1635,7 @@
     }
 
     // ============================================================
-    // EVENT LISTENERS (filters trigger instant re-render)
+    // EVENT LISTENERS
     // ============================================================
     if (searchInput) searchInput.addEventListener('input', filterPayments);
     if (dateFilter) dateFilter.addEventListener('change', filterPayments);
@@ -1691,9 +1706,189 @@
     // INIT
     // ============================================================
     loadAllData();
-    console.log('✅ Payments page connected to live API with searchable customer dropdown.');
+    console.log('✅ Payments page connected to live API with Payment Brain.');
 })();
 </script>
+
+<!-- ─── PAYMENT IMPORT (CSV / Excel) ─── -->
+<script>
+(function () {
+    'use strict';
+
+    const API = 'http://' + (location.hostname || 'localhost') + ':5001/api';
+    const getHeaders = () => {
+        const h = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('prontolog_token');
+        if (token) h['Authorization'] = 'Bearer ' + token;
+        h['x-user-id'] = localStorage.getItem('prontolog_user_id') || '';
+        return h;
+    };
+
+    function loadXLSX() {
+        return new Promise((resolve, reject) => {
+            if (window.XLSX) return resolve(window.XLSX);
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+            s.onload = () => resolve(window.XLSX);
+            s.onerror = () => reject(new Error('Could not load the Excel reader (check internet).'));
+            document.head.appendChild(s);
+        });
+    }
+
+    const btn = document.getElementById('importPaymentsBtn');
+    if (!btn) return;
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv,.xlsx,.xls,text/csv';
+    fileInput.style.display = 'none';
+    document.body.appendChild(fileInput);
+
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+    modal.innerHTML = `
+        <div style="background:#fff;border-radius:14px;padding:28px;max-width:720px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h2 style="margin:0 0 16px;font-size:20px;color:#1a2332;">📋 Preview Payment Import</h2>
+            <div id="payPreviewContent" style="font-size:14px;color:#475569;"></div>
+            <div style="display:flex;gap:12px;margin-top:24px;">
+                <button id="cancelPayImport" style="flex:1;padding:14px;border:1px solid #e2e8f0;background:#fff;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">Cancel</button>
+                <button id="confirmPayImport" style="flex:1;padding:14px;background:#00AFEF;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">✅ Import Payments</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    let currentCSV = '';
+
+    btn.onclick = () => fileInput.click();
+
+    fileInput.onchange = async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading...';
+
+        let csvText = '';
+        try {
+            if (/\.xlsx?$/i.test(file.name)) {
+                const XLSX = await loadXLSX();
+                const wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                csvText = XLSX.utils.sheet_to_csv(ws);
+            } else {
+                csvText = await file.text();
+            }
+        } catch (err) {
+            alert('Could not read file: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-file-import"></i> Import Payments';
+            return;
+        }
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
+        try {
+            const previewRes = await fetch(API + '/payments-import/preview', {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ csv: csvText })
+            });
+            const preview = await previewRes.json();
+            if (!preview.success) {
+                alert('Preview failed: ' + preview.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-file-import"></i> Import Payments';
+                return;
+            }
+
+            currentCSV = csvText;
+
+            let html = `<p style="margin:0 0 14px;"><strong>File:</strong> ${file.name} (${preview.totalRows} rows)</p>`;
+            html += `<h3 style="font-size:14px;margin:0 0 8px;color:#1a2332;">✅ Column Mapping:</h3><ul style="margin:0 0 14px;padding-left:20px;line-height:1.8;">`;
+            Object.keys(preview.mapping).forEach(k => {
+                html += `<li><strong>${preview.mapping[k].label}</strong> ← <em style="color:#64748b;">${preview.mapping[k].csvColumn}</em></li>`;
+            });
+            html += `</ul>`;
+            if (preview.discarded && preview.discarded.length) {
+                html += `<p style="margin:0 0 14px;color:#94a3b8;font-size:12px;">Ignored columns: ${preview.discarded.join(', ')}</p>`;
+            }
+            html += `<h3 style="font-size:14px;margin:16px 0 8px;color:#1a2332;">📝 Sample Rows:</h3>`;
+            html += `<table style="width:100%;border-collapse:collapse;font-size:12px;background:#f8fafc;border-radius:8px;overflow:hidden;">`;
+            html += `<thead><tr style="background:#e2e8f0;"><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Customer ID</th><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Date</th><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Action</th><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Amount</th><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Details</th></tr></thead><tbody>`;
+            (preview.sample || []).forEach(s => {
+                html += `<tr>
+                    <td style="padding:8px;border:1px solid #e2e8f0;font-family:monospace;">${s.customerId || '—'}</td>
+                    <td style="padding:8px;border:1px solid #e2e8f0;">${s.date || '—'}</td>
+                    <td style="padding:8px;border:1px solid #e2e8f0;">${s.action || '—'}</td>
+                    <td style="padding:8px;border:1px solid #e2e8f0;font-weight:700;">${s.amount || '—'}</td>
+                    <td style="padding:8px;border:1px solid #e2e8f0;">${(s.details || '—').substring(0, 40)}</td>
+                </tr>`;
+            });
+            html += `</tbody></table>`;
+            html += `<p style="margin-top:14px;font-size:12px;color:#64748b;">🧠 The Payment Brain will auto-detect renewals, multi-month discounts (4%/8%) and plan upgrades, then update each customer's expiry automatically.</p>`;
+
+            document.getElementById('payPreviewContent').innerHTML = html;
+            modal.style.display = 'flex';
+        } catch (err) {
+            alert('Preview error: ' + err.message);
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-file-import"></i> Import Payments';
+        fileInput.value = '';
+    };
+
+    document.getElementById('cancelPayImport').onclick = () => {
+        modal.style.display = 'none';
+        currentCSV = '';
+    };
+
+    document.getElementById('confirmPayImport').onclick = async () => {
+        if (!currentCSV) return;
+        const confirmBtn = document.getElementById('confirmPayImport');
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+
+        try {
+            const execRes = await fetch(API + '/payments-import/execute', {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ csv: currentCSV })
+            });
+            const exec = await execRes.json();
+            if (!exec.success) {
+                alert('Import failed: ' + exec.message);
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '✅ Import Payments';
+                return;
+            }
+
+            const tc = exec.typeCounts || {};
+            let msg = `✅ Imported: ${exec.imported} payments\n`;
+            msg += `🧠 Renewals: ${tc.renewal || 0} · Multi-month: ${tc.multi_month || 0} · Upgrades: ${tc.upgrade || 0} · Manual: ${tc.manual || 0}\n`;
+            msg += `🔁 Duplicates skipped: ${exec.duplicates || 0}\n`;
+            msg += `❓ Customer not found: ${exec.notFound || 0}\n`;
+            msg += `⚠️ Skipped rows: ${exec.skipped || 0}`;
+            if (exec.sample && exec.sample.length) {
+                msg += '\n\nSample detections:\n' + exec.sample.map(s => `• ${s.pbsId} ${s.customer}: ${s.description}`).join('\n');
+            }
+
+            alert(msg);
+            modal.style.display = 'none';
+            currentCSV = '';
+            location.reload();
+        } catch (err) {
+            alert('Import error: ' + err.message);
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '✅ Import Payments';
+        }
+    };
+
+    console.log('✅ Payment import ready.');
+})();
+</script>
+
 <script>
 // UNIVERSAL LOGOUT FIX - Paste at the bottom of all pages
 document.getElementById('logoutBtn')?.addEventListener('click', function(e) {

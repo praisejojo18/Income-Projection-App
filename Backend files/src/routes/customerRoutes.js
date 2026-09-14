@@ -6,6 +6,7 @@ const customerController = require('../controllers/customerController');
 router.get('/', customerController.getCustomers);
 router.get('/plans', customerController.getUserPlans);
 router.post('/', customerController.createCustomer);
+router.delete("/all", customerController.deleteAllCustomers);
 router.put('/:id', customerController.updateCustomer);
 router.post('/:id/extend', customerController.extendService);
 router.post('/:id/change-plan', customerController.changePlan);
