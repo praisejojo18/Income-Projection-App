@@ -1,18 +1,12 @@
 const prisma = require("../config/database");
-// ✅ REMOVED the dead models/customer line!
 const {
   validateCustomerData,
   validateExtendData
 } = require("../utils/validators");
 
-/*
-  Helper to get the current user ID.
-  With Company Mode active, req.userId is secretly the Super Admin's ID,
-  so everyone sees the same shared pool of customers!
-*/
 const getUserId = (req) => {
   return (
-    req.userId ||          
+    req.userId ||
     req.user?.id ||
     req.user?.userId ||
     req.headers["x-user-id"] ||
@@ -37,7 +31,7 @@ const normalizeStoredStatus = (expiryDate, currentStatus) => {
 const formatCustomer = (customer) => {
   return {
     ...customer,
-    amount: customer.plan?.price || null, 
+    amount: customer.plan?.price || null,
     displayStatus: getDisplayStatus(customer)
   };
 };
@@ -51,7 +45,7 @@ exports.getCustomers = async (req, res) => {
     const { plan, status, search } = req.query;
     const where = { userId };
 
-    if (plan) where.planId = plan; 
+    if (plan) where.planId = plan;
     if (search) where.name = { contains: search };
 
     const now = new Date();
@@ -70,7 +64,6 @@ exports.getCustomers = async (req, res) => {
       }
     }
 
-    // ✅ FIXED: Changed Customer to prisma.customer
     const customers = await prisma.customer.findMany({
       where,
       include: { plan: true },
@@ -90,7 +83,7 @@ exports.getCustomerById = async (req, res) => {
     if (!userId) return res.status(401).json({ error: "User ID is required." });
 
     const customer = await prisma.customer.findFirst({
-      where: { id: req.params.id, userId }, 
+      where: { id: req.params.id, userId },
       include: { plan: true }
     });
 
@@ -119,14 +112,14 @@ exports.createCustomer = async (req, res) => {
     const expiryDate = new Date(req.body.expiryDate);
     const status = normalizeStoredStatus(expiryDate, req.body.status || "ACTIVE");
 
-        const newCustomer = await prisma.customer.create({
+    const newCustomer = await prisma.customer.create({
       data: {
-        userId,             
+        userId,
         name: req.body.name,
         email: req.body.email || null,
         phone: req.body.phone || null,
         externalId: req.body.externalId || null,
-        planId: req.body.planId, 
+        planId: req.body.planId,
         expiryDate,
         status
       },
@@ -164,7 +157,7 @@ exports.updateCustomer = async (req, res) => {
     const updatedExpiryDate = req.body.expiryDate ? new Date(req.body.expiryDate) : existingCustomer.expiryDate;
     const updatedStatus = normalizeStoredStatus(updatedExpiryDate, req.body.status || existingCustomer.status);
 
-      const updatedCustomer = await prisma.customer.update({
+    const updatedCustomer = await prisma.customer.update({
       where: { id: existingCustomer.id },
       data: {
         name: req.body.name,
@@ -315,22 +308,30 @@ exports.getUserPlans = async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ error: "User ID is required." });
-    
-    const plans = await prisma.plan.findMany({ 
-      where: { userId, status: "ACTIVE" }, 
-      orderBy: { name: "asc" } 
+
+    const plans = await prisma.plan.findMany({
+      where: { userId, status: "ACTIVE" },
+      orderBy: { name: "asc" }
     });
-    
+
     res.json(plans);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
-/* DELETE /api/customers/all — wipe ALL customers + payments for fresh re-import */
+
+/* DELETE /api/customers/all — 🛡️ SUPER_ADMIN ONLY: wipe ALL customers + payments */
 exports.deleteAllCustomers = async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    // 🛡️ ADMIN LOCK — only SUPER_ADMIN may wipe data
+    const realId = req.realUserId || userId;
+    const realUser = await prisma.user.findUnique({ where: { id: realId } });
+    if (!realUser || realUser.role !== "SUPER_ADMIN") {
+      return res.status(403).json({ error: "Admin privileges required to delete all customers." });
+    }
 
     const customerCount = await prisma.customer.count({ where: { userId } });
     const paymentCount = await prisma.payment.count({ where: { userId } });
@@ -345,6 +346,55 @@ exports.deleteAllCustomers = async (req, res) => {
       message: `🗑️ Deleted ${customerCount} customer(s) and ${paymentCount} payment(s). Ready for fresh import.`
     });
   } catch (error) {
+    console.error('deleteAllCustomers error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* DELETE /api/customers/:id — delete single customer */
+exports.deleteCustomer = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    const customer = await prisma.customer.findFirst({ where: { id: req.params.id, userId } });
+    if (!customer) return res.status(404).json({ error: "Customer not found." });
+
+    const paymentCount = await prisma.payment.count({ where: { customerId: customer.id } });
+
+    await prisma.$transaction([
+      prisma.payment.deleteMany({ where: { customerId: customer.id } }),
+      prisma.customer.delete({ where: { id: customer.id } })
+    ]);
+
+    res.json({
+      success: true,
+      message: `🗑️ Customer "${customer.name}" deleted.` +
+        (paymentCount ? ` Also removed ${paymentCount} payment(s).` : '')
+    });
+  } catch (error) {
+    console.error('deleteCustomer error:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* GET /api/customers/me/role — safe role checker */
+exports.getMyRole = async (req, res) => {
+  try {
+    const realId = req.realUserId || getUserId(req);
+    if (!realId) return res.json({ role: "USER", userId: null });
+
+    const user = await prisma.user.findUnique({
+      where: { id: realId },
+      select: { role: true }
+    });
+
+    res.json({
+      role: user ? user.role : "USER",
+      userId: realId
+    });
+  } catch (error) {
+    console.error("getMyRole error:", error.message);
     res.status(500).json({ error: error.message });
   }
 };

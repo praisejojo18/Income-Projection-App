@@ -515,6 +515,30 @@
             border-color: var(--accent);
         }
 
+        /* 🆕 Bulk selection bar */
+        .bulk-action-bar {
+            display: none;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 12px 18px;
+            background: var(--accent-light);
+            border: 1px solid var(--accent-mid);
+            border-radius: var(--radius-xs);
+            margin: 0 0 14px;
+            animation: bulkSlide 0.2s ease;
+        }
+        .bulk-action-bar.active { display: flex; }
+        @keyframes bulkSlide {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bulk-action-bar .selected-count {
+            font-weight: 600;
+            color: var(--accent-dark);
+            font-size: 0.85rem;
+        }
+
         .settings-container {
             width: 100%;
             background: var(--surface);
@@ -538,7 +562,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.875rem;
-            min-width: 720px;
+            min-width: 760px;
         }
         .customer-table thead th {
             text-align: left;
@@ -590,6 +614,38 @@
         .customer-table .action-cell {
             text-align: right;
             white-space: nowrap;
+        }
+
+        /* 🆕 Selection checkbox cells */
+        .customer-table th.checkbox-cell,
+        .customer-table td.checkbox-cell {
+            width: 44px;
+            padding-left: 14px;
+            padding-right: 0;
+            text-align: center;
+        }
+        .customer-table input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
+            vertical-align: middle;
+        }
+        /* Row checkboxes are INVISIBLE until selection mode is on */
+        .customer-table .row-checkbox {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .customer-table.selection-mode .row-checkbox {
+            visibility: visible;
+            opacity: 1;
+        }
+        .customer-table tbody tr.selected td {
+            background: var(--accent-light);
+        }
+        [data-theme="dark"] .customer-table tbody tr.selected td {
+            background: var(--accent-light);
         }
 
         .status-badge {
@@ -1041,6 +1097,11 @@
                 width: 100%;
                 justify-content: center;
             }
+            .bulk-action-bar {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1130,9 +1191,7 @@
                     <button id="addCustomerBtn" class="btn-primary" type="button">
                         <i class="fas fa-plus"></i> Add Customer
                     </button>
-                    <button id="deleteAllCustomersBtn" class="btn-danger" type="button">
-                        <i class="fas fa-trash"></i> Delete All Customers
-                    </button>
+                    
                 </div>
             </div>
 
@@ -1157,11 +1216,22 @@
                     </div>
                 </div>
 
+                <!-- 🆕 Bulk selection bar (appears when 1+ rows checked) -->
+                <div class="bulk-action-bar" id="bulkActionBar">
+                    <span class="selected-count"><span id="selectedCount">0</span> customer(s) selected</span>
+                    <button type="button" class="btn-secondary" id="clearSelectionBtn">Clear Selection</button>
+                    <button type="button" class="btn-danger" id="bulkDeleteBtn"><i class="fas fa-trash"></i> Delete Selected</button>
+                </div>
+
                 <div class="settings-container customer-table-card">
                     <div class="customer-table-scroll">
-                        <table class="customer-table">
+                        <table class="customer-table" id="customerTable">
                             <thead>
                                 <tr>
+                                    <!-- 🆕 Master toggle: reveals row checkboxes (does NOT select all) -->
+                                    <th class="checkbox-cell">
+                                        <input type="checkbox" id="toggleSelectMode" title="Show / hide selection checkboxes (does not select all)" />
+                                    </th>
                                     <th>Customer ID</th>
                                     <th>Customer</th>
                                     <th>Plan</th>
@@ -1234,8 +1304,9 @@
                 </div>
 
                 <div class="profile-footer">
-                    <button type="button" class="btn-danger" id="deactivateBtn">
-                        <i class="fas fa-user-slash"></i> Deactivate Customer
+                    <!-- 🆕 Deactivate replaced with permanent Delete -->
+                    <button type="button" class="btn-danger" id="deleteCustomerBtn">
+                        <i class="fas fa-trash"></i> Delete Customer
                     </button>
                 </div>
             </div>
@@ -1264,6 +1335,7 @@
     const PAGE_SIZE = 50;
     let allCustomers = [];
     let allPlans = [];
+    let selectedCustomers = new Set();   // 🆕 bulk selection
 
     let state = {
         search: '',
@@ -1292,16 +1364,23 @@
     const planFilterEl = document.getElementById('planFilter');
     const statusFilterEl = document.getElementById('statusFilter');
     const customerTableBody = document.getElementById('customerTableBody');
+    const customerTableEl = document.getElementById('customerTable');
     const customerEmptyState = document.getElementById('customerEmptyState');
     const paginationBar = document.getElementById('paginationBar');
     const paginationSummary = document.getElementById('paginationSummary');
     const paginationControls = document.getElementById('paginationControls');
     const backToCustomersBtn = document.getElementById('backToCustomersBtn');
-    const deactivateBtn = document.getElementById('deactivateBtn');
+    const deleteCustomerBtn = document.getElementById('deleteCustomerBtn');
     const profileExtendBtn = document.getElementById('profileExtendBtn');
     const profileChangePlanBtn = document.getElementById('profileChangePlanBtn');
     const modalOverlay = document.getElementById('modalOverlay');
     const modalBox = document.getElementById('modalBox');
+    // 🆕 selection refs
+    const toggleSelectMode = document.getElementById('toggleSelectMode');
+    const bulkActionBar = document.getElementById('bulkActionBar');
+    const selectedCountEl = document.getElementById('selectedCount');
+    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
 
     // ============================================================
     // HELPERS
@@ -1415,6 +1494,25 @@
     }
 
     // ============================================================
+    // 🆕 SELECTION MODE HELPERS
+    // ============================================================
+    function updateBulkBar() {
+        const count = selectedCustomers.size;
+        if (selectedCountEl) selectedCountEl.textContent = count;
+        if (bulkActionBar) {
+            if (count > 0) bulkActionBar.classList.add('active');
+            else bulkActionBar.classList.remove('active');
+        }
+    }
+
+    function exitSelectMode() {
+        if (customerTableEl) customerTableEl.classList.remove('selection-mode');
+        if (toggleSelectMode) toggleSelectMode.checked = false;
+        selectedCustomers.clear();
+        updateBulkBar();
+    }
+
+    // ============================================================
     // RENDER: LIST
     // ============================================================
     function renderCustomerList() {
@@ -1431,12 +1529,14 @@
             customerTableBody.innerHTML = '';
             paginationBar.style.display = 'none';
             showEmptyState('no-customers');
+            updateBulkBar();
             return;
         }
         if (filtered.length === 0) {
             customerTableBody.innerHTML = '';
             paginationBar.style.display = 'none';
             showEmptyState('no-matches');
+            updateBulkBar();
             return;
         }
 
@@ -1446,9 +1546,12 @@
             const status = calculateStatus(c);
             const safeName = escapeHtml(c.name);
             const safePlan = escapeHtml(c.plan?.name || 'Unknown');
-            const safeId = escapeHtml(c.id || '');
+            const isChecked = selectedCustomers.has(c.id);
             return `
-                <tr data-id="${c.id}" tabindex="0" role="button">
+                <tr data-id="${c.id}" tabindex="0" role="button" class="${isChecked ? 'selected' : ''}">
+                    <td class="checkbox-cell">
+                        <input type="checkbox" class="row-checkbox" data-id="${c.id}" ${isChecked ? 'checked' : ''} />
+                    </td>
                     <td class="customer-id-cell">${escapeHtml(c.externalId || c.id || '')}</td>
                     <td class="cust-name-cell">${safeName}</td>
                     <td>${safePlan}</td>
@@ -1464,6 +1567,7 @@
 
         customerTableBody.innerHTML = rowsHtml;
         renderPagination(result);
+        updateBulkBar();
     }
 
     function showEmptyState(kind) {
@@ -1528,10 +1632,7 @@
         document.getElementById('profileAmount').textContent = formatCurrency(c.amount || c.plan?.price);
         document.getElementById('profileId').textContent = c.externalId || c.id;
         document.getElementById('profileCreatedAt').textContent = formatDate(c.createdAt);
-        
-        const isDeactivated = c.status === 'INACTIVE';
-        deactivateBtn.disabled = isDeactivated;
-        deactivateBtn.innerHTML = isDeactivated ? '<i class="fas fa-user-slash"></i> Already Deactivated' : '<i class="fas fa-user-slash"></i> Deactivate Customer';
+        // 🆕 Delete button is always enabled (permanent delete)
     }
 
     // ============================================================
@@ -1552,7 +1653,7 @@
     }
 
     // ============================================================
-    // ACTIONS (ADD, EXTEND, CHANGE PLAN, DEACTIVATE)
+    // ACTIONS (ADD, EXTEND, CHANGE PLAN, DELETE)
     // ============================================================
     // 🎯 CHANGE 2: Added Customer ID field + sending externalId
     function openAddCustomerModal() {
@@ -1645,56 +1746,125 @@
         };
     }
 
-    function openDeactivateConfirm(id) {
+    // 🆕 PERMANENT DELETE (single customer, from profile view)
+    function openDeleteConfirm(id) {
         const c = allCustomers.find(x => x.id === id);
         if (!c) return;
-        openModal('Deactivate Customer', `<div class="confirm-icon"><i class="fas fa-user-slash"></i></div><p>Are you sure you want to deactivate <strong>${escapeHtml(c.name)}</strong>?</p>`, 
-            `<button type="button" class="btn-secondary" id="cancelDeact">Cancel</button><button type="button" class="btn-danger" id="confirmDeact"><i class="fas fa-user-slash"></i> Deactivate</button>`);
-        
-        document.getElementById('cancelDeact').onclick = closeModal;
-        document.getElementById('confirmDeact').onclick = async () => {
-            const res = await fetch(`${API}/customers/${id}/deactivate`, { method: 'POST', headers: getHeaders() });
-            if (res.ok) {
-                const data = await res.json();
-                const updated = data.customer || data;
-                const idx = allCustomers.findIndex(x => x.id === id);
-                if (idx !== -1) allCustomers[idx] = updated;
-                closeModal();
-                if (state.currentProfileId === id) renderProfile(updated);
-                renderCustomerList();
-            } else { alert((await res.json()).error || 'Failed'); }
+        openModal('Delete Customer',
+            `<div class="confirm-icon"><i class="fas fa-trash"></i></div>
+             <p class="confirm-text">Are you sure you want to <strong>permanently delete</strong> <strong>${escapeHtml(c.name)}</strong>?<br><br>All of their payments will also be removed. This CANNOT be undone.</p>`,
+            `<button type="button" class="btn-secondary" id="cancelDelete">Cancel</button>
+             <button type="button" class="btn-danger" id="confirmDelete"><i class="fas fa-trash"></i> Delete Permanently</button>`);
+
+        document.getElementById('cancelDelete').onclick = closeModal;
+        document.getElementById('confirmDelete').onclick = async () => {
+            try {
+                const res = await fetch(`${API}/customers/${id}`, { method: 'DELETE', headers: getHeaders() });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok) {
+                    alert(data.message || 'Customer deleted permanently.');
+                    allCustomers = allCustomers.filter(x => x.id !== id);
+                    selectedCustomers.delete(id);
+                    closeModal();
+                    showCustomerListView();
+                    renderCustomerList();
+                } else {
+                    alert('Failed: ' + (data.error || data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
         };
     }
 
     // ============================================================
-    // 🆕 DELETE ALL CUSTOMERS HANDLER
-    // ============================================================
-    deleteAllCustomersBtn.addEventListener('click', async () => {
-        if (allCustomers.length === 0) {
-            alert('No customers to delete.');
-            return;
-        }
-        if (!confirm(`⚠️ DELETE ALL ${allCustomers.length} CUSTOMERS?\n\nThis will remove EVERY customer and their payments from the system.\nUse this before re-importing a fresh CSV to avoid duplicates.\n\nThis CANNOT be undone!`)) return;
+    
 
-        try {
-            deleteAllCustomersBtn.disabled = true;
-            deleteAllCustomersBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
-            const res = await fetch(`${API}/customers/all`, { method: 'DELETE', headers: getHeaders() });
-            const data = await res.json();
-            if (res.ok) {
-                alert(data.message || 'All customers deleted.');
-                allCustomers = [];
+    // ============================================================
+    // 🆕 SELECTION MODE + BULK DELETE WIRING
+    // ============================================================
+    // 🎯 CHANGE: Header checkbox now SELECTS ALL visible rows when checked
+    if (toggleSelectMode) {
+        toggleSelectMode.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+        toggleSelectMode.addEventListener('change', function () {
+            if (!customerTableEl) return;
+            if (this.checked) {
+                // Show checkboxes AND select all visible rows
+                customerTableEl.classList.add('selection-mode');
+                selectedCustomers.clear();
+                // Add all currently visible (filtered + paginated) customer IDs
+                const filtered = getFilteredCustomers();
+                const result = paginate(filtered, state.page, PAGE_SIZE);
+                result.pageItems.forEach(c => selectedCustomers.add(c.id));
+                updateBulkBar();
                 renderCustomerList();
             } else {
-                alert('Failed: ' + (data.error || data.message || 'Unknown error'));
+                // Hide checkboxes AND clear all selections
+                customerTableEl.classList.remove('selection-mode');
+                selectedCustomers.clear();
+                updateBulkBar();
+                renderCustomerList();
             }
-        } catch (err) {
-            alert('Error: ' + err.message);
-        } finally {
-            deleteAllCustomersBtn.disabled = false;
-            deleteAllCustomersBtn.innerHTML = '<i class="fas fa-trash"></i> Delete All Customers';
-        }
+        });
+    }
+
+    // Row checkbox toggling (delegated 'change' so row-click doesn't fire)
+    customerTableBody.addEventListener('change', function (e) {
+        const cb = e.target.closest('.row-checkbox');
+        if (!cb) return;
+        const id = cb.dataset.id;
+        if (cb.checked) selectedCustomers.add(id);
+        else selectedCustomers.delete(id);
+        const row = cb.closest('tr');
+        if (row) row.classList.toggle('selected', cb.checked);
+        updateBulkBar();
     });
+
+    if (clearSelectionBtn) {
+        clearSelectionBtn.addEventListener('click', function () {
+            selectedCustomers.clear();
+            updateBulkBar();
+            renderCustomerList();
+        });
+    }
+
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', async function () {
+            const ids = Array.from(selectedCustomers);
+            if (ids.length === 0) { alert('No customers selected.'); return; }
+            
+            openModal('Delete Selected Customers',
+                `<div class="confirm-icon"><i class="fas fa-trash"></i></div>
+                 <p class="confirm-text">⚠️ DELETE <strong>${ids.length}</strong> SELECTED CUSTOMER(S)?<br><br>Their payments will also be removed.<br><br><strong>This CANNOT be undone!</strong></p>`,
+                `<button type="button" class="btn-secondary" id="cancelBulkDelete">Cancel</button>
+                 <button type="button" class="btn-danger" id="confirmBulkDelete"><i class="fas fa-trash"></i> Delete Selected</button>`);
+
+            document.getElementById('cancelBulkDelete').onclick = closeModal;
+            document.getElementById('confirmBulkDelete').onclick = async () => {
+                bulkDeleteBtn.disabled = true;
+                bulkDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+                let ok = 0, failed = 0;
+                for (const id of ids) {
+                    try {
+                        const res = await fetch(`${API}/customers/${id}`, { method: 'DELETE', headers: getHeaders() });
+                        if (res.ok) {
+                            ok++;
+                            allCustomers = allCustomers.filter(x => x.id !== id);
+                        } else { failed++; }
+                    } catch (err) { failed++; }
+                }
+                selectedCustomers.clear();
+                updateBulkBar();
+                bulkDeleteBtn.disabled = false;
+                bulkDeleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete Selected';
+                closeModal();
+                alert(`✅ Deleted ${ok} customer(s) permanently.` + (failed ? `\n⚠️ ${failed} failed to delete.` : ''));
+                renderCustomerList();
+            };
+        });
+    }
 
     // ============================================================
     // EVENT WIRING
@@ -1706,6 +1876,8 @@
     statusFilterEl.addEventListener('change', function() { state.status = this.value; state.page = 1; renderCustomerList(); });
 
     customerTableBody.addEventListener('click', function(e) {
+        // 🆕 ignore clicks inside the checkbox cell (no profile open, no select-all)
+        if (e.target.closest('.checkbox-cell')) return;
         if (e.target.closest('.extend-btn')) return openExtendServiceModal(e.target.closest('.extend-btn').dataset.id);
         if (e.target.closest('.change-plan-btn')) return openChangePlanModal(e.target.closest('.change-plan-btn').dataset.id);
         const row = e.target.closest('tr[data-id]');
@@ -1718,7 +1890,7 @@
     });
 
     backToCustomersBtn.addEventListener('click', () => { showCustomerListView(); renderCustomerList(); });
-    deactivateBtn.addEventListener('click', () => { if (state.currentProfileId) openDeactivateConfirm(state.currentProfileId); });
+    deleteCustomerBtn.addEventListener('click', () => { if (state.currentProfileId) openDeleteConfirm(state.currentProfileId); });
     profileExtendBtn.addEventListener('click', () => { if (state.currentProfileId) openExtendServiceModal(state.currentProfileId); });
     profileChangePlanBtn.addEventListener('click', () => { if (state.currentProfileId) openChangePlanModal(state.currentProfileId); });
 
@@ -1761,8 +1933,21 @@
     // ============================================================
     // INIT
     // ============================================================
+            // 🛡️ ADMIN-ONLY EYES: hide Delete All button unless /auth/me says SUPER_ADMIN
+    (async () => {
+        try {
+            const r = await fetch(`${API}/auth/me`, { headers: getHeaders() });
+            if (!r.ok) { deleteAllCustomersBtn.style.display = 'none'; return; }
+            const d = await r.json();
+            const role = d.role || (d.user && d.user.role);
+            if (role !== 'SUPER_ADMIN') deleteAllCustomersBtn.style.display = 'none';
+        } catch (e) {
+            deleteAllCustomersBtn.style.display = 'none';
+        }
+    })();
+
     loadInitialData();
-    console.log('✅ Customer page connected to live API with Delete All button.');
+    console.log('✅ Customer page: selection mode + permanent delete ready.');
 })();
 </script>
 

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prontox · Manage Users</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        :root {
+            --bg: #F0F4F8; --surface: #FFFFFF; --surface-2: #F8FAFC;
+            --text-primary: #1A2332; --text-secondary: #475569; --text-muted: #94A3B8;
+            --border: #E2E8F0; --accent: #00AFEF; --accent-hover: #0099D3; --accent-dark: #0088CC;
+            --accent-light: #E6F6FE; --accent-mid: #B3E5FC;
+            --danger: #ef4444; --danger-hover: #dc2626; --danger-light: #fee2e2;
+            --success: #10b981; --success-light: #d1fae5; --warning: #f59e0b; --warning-light: #fef3c7;
+            --shadow: 0 4px 20px rgba(0,0,0,0.04); --radius: 14px; --radius-sm: 10px; --radius-xs: 8px;
+            --transition: 0.3s cubic-bezier(0.4,0,0.2,1); --nav-height: 68px;
+        }
+        [data-theme="dark"] {
+            --bg: #0E0F11; --surface: #1A1E21; --surface-2: #24292E;
+            --text-primary: #E7E9EB; --text-secondary: #AAB0B6; --text-muted: #888E99;
+            --border: #353E46; --accent: #60A5FA; --accent-hover: #3B82F6; --accent-dark: #2563EB;
+            --accent-light: #1a3a5a; --accent-mid: #2a4a6a;
+            --danger: #f87171; --danger-hover: #ef4444; --danger-light: #4a1a1a;
+            --success: #34d399; --success-light: #0a3a2a; --warning: #fbbf24; --warning-light: #3a2a0a;
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; transition: background var(--transition), color var(--transition); }
+        button { cursor: pointer; font-family: inherit; border: none; background: none; }
+        a { text-decoration: none; color: inherit; }
+        input, select { font-family: inherit; outline: none; }
+
+        .navbar { position: sticky; top: 0; z-index: 1000; background: var(--surface); border-bottom: 1px solid var(--border); height: var(--nav-height); padding: 0 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
+        .nav-left { display: flex; align-items: center; gap: 16px; }
+        .hamburger { display: flex; flex-direction: column; gap: 5px; padding: 6px; border-radius: var(--radius-xs); }
+        .hamburger span { display: block; width: 24px; height: 2.5px; background: var(--text-primary); border-radius: 4px; }
+        .nav-right { display: flex; align-items: center; gap: 8px; }
+        .nav-right .icon-btn { width: 38px; height: 38px; border-radius: 999px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 1rem; }
+        .nav-right .icon-btn:hover { background: var(--surface-2); color: var(--text-primary); }
+
+        .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 998; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .sidebar-overlay.open { opacity: 1; visibility: visible; }
+        .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background: var(--surface); border-right: 1px solid var(--border); z-index: 999; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; box-shadow: 4px 0 30px rgba(0,0,0,0.08); overflow-y: auto; }
+        .sidebar.open { transform: translateX(0); }
+        .sidebar-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .sidebar-header .close-sidebar { color: var(--text-muted); font-size: 1.2rem; padding: 4px 8px; border-radius: var(--radius-xs); }
+        .sidebar-nav { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+        .sidebar-nav .nav-group { margin-bottom: 6px; }
+        .sidebar-nav .nav-group-label { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; padding: 8px 16px 4px 16px; }
+        .sidebar-nav .nav-item { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-radius: var(--radius-xs); font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); border-left: 3px solid transparent; }
+        .sidebar-nav .nav-item i { width: 20px; font-size: 1rem; color: var(--text-muted); }
+        .sidebar-nav .nav-item:hover { background: var(--surface-2); color: var(--text-primary); }
+        .sidebar-nav .nav-item.active { background: var(--accent-light); color: var(--accent-dark); border-left-color: var(--accent); font-weight: 600; }
+        .sidebar-nav .nav-item.active i { color: var(--accent); }
+        .sidebar-nav .nav-item.logout { color: var(--danger); padding-top: 10px; }
+        .sidebar-nav .nav-item.logout i { color: var(--danger); }
+
+        .main-content { flex: 1; padding: 30px 28px; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .page-header { margin-bottom: 28px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .page-header h2 { font-size: 1.6rem; font-weight: 700; }
+        .page-header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 4px; }
+
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: var(--radius-xs); font-weight: 600; font-size: 0.85rem; transition: all 0.15s; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-secondary { background: var(--surface); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--surface-2); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover { background: var(--danger-hover); }
+        .btn-warning { background: var(--warning); color: #fff; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 760px; }
+        thead th { text-align: left; padding: 14px 20px; font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-secondary); background: var(--surface-2); border-bottom: 2px solid var(--border); }
+        tbody tr { transition: background 0.18s ease; }
+        tbody tr:hover { background: var(--surface-2); }
+        tbody td { padding: 14px 20px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .role-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+        .role-super-admin { background: #fde68a; color: #92400e; }
+        .role-user { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border); }
+        [data-theme="dark"] .role-super-admin { background: #78350f; color: #fbbf24; }
+
+        .email-cell { font-weight: 600; }
+        .email-sub { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
+        .action-cell { text-align: right; white-space: nowrap; }
+        .action-cell .btn { margin-left: 6px; }
+
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+
+        .access-denied { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+        .access-denied i { font-size: 4rem; color: var(--danger); margin-bottom: 16px; }
+        .access-denied h2 { color: var(--text-primary); margin-bottom: 8px; }
+
+        /* Modals */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px); }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: var(--surface); border-radius: var(--radius); box-shadow: 0 12px 40px rgba(0,0,0,0.2); width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+        .modal-header h3 { font-size: 1.05rem; font-weight: 700; }
+        .modal-close-btn { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 1rem; }
+        .modal-close-btn:hover { background: var(--surface-2); color: var(--text-primary); }
+        .modal-body { padding: 22px 24px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); }
+        .form-field { margin-bottom: 16px; }
+        .form-field:last-child { margin-bottom: 0; }
+        .form-field label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 7px; }
+        .form-field input, .form-field select { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-xs); background: var(--surface); color: var(--text-primary); font-size: 0.88rem; }
+        .form-field input:focus, .form-field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+
+        /* Role selector (selectable boxes) */
+        .role-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .role-option { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 12px; border: 2px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; transition: all 0.2s ease; text-align: center; font-family: inherit; color: var(--text-secondary); }
+        .role-option:hover { border-color: var(--accent-mid); background: var(--surface-2); }
+        .role-option:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+        .role-option.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent-dark); box-shadow: 0 0 0 3px var(--accent-light); }
+        .role-option i { font-size: 1.4rem; color: var(--text-muted); transition: color 0.2s ease; }
+        .role-option.selected i { color: var(--accent); }
+        .role-option .role-title { font-weight: 600; font-size: 0.88rem; }
+        .role-option .role-desc { font-size: 0.72rem; color: var(--text-muted); line-height: 1.3; }
+        .role-option .check-icon { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; display: none; align-items: center; justify-content: center; font-size: 0.7rem; }
+        .role-option.selected .check-icon { display: flex; }
+
+        @media (max-width: 768px) {
+            .main-content { padding: 20px 16px; }
+            .page-header { flex-direction: column; align-items: stretch; }
+            .action-cell .btn { margin-left: 4px; padding: 5px 8px; font-size: 0.7rem; }
+            .role-selector { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="nav-left">
+            <button class="hamburger" id="hamburgerBtn" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+        </div>
+        <div class="nav-right">
+            <button class="icon-btn" id="themeToggle" aria-label="Toggle theme"><i class="fas fa-moon" id="themeIcon"></i></button>
+        </div>
+    </header>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight:700;">Menu</span>
+            <button class="close-sidebar" id="closeSidebarBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-group">
+                <div class="nav-group-label">MAIN</div>
+                <a href="dashboard.html" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="customer.html" class="nav-item"><i class="fas fa-user-friends"></i> Customers</a>
+                <a href="income-projection.html" class="nav-item"><i class="fas fa-chart-line"></i> Income Projection</a>
+                <a href="payments.html" class="nav-item"><i class="fas fa-credit-card"></i> Payments</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">REPORTS</div>
+                <a href="monthly-income.html" class="nav-item"><i class="fas fa-calendar-alt"></i> Monthly Income</a>
+                <a href="projection-vs-actual.html" class="nav-item"><i class="fas fa-arrows-left-right"></i> Proj vs Actual</a>
+            </div>
+            <div class="nav-group">
+                <div class="nav-group-label">SYSTEM</div>
+                <a href="admin.html" class="nav-item active"><i class="fas fa-user-shield"></i> Manage Users</a>
+                <a href="settings.html" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
+                <a href="#" class="nav-item logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h2><i class="fas fa-user-shield" style="color:var(--accent);margin-right:10px;"></i>Manage Users</h2>
+                <p>Create users, change passwords, roles and access.</p>
+            </div>
+            <button class="btn btn-primary" id="addUserBtn" style="display:none;">
+                <i class="fas fa-user-plus"></i> Add User
+            </button>
+        </div>
+
+        <div id="accessDenied" class="access-denied" style="display:none;">
+            <i class="fas fa-lock"></i>
+            <h2>Access Denied</h2>
+            <p>Only SUPER_ADMIN users can access this page.</p>
+            <button class="btn btn-primary" onclick="window.location.href='dashboard.html'" style="margin-top:20px;"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        </div>
+
+        <div id="adminContent" style="display:none;">
+            <div class="card">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Created</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ADD USER MODAL -->
+    <div class="modal-overlay" id="addUserModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Add New User</h3>
+                <button type="button" class="modal-close-btn" id="addUserClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-field"><label>Full Name</label><input type="text" id="newUserName" placeholder="e.g. John Doe" /></div>
+                <div class="form-field"><label>Work Email</label><input type="email" id="newUserEmail" placeholder="user@prontobroadband.com" /></div>
+                <div class="form-field">
+                    <label>Role</label>
+                    <div class="role-selector" id="roleSelector">
+                        <button type="button" class="role-option selected" data-role="USER">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <i class="fas fa-user"></i>
+                            <div class="role-title">User</div>
+                            <div class="role-desc">Standard access</div>
+                        </button>
+                        <button type="button" class="role-option" data-role="SUPER_ADMIN">
+                            <span class="check-icon"><i class="fas fa-check"></i></span>
+                            <i class="fas fa-crown"></i>
+                            <div class="role-title">Super Admin</div>
+                            <div class="role-desc">Full system access</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="addUserCancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addUserConfirm"><i class="fas fa-check"></i> Create User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHANGE PASSWORD MODAL -->
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Change Password</h3>
+                <button type="button" class="modal-close-btn" id="passwordClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:14px;">Changing password for: <strong id="passwordTargetEmail"></strong></p>
+                <div class="form-field"><label>New Password</label><input type="password" id="newPassword" placeholder="Min 6 characters" /></div>
+                <div class="form-field"><label>Confirm Password</label><input type="password" id="confirmPassword" placeholder="Repeat password" /></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="passwordCancel">Cancel</button>
+                <button type="button" class="btn btn-primary" id="passwordConfirm"><i class="fas fa-key"></i> Update Password</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        const API = (location.protocol === 'file:' || !location.hostname)
+            ? 'http://172.23.63.10:5001/api'
+            : 'http://' + location.hostname + ':5001/api';
+
+        const getHeaders = () => {
+            const h = { 'Content-Type': 'application/json' };
+            const token = localStorage.getItem('prontolog_token');
+            if (token) h['Authorization'] = 'Bearer ' + token;
+            h['x-user-id'] = localStorage.getItem('prontolog_user_id') || '';
+            return h;
+        };
+
+        let allUsers = [];
+        let passwordTargetId = null;
+        let selectedRole = 'USER';
+
+        function formatDate(d) {
+            if (!d) return '—';
+            const date = new Date(d);
+            if (isNaN(date.getTime())) return '—';
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : String(str);
+            return div.innerHTML;
+        }
+
+        // ---------- ACCESS CHECK ----------
+        async function checkAccessAndLoad() {
+            try {
+                const res = await fetch(API + '/admin/me', { headers: getHeaders() });
+                if (!res.ok) {
+                    document.getElementById('accessDenied').style.display = 'block';
+                    return;
+                }
+                const me = await res.json();
+                const role = me.role || (me.user && me.user.role) || (me.data && me.data.role);
+                if (role !== 'SUPER_ADMIN') {
+                    document.getElementById('accessDenied').style.display = 'block';
+                    return;
+                }
+                document.getElementById('adminContent').style.display = 'block';
+                document.getElementById('addUserBtn').style.display = 'inline-flex';
+                loadUsers();
+            } catch (err) {
+                document.getElementById('accessDenied').style.display = 'block';
+            }
+        }
+
+        // ---------- LOAD & RENDER USERS ----------
+        async function loadUsers() {
+            const tbody = document.getElementById('usersTableBody');
+            try {
+                const res = await fetch(API + '/admin/users', { headers: getHeaders() });
+                const data = await res.json();
+                allUsers = Array.isArray(data) ? data : (data.users || []);
+
+                if (allUsers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><i class="fas fa-users"></i><p>No users found.</p></div></td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = allUsers.map(u => {
+                    const name = u.name || u.email.split('@')[0];
+                    const isSuper = u.role === 'SUPER_ADMIN';
+                    const roleBadge = isSuper
+                        ? '<span class="role-badge role-super-admin"><i class="fas fa-crown"></i> SUPER ADMIN</span>'
+                        : '<span class="role-badge role-user">User</span>';
+                    const toggleBtn = isSuper
+                        ? '<button class="btn btn-warning btn-sm" data-action="role" data-id="' + u.id + '" data-role="USER"><i class="fas fa-arrow-down"></i> Demote</button>'
+                        : '<button class="btn btn-primary btn-sm" data-action="role" data-id="' + u.id + '" data-role="SUPER_ADMIN"><i class="fas fa-crown"></i> Promote</button>';
+                    return '<tr>' +
+                        '<td><div class="email-cell">' + escapeHtml(name) + '</div><div class="email-sub">' + escapeHtml(u.email) + '</div></td>' +
+                        '<td>' + roleBadge + '</td>' +
+                        '<td>' + formatDate(u.createdAt) + '</td>' +
+                        '<td class="action-cell">' +
+                            '<button class="btn btn-secondary btn-sm" data-action="password" data-id="' + u.id + '" data-email="' + escapeHtml(u.email) + '"><i class="fas fa-key"></i> Password</button>' +
+                            toggleBtn +
+                            '<button class="btn btn-danger btn-sm" data-action="delete" data-id="' + u.id + '" data-email="' + escapeHtml(u.email) + '"><i class="fas fa-trash"></i></button>' +
+                        '</td></tr>';
+                }).join('');
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Failed to load users: ' + escapeHtml(err.message) + '</p></div></td></tr>';
+            }
+        }
+
+        // ---------- TABLE ACTIONS ----------
+        document.getElementById('usersTableBody').addEventListener('click', async function (e) {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+
+            if (action === 'password') {
+                passwordTargetId = id;
+                document.getElementById('passwordTargetEmail').textContent = btn.dataset.email;
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                document.getElementById('passwordModal').classList.add('open');
+            }
+
+            if (action === 'role') {
+                const newRole = btn.dataset.role;
+                if (!confirm("Change this user's role to " + newRole + "?")) return;
+                try {
+                    const res = await fetch(API + '/admin/users/' + id + '/role', { method: 'PUT', headers: getHeaders(), body: JSON.stringify({ role: newRole }) });
+                    const data = await res.json();
+                    if (res.ok) { alert(data.message || 'Role updated.'); loadUsers(); }
+                    else { alert('Failed: ' + (data.error || data.message || 'Unknown error')); }
+                } catch (err) { alert('Error: ' + err.message); }
+            }
+
+            if (action === 'delete') {
+                if (!confirm('⚠️ Delete user "' + btn.dataset.email + '"?\n\nThis CANNOT be undone!')) return;
+                try {
+                    const res = await fetch(API + '/admin/users/' + id, { method: 'DELETE', headers: getHeaders() });
+                    const data = await res.json();
+                    if (res.ok) { alert(data.message || 'User deleted.'); loadUsers(); }
+                    else { alert('Failed: ' + (data.error || data.message || 'Unknown error')); }
+                } catch (err) { alert('Error: ' + err.message); }
+            }
+        });
+
+        // ---------- ROLE SELECTOR ----------
+        const roleSelector = document.getElementById('roleSelector');
+        if (roleSelector) {
+            roleSelector.addEventListener('click', function (e) {
+                const option = e.target.closest('.role-option');
+                if (!option) return;
+                roleSelector.querySelectorAll('.role-option').forEach(function (opt) { opt.classList.remove('selected'); });
+                option.classList.add('selected');
+                selectedRole = option.dataset.role;
+            });
+        }
+
+        // ---------- ADD USER MODAL ----------
+        const addUserModal = document.getElementById('addUserModal');
+        document.getElementById('addUserBtn').addEventListener('click', function () {
+            document.getElementById('newUserName').value = '';
+            document.getElementById('newUserEmail').value = '';
+            selectedRole = 'USER';
+            if (roleSelector) {
+                roleSelector.querySelectorAll('.role-option').forEach(function (opt) {
+                    opt.classList.toggle('selected', opt.dataset.role === 'USER');
+                });
+            }
+            addUserModal.classList.add('open');
+        });
+        document.getElementById('addUserClose').addEventListener('click', function () { addUserModal.classList.remove('open'); });
+        document.getElementById('addUserCancel').addEventListener('click', function () { addUserModal.classList.remove('open'); });
+        addUserModal.addEventListener('click', function (e) { if (e.target === addUserModal) addUserModal.classList.remove('open'); });
+
+        document.getElementById('addUserConfirm').addEventListener('click', async function () {
+            const name = document.getElementById('newUserName').value.trim();
+            const email = document.getElementById('newUserEmail').value.trim();
+            if (!name || !email) { alert('Please fill in name and email.'); return; }
+
+            const defaultPassword = 'welcome123';
+
+            try {
+                const res = await fetch(API + '/admin/users', {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ name: name, email: email, password: defaultPassword, role: selectedRole })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('✅ User created successfully!\n\n🔐 Default password: ' + defaultPassword + '\n\nShare this with them securely — they can change it later via the Password button.');
+                    addUserModal.classList.remove('open');
+                    loadUsers();
+                } else {
+                    alert('Failed: ' + (data.error || data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        // ---------- PASSWORD MODAL ----------
+        const passwordModal = document.getElementById('passwordModal');
+        document.getElementById('passwordClose').addEventListener('click', function () { passwordModal.classList.remove('open'); });
+        document.getElementById('passwordCancel').addEventListener('click', function () { passwordModal.classList.remove('open'); });
+        passwordModal.addEventListener('click', function (e) { if (e.target === passwordModal) passwordModal.classList.remove('open'); });
+
+        document.getElementById('passwordConfirm').addEventListener('click', async function () {
+            const pw = document.getElementById('newPassword').value;
+            const pw2 = document.getElementById('confirmPassword').value;
+            if (!pw || pw.length < 6) { alert('Password must be at least 6 characters.'); return; }
+            if (pw !== pw2) { alert('Passwords do not match.'); return; }
+            if (!passwordTargetId) return;
+
+            try {
+                const res = await fetch(API + '/admin/users/' + passwordTargetId + '/password', {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ password: pw })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(data.message || 'Password updated successfully.');
+                    passwordModal.classList.remove('open');
+                } else {
+                    alert('Failed: ' + (data.error || data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        // ---------- SIDEBAR & THEME ----------
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+        function openSidebar() { sidebar.classList.add('open'); sidebarOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+        hamburgerBtn.addEventListener('click', function () { sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); });
+        closeSidebarBtn.addEventListener('click', closeSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        let darkMode = false;
+        function applyTheme(isDark) {
+            darkMode = isDark;
+            if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); themeIcon.className = 'fas fa-sun'; }
+            else { document.documentElement.removeAttribute('data-theme'); themeIcon.className = 'fas fa-moon'; }
+            try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
+        }
+        try {
+            const saved = localStorage.getItem('prontox-theme');
+            if (saved === 'dark') applyTheme(true);
+            else if (saved === 'light') applyTheme(false);
+            else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+            else applyTheme(false);
+        } catch (_) { applyTheme(false); }
+        themeToggle.addEventListener('click', function () { applyTheme(!darkMode); });
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to log out?')) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        });
+
+        checkAccessAndLoad();
+    })();
+    </script>
+    <script src="admin-link.js"></script>
+</body>
+</html>

@@ -762,8 +762,14 @@
         }
 
         /* Plan Distribution Table */
+        /* 🆕 horizontal scroll so nothing gets crushed on small screens */
+        #dashboardPlanDistributionList {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
         .distribution-table {
             width: 100%;
+            min-width: 560px;            /* 🆕 forces sideways scroll instead of squishing */
             border-collapse: collapse;
             font-size: 0.85rem;
         }
@@ -858,25 +864,29 @@
             color: var(--accent);
             font-size: 0.9rem;
         }
+        /* 🆕 TOTAL row readability: neutral background + high-contrast bold number */
         .distribution-table .total-row .bar-track {
-            background: var(--accent-light);
-            border-color: var(--accent);
+            background: var(--surface-2);
+            border: 2px solid var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 24px;
+            height: 26px;
         }
         .distribution-table .total-row .bar-track .total-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--accent-dark);
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.2px;
         }
         .distribution-table .total-row .amount-cell {
-            color: var(--accent);
+            color: var(--text-primary);
             font-size: 0.95rem;
+            font-weight: 800;
         }
         .distribution-table .total-row .percent-cell {
-            color: var(--accent);
+            color: var(--text-primary);
+            font-weight: 800;
         }
 
         .distribution-empty {
@@ -894,14 +904,32 @@
             font-size: 0.9rem;
         }
 
-        /* Expiring Soon & Today Expired */
+                /* Expiring Soon & Today Expired */
         .expiry-table-wrap {
             overflow-x: auto;
+            overflow-y: auto;
+            max-height: 400px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
             transition: border-color var(--transition);
             -webkit-overflow-scrolling: touch;
         }
+        .expiry-table-wrap::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .expiry-table-wrap::-webkit-scrollbar-track {
+            background: var(--surface-2);
+            border-radius: 4px;
+        }
+        .expiry-table-wrap::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        .expiry-table-wrap::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
         .expiry-table-wrap table {
             width: 100%;
             border-collapse: collapse;
@@ -1003,7 +1031,7 @@
         /* ============================================================
            RESPONSIVE BREAKPOINTS - ENHANCED
            ============================================================ */
-        
+
         /* Large tablets and small desktops */
         @media (max-width: 1024px) {
             .main-content {
@@ -1185,10 +1213,10 @@
                 min-width: 35px;
             }
             .distribution-table .total-row .bar-track {
-                height: 16px;
+                height: 18px;
             }
             .distribution-table .total-row .bar-track .total-label {
-                font-size: 0.6rem;
+                font-size: 0.7rem;
             }
             .expiry-table-wrap table {
                 font-size: 0.7rem;
@@ -1317,8 +1345,8 @@
                 <p>Overview of your billing &amp; customer activity</p>
             </div>
             <div class="actions">
+                <!-- 🆕 Refresh button removed (only New Customer remains) -->
                 <button class="btn btn-primary" id="dashNewCustomerBtn"><i class="fas fa-user-plus"></i> New Customer</button>
-                <button class="btn btn-outline-secondary" id="dashRefreshBtn"><i class="fas fa-sync-alt"></i></button>
             </div>
         </div>
 
@@ -1355,7 +1383,7 @@
             <div class="panel-header" onclick="togglePanel('planSummaryPanel')">
                 <h3><i class="fas fa-table me-2 text-primary-custom"></i> Plan Summary — Total, Paid &amp; Unpaid</h3>
                 <div>
-                    <span class="subtitle">auto-updates on payment</span>
+                    <span class="subtitle"></span>
                     <i class="fas fa-chevron-down toggle-icon" id="planSummaryIcon"></i>
                 </div>
             </div>
@@ -1387,12 +1415,12 @@
             </div>
             <div class="panel-body expanded" id="projectionBody">
                 <div class="filter-bar">
+                    <!-- 🆕 Apply button removed; dropdown auto-applies on change -->
                     <select id="dashboardProjectionFilter" style="width:auto;min-width:140px;padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text-primary);font-size:13px;">
                         <option value="daily">Daily (3 days)</option>
                         <option value="weekly">Weekly</option>
                         <option value="monthly" selected>Monthly</option>
                     </select>
-                    <button class="btn-filter" id="dashboardApplyFilter"><i class="fas fa-filter"></i> Apply</button>
                 </div>
                 <div id="dashboardTotalProjection" style="font-size:24px;font-weight:700;color:var(--accent);padding:12px 0;">
                     ₦0
@@ -1406,7 +1434,7 @@
             <div class="panel-header" onclick="togglePanel('distributionPanel')">
                 <h3><i class="fas fa-chart-bar me-2 text-primary-custom"></i> Plan Distribution</h3>
                 <div>
-                    <span class="subtitle" id="dashboardDistributionSubtitle">distributed by plan</span>
+                    <span class="subtitle" id="dashboardDistributionSubtitle"></span>
                     <i class="fas fa-chevron-down toggle-icon" id="distributionIcon"></i>
                 </div>
             </div>
@@ -1531,7 +1559,7 @@
         if (!d) return;
 
         const el = id => document.getElementById(id);
-        
+
         // Top Cards
         if(el('statTotal')) el('statTotal').textContent = d.totalCustomers;
         if(el('statActiveCount')) el('statActiveCount').textContent = d.activeCustomers;
@@ -1561,7 +1589,7 @@
                 const unpaid = p.unpaid;
                 const rate = parseInt(p.paymentRate) || 0;
                 const color = rate >= 80 ? '#22c55e' : (rate >= 50 ? '#f59e0b' : '#ef4444');
-                
+
                 html += `
                     <tr>
                         <td><span class="plan-tag ${plan.toLowerCase().replace(/[+ ]/g, '-')}">${plan}</span></td>
@@ -1612,7 +1640,7 @@
         if(subtitleEl) subtitleEl.textContent = `distributed by plan (${periodLabels[currentPeriod] || 'per month'})`;
 
         const barColors = ['#00AFEF', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8', '#22D3EE', '#06B6D4', '#0891B2', '#0E7490'];
-        
+
         const sorted = [...distribution].sort((a, b) => b.projected - a.projected);
         const totalProjected = sorted.reduce((sum, p) => sum + p.projected, 0);
 
@@ -1664,12 +1692,12 @@
                 <td><span class="plan-label-cell" style="font-weight:700;color:var(--accent);">TOTAL</span></td>
                 <td style="font-weight:700;">${totalActiveCustomers}</td>
                 <td>
-                    <div class="bar-track" style="background:var(--accent-light);border-color:var(--accent);display:flex;align-items:center;justify-content:center;height:24px;">
+                    <div class="bar-track">
                         <span class="total-label">${formatCurrency(totalProjected)}</span>
                     </div>
                 </td>
-                <td class="amount-cell" style="color:var(--accent);font-size:0.95rem;">${formatCurrency(totalProjected)}</td>
-                <td class="percent-cell" style="color:var(--accent);">100%</td>
+                <td class="amount-cell">${formatCurrency(totalProjected)}</td>
+                <td class="percent-cell">100%</td>
             </tr>
             </tbody>
         </table>
@@ -1694,8 +1722,8 @@
             const d = c.daysLeft;
             const initials = getInitials(c.customer);
             let statusClass, statusText;
-            if (d <= 1) { statusClass = 'critical'; statusText = '⚠️ Critical'; } 
-            else if (d <= 3) { statusClass = 'warning'; statusText = '⚡ Warning'; } 
+            if (d <= 1) { statusClass = 'critical'; statusText = '⚠️ Critical'; }
+            else if (d <= 3) { statusClass = 'warning'; statusText = '⚡ Warning'; }
             else { statusClass = 'info'; statusText = 'ℹ️ Soon'; }
 
             html += `
@@ -1767,20 +1795,14 @@
     };
 
     // Event Listeners
-    const applyBtn = document.getElementById('dashboardApplyFilter');
+    // 🆕 Apply button + its listener removed; dropdown auto-applies on change
     const filterSelect = document.getElementById('dashboardProjectionFilter');
-    
-    if (applyBtn) applyBtn.addEventListener('click', () => {
-        currentPeriod = filterSelect ? filterSelect.value : 'monthly';
-        renderDashboard();
-    });
     if (filterSelect) filterSelect.addEventListener('change', () => {
         currentPeriod = filterSelect.value;
         renderDashboard();
     });
 
-    const refreshBtn = document.getElementById('dashRefreshBtn');
-    if (refreshBtn) refreshBtn.addEventListener('click', renderDashboard);
+    // 🆕 Refresh button + its listener removed
 
     const newCustBtn = document.getElementById('dashNewCustomerBtn');
     if (newCustBtn) newCustBtn.addEventListener('click', () => { window.location.href = 'customer.html'; });
@@ -1861,5 +1883,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
 }, true);
 </script>
 <script src="admin-link.js"></script>
+<!-- 🆕 Shared UI enhancements: hover-reveal scrollbar + back-to-top arrow (roll out to every page) -->
+<script src="ui-enhancements.js"></script>
 </body>
 </html>

@@ -183,6 +183,9 @@ exports.execute = async (req, res) => {
               reference,
               paymentType: brain.type,
               monthsPaid: brain.monthsPaid,
+              action: pick('action') || null,
+              logMessage: pick('logMessage') || null,
+              details: pick('details') || null,
               discountPercent: brain.discountPercent
             }
           }),

@@ -76,6 +76,134 @@
         [data-theme="dark"] .border-\[\#E2E8F0\] { border-color: #353E46 !important; }
         [data-theme="dark"] .border-\[\#B3E5FC\] { border-color: #2a4a6a !important; }
         [data-theme="dark"] .hover\:bg-\[\#0099D3\]:hover { background-color: #3B82F6 !important; }
+
+        /* 🆕 Custom Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.open {
+            display: flex;
+        }
+        .modal-box {
+            background: #FFFFFF;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 440px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalPop 0.2s ease;
+        }
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.96) translateY(6px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .modal-header h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #1A2332;
+        }
+        .modal-close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94A3B8;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            transition: all 0.2s;
+        }
+        .modal-close-btn:hover {
+            background: #F8FAFC;
+            color: #1A2332;
+        }
+        .modal-body {
+            padding: 22px 24px;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 24px;
+            border-top: 1px solid #E2E8F0;
+        }
+
+        .confirm-modal-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.5rem;
+        }
+        .confirm-modal-icon.success {
+            background: #d1fae5;
+            color: #10b981;
+        }
+        .confirm-modal-icon.error {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+        .confirm-modal-icon.warning {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+        .confirm-modal-icon.info {
+            background: #E6F6FE;
+            color: #00AFEF;
+        }
+
+        .confirm-modal-text {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .confirm-modal-text strong {
+            color: #1A2332;
+        }
+
+        [data-theme="dark"] .modal-box {
+            background: #1A1E21;
+            border-color: #353E46;
+        }
+        [data-theme="dark"] .modal-header {
+            border-color: #353E46;
+        }
+        [data-theme="dark"] .modal-header h3 {
+            color: #E7E9EB;
+        }
+        [data-theme="dark"] .modal-footer {
+            border-color: #353E46;
+        }
+        [data-theme="dark"] .confirm-modal-text {
+            color: #AAB0B6;
+        }
+        [data-theme="dark"] .confirm-modal-text strong {
+            color: #E7E9EB;
+        }
     </style>
 </head>
 <body>
@@ -216,6 +344,14 @@
             © 2026 ProntoLog. ISP Accounting & Financial Operations Platform.
         </footer>
     </div>
+
+    <!-- 🆕 CUSTOM MODAL (for any confirmations if needed) -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box" id="modalBox" role="dialog" aria-modal="true">
+            <!-- populated by JS -->
+        </div>
+    </div>
+
     <script>
         (function() {
             'use strict';
@@ -230,6 +366,85 @@
             const passwordIcon = document.getElementById('passwordIcon');
             const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
             const backToLoginFromForgotBtn = document.getElementById('backToLoginFromForgotBtn');
+
+            // 🆕 MODAL SYSTEM (replaces all alert/confirm)
+            function showModal(title, message, type, buttons) {
+                const modalOverlay = document.getElementById('modalOverlay');
+                const modalBox = document.getElementById('modalBox');
+                
+                const iconClass = { success: 'success', error: 'error', warning: 'warning', info: 'info' }[type] || 'info';
+                const iconSymbol = { success: 'fas fa-check', error: 'fas fa-times', warning: 'fas fa-exclamation', info: 'fas fa-info' }[type] || 'fas fa-info';
+
+                let buttonsHtml = '';
+                if (buttons && buttons.length) {
+                    buttonsHtml = buttons.map((btn, i) => 
+                        `<button class="${btn.type === 'primary' ? 'bg-[#00AFEF] hover:bg-[#0099D3] text-white' : 'bg-white border border-[#E2E8F0] text-[#1A2332] hover:bg-[#F8FAFC]'} px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all" id="modalBtn${i}">${btn.label}</button>`
+                    ).join('');
+                } else {
+                    buttonsHtml = '<button class="bg-[#00AFEF] hover:bg-[#0099D3] text-white px-5 py-2.5 rounded-[10px] text-sm font-semibold transition-all" id="modalBtn0">OK</button>';
+                }
+
+                modalBox.innerHTML = `
+                    <div class="modal-header">
+                        <h3>${title}</h3>
+                        <button type="button" class="modal-close-btn" id="modalCloseBtn"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="confirm-modal-icon ${iconClass}">
+                            <i class="${iconSymbol}"></i>
+                        </div>
+                        <div class="confirm-modal-text">${message}</div>
+                    </div>
+                    <div class="modal-footer">
+                        ${buttonsHtml}
+                    </div>`;
+
+                modalOverlay.classList.add('open');
+
+                document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+
+                if (buttons && buttons.length) {
+                    buttons.forEach((btn, i) => {
+                        const btnEl = document.getElementById(`modalBtn${i}`);
+                        if (btnEl && btn.onClick) {
+                            btnEl.addEventListener('click', () => {
+                                closeModal();
+                                btn.onClick();
+                            });
+                        } else if (btnEl) {
+                            btnEl.addEventListener('click', closeModal);
+                        }
+                    });
+                } else {
+                    document.getElementById('modalBtn0').addEventListener('click', closeModal);
+                }
+
+                modalOverlay.addEventListener('click', function handler(e) {
+                    if (e.target === modalOverlay) {
+                        closeModal();
+                        modalOverlay.removeEventListener('click', handler);
+                    }
+                });
+
+                document.addEventListener('keydown', function handler(e) {
+                    if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+                        closeModal();
+                        document.removeEventListener('keydown', handler);
+                    }
+                });
+            }
+
+            function closeModal() {
+                document.getElementById('modalOverlay').classList.remove('open');
+            }
+
+            function showErrorModal(title, message) {
+                showModal(title, message, 'error');
+            }
+
+            function showSuccessModal(title, message) {
+                showModal(title, message, 'success');
+            }
 
             function applyTheme(isDark) {
                 if (isDark) document.documentElement.setAttribute('data-theme', 'dark');
@@ -275,19 +490,42 @@
                 const email = loginEmail.value.trim();
                 const password = loginPassword.value;
                 loginError.classList.add('hidden');
-                if (!email || !email.includes('@')) { loginError.textContent = 'Invalid email.'; loginError.classList.remove('hidden'); return; }
-                if (!password) { loginError.textContent = 'Password required.'; loginError.classList.remove('hidden'); return; }
+                
+                if (!email || !email.includes('@')) { 
+                    loginError.textContent = 'Invalid email.'; 
+                    loginError.classList.remove('hidden'); 
+                    return; 
+                }
+                if (!password) { 
+                    loginError.textContent = 'Password required.'; 
+                    loginError.classList.remove('hidden'); 
+                    return; 
+                }
+                
                 loginSubmitBtn.disabled = true;
                 loginSubmitBtn.innerHTML = '<span>Authenticating...</span>';
+                
                 try {
-                    const res = await fetch(`${API_BASE_URL}/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+                    const res = await fetch(`${API_BASE_URL}/auth/login`, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify({ email, password }) 
+                    });
                     const data = await res.json();
+                    
                     if (res.ok && data.success) {
                         localStorage.setItem('prontolog_token', data.token);
                         localStorage.setItem('prontolog_user_id', data.user.id);
-                        localStorage.setItem('prontolog_session', JSON.stringify({ email: data.user.email, name: data.user.firstName + ' ' + data.user.lastName, loggedIn: true }));
+                        localStorage.setItem('prontolog_session', JSON.stringify({ 
+                            email: data.user.email, 
+                            name: data.user.firstName + ' ' + data.user.lastName, 
+                            loggedIn: true 
+                        }));
+                        
+                        // ✅ Direct redirect — NO confirmation modal needed
                         window.location.href = 'dashboard.html';
                     } else {
+                        // ✅ Show error inline (already clean, no modal needed)
                         loginError.textContent = data.message || 'Login failed.';
                         loginError.classList.remove('hidden');
                         loginSubmitBtn.disabled = false;
@@ -301,7 +539,7 @@
                 }
             }
 
-            loginForm.addEventListener('submit', handleLogin);
+            loginFormElement.addEventListener('submit', handleLogin);
             loginPassword.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') { e.preventDefault(); handleLogin(e); }
             });
@@ -309,14 +547,18 @@
             function checkSession() {
                 try {
                     const token = localStorage.getItem('prontolog_token');
-                    if (token) { window.location.href = 'dashboard.html'; return true; }
+                    if (token) { 
+                        // ✅ Direct redirect — NO confirmation modal
+                        window.location.href = 'dashboard.html'; 
+                        return true; 
+                    }
                 } catch (_) {}
                 return false;
             }
 
             if (checkSession()) return;
             showLogin();
-            console.log('✅ Login page ready.');
+            console.log('✅ Login page ready — zero browser confirmations.');
         })();
     </script>
 </body>

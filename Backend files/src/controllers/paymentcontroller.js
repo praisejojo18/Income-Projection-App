@@ -3,6 +3,7 @@ const { analyzePayment } = require("../utils/paymentBrain");
 
 const getUserId = (req) => {
   return (
+    req.userId ||
     req.user?.id ||
     req.user?.userId ||
     req.headers["x-user-id"] ||
@@ -59,6 +60,9 @@ exports.getPayments = async (req, res) => {
       reference: p.reference || "—",
       paymentType: p.paymentType || "manual",
       monthsPaid: p.monthsPaid || null,
+      action: p.action || null,
+      logMessage: p.logMessage || null,
+      details: p.details || null,
       discountPercent: p.discountPercent ? Number(p.discountPercent) : 0
     }));
 
@@ -322,6 +326,33 @@ exports.deletePayment = async (req, res) => {
     });
   } catch (error) {
     console.error("DELETE /api/payments/:id error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/* DELETE /api/payments/all — 🛡️ SUPER_ADMIN ONLY: wipe ALL payments */
+exports.deleteAllPayments = async (req, res) => {
+  try {
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ error: "User ID is required." });
+
+    // 🛡️ ADMIN LOCK — only SUPER_ADMIN may wipe data
+    const realId = req.realUserId || userId;
+    const realUser = await prisma.user.findUnique({ where: { id: realId } });
+    if (!realUser || realUser.role !== "SUPER_ADMIN") {
+      return res.status(403).json({ error: "Admin privileges required to delete all payments." });
+    }
+
+    const paymentCount = await prisma.payment.count({ where: { userId } });
+
+    await prisma.payment.deleteMany({ where: { userId } });
+
+    res.json({
+      success: true,
+      message: `🗑️ Deleted ${paymentCount} payment(s). Ready for fresh import.`
+    });
+  } catch (error) {
+    console.error('deleteAllPayments error:', error.message);
     res.status(500).json({ error: error.message });
   }
 };

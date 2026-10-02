@@ -1,6 +1,7 @@
 const prisma = require("../config/database");
 
 const getUserId = (req) =>
+  req.userId ||                    // 🛡️ Company Mode (super admin's shared pool) — MUST BE FIRST
   req.user?.id ||
   req.user?.userId ||
   req.headers["x-user-id"] ||
@@ -97,13 +98,8 @@ exports.updatePlan = async (req, res) => {
 
     const plan = await prisma.plan.update({ where: { id: existing.id }, data });
 
-    // 💥 Price increase/decrease now applies to existing customers on this plan
-    if (data.price !== undefined) {
-      await prisma.customer.updateMany({
-        where: { planId: existing.id },
-        data: { amount: data.price }
-      });
-    }
+    // ✅ Customers read the price LIVE from their plan (plan.price),
+    // so no cascade update is needed anymore.
 
     res.json({
       success: true,

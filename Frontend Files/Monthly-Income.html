@@ -510,9 +510,10 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
+            /* 🆕 Force equal-width columns for clean alignment */
+            table-layout: fixed;
         }
         .income-table-wrap th {
-            text-align: left;
             padding: 12px 20px;
             font-weight: 600;
             font-size: 11px;
@@ -537,8 +538,31 @@
             background: var(--surface-2);
             border-top: 2px solid var(--border);
         }
-        .text-right {
+
+        /* 🎯 NUMERIC COLUMN ALIGNMENT — targets both th AND td so headers and values line up exactly */
+        .income-table-wrap th.plan-col,
+        .income-table-wrap td.plan-col {
+            text-align: left;
+            width: 35%;
+        }
+        .income-table-wrap th.num-col,
+        .income-table-wrap td.num-col {
             text-align: right;
+        }
+        .income-table-wrap th.num-col-2,
+        .income-table-wrap td.num-col-2 {
+            text-align: right;
+            width: 20%;
+        }
+        .income-table-wrap th.num-col-3,
+        .income-table-wrap td.num-col-3 {
+            text-align: right;
+            width: 20%;
+        }
+        .income-table-wrap th.num-col-4,
+        .income-table-wrap td.num-col-4 {
+            text-align: right;
+            width: 25%;
         }
 
         .plan-tag {
@@ -782,19 +806,20 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Service Plan</th>
-                        <th class="text-right">Paying Customers</th>
-                        <th class="text-right">Amount per Plan</th>
-                        <th class="text-right">Total Received</th>
+                        <!-- 🎯 Each column has its own alignment class so headers match cells 1:1 -->
+                        <th class="plan-col">Service Plan</th>
+                        <th class="num-col-2">Paying Customers</th>
+                        <th class="num-col-3">Amount per Plan</th>
+                        <th class="num-col-4">Total Received</th>
                     </tr>
                 </thead>
                 <tbody id="planTableBody"></tbody>
                 <tfoot id="planTableFooter" style="display:none;">
                     <tr class="total-row">
-                        <td>TOTAL</td>
-                        <td class="text-right" id="totalPayingCustomers">0</td>
-                        <td class="text-right">—</td>
-                        <td class="text-right" id="totalPlanRevenue">₦0</td>
+                        <td class="plan-col">TOTAL</td>
+                        <td class="num-col-2" id="totalPayingCustomers">0</td>
+                        <td class="num-col-3">—</td>
+                        <td class="num-col-4" id="totalPlanRevenue">₦0</td>
                     </tr>
                 </tfoot>
             </table>
@@ -819,7 +844,9 @@
         (function() {
             'use strict';
 
-            const API = 'http://localhost:5001/api';
+            const API = (location.protocol === 'file:' || !location.hostname)
+                ? 'http://172.23.63.10:5001/api'
+                : 'http://' + location.hostname + ':5001/api';
 
             function getHeaders() {
                 const h = { 'Content-Type': 'application/json' };
@@ -917,7 +944,7 @@
                         vsPreviousDetail.textContent = `Compared to previous month`;
                     }
 
-                    // Plan Table
+                    // Plan Table — 🎯 using matching column classes so every row aligns with headers
                     const plans = data.incomeByPlan || [];
                     let html = '';
                     let tPaying = 0;
@@ -928,10 +955,10 @@
                         tRevenue += p.totalReceived;
                         const planClass = p.planName.toLowerCase().replace(/[+ ]/g, '-');
                         html += `<tr>
-                                    <td><span class="plan-tag ${planClass}">${p.planName}</span></td>
-                                    <td class="text-right">${p.payingCustomers}</td>
-                                    <td class="text-right">${formatCurrency(p.amountPerPlan)}</td>
-                                    <td class="text-right">${formatCurrency(p.totalReceived)}</td>
+                                    <td class="plan-col"><span class="plan-tag ${planClass}">${p.planName}</span></td>
+                                    <td class="num-col-2">${p.payingCustomers}</td>
+                                    <td class="num-col-3">${formatCurrency(p.amountPerPlan)}</td>
+                                    <td class="num-col-4">${formatCurrency(p.totalReceived)}</td>
                                 </tr>`;
                     });
 
@@ -1148,5 +1175,6 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
 }, true);
 </script>
 <script src="admin-link.js"></script>
+<script src="ui-enhancements.js"></script>
 </body>
 </html>

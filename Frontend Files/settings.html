@@ -973,12 +973,12 @@
                     <!-- ===================== -->
                     <!-- GENERAL SETTINGS      -->
                     <!-- ===================== -->
-                    <div id="settings-page-general" class="settings-page-content active">
+                      <div id="settings-page-general" class="settings-page-content active">
                         <div class="settings-page-header">
                             <h2>General Settings</h2>
-                            <p>Manage your workspace preferences and defaults.</p>
                         </div>
-                        <div class="general-settings">
+                        <hr style="border:none;border-top:1px solid var(--border);margin:0 0 18px;" />
+                        <div class="general-settings">  
                             <div class="setting-row">
                                 <div class="setting-label">
                                     Dark Mode
@@ -988,15 +988,7 @@
                                     <div class="toggle" id="settingsDarkToggle"></div>
                                 </div>
                             </div>
-                            <div class="setting-row">
-                                <div class="setting-label">
-                                    Currency
-                                    <small>Default currency for plans and billing</small>
-                                </div>
-                                <div class="setting-control">
-                                    <span style="font-weight:600;color:var(--accent);font-size:0.95rem;">₦ Naira</span>
-                                </div>
-                            </div>
+                            
                         </div>
                     </div>
 
@@ -1305,6 +1297,33 @@
             window.location.href = 'login.html';
         }
     });
+
+    // ============================================================
+    // INIT
+    // ============================================================
+            // ============================================================
+    // ROLE CHECK: Hide "Edit Plans" button for non-admins
+    // ============================================================
+    (async () => {
+        try {
+            const r = await fetch(`${API}/auth/me`, {
+                headers: {
+                    'Authorization': 'Bearer ' + getToken(),
+                    'x-user-id': getUserId()
+                }
+            });
+            if (r.ok) {
+                const d = await r.json();
+                const role = d.role || (d.user && d.user.role);
+                if (role !== 'SUPER_ADMIN' && openPlanEditorBtn) {
+                    openPlanEditorBtn.style.display = 'none';
+                }
+            }
+        } catch (e) {
+            console.warn('Role check failed, hiding Edit Plans button:', e.message);
+            if (openPlanEditorBtn) openPlanEditorBtn.style.display = 'none';
+        }
+    })();
 
     // ============================================================
     // INIT

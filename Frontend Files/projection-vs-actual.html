@@ -465,114 +465,11 @@
             box-shadow: 0 0 0 3px var(--accent-light);
         }
 
-        /* ---- Chart ---- */
-        .pa-chart-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            gap: 6px;
-            height: 280px;
-            padding: 0 4px 0 4px;
-            border-bottom: 2px solid var(--border);
-            transition: border-color var(--transition);
-            margin-bottom: 16px;
-        }
-
-        .pa-chart-column {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            min-width: 0;
-            height: 100%;
-            justify-content: flex-end;
-        }
-
-        .pa-chart-bars {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-            height: 220px;
-            flex-shrink: 0;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .pa-bar-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-            justify-content: flex-end;
-            gap: 3px;
-            flex: 1;
-            max-width: 44px;
-            min-width: 24px;
-        }
-
-        .pa-bar-group .bar-value {
-            font-size: 0.55rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            transition: color var(--transition);
-            text-align: center;
-            line-height: 1.2;
-        }
-
-        .pa-bar-group .bar {
-            width: 100%;
-            border-radius: 4px 4px 0 0;
-            min-height: 3px;
-            transition: height 0.5s ease, background 0.2s;
-            flex-shrink: 0;
-        }
-
-        .pa-bar-group .bar.projection {
-            background: var(--accent);
-            opacity: 0.85;
-        }
-        .pa-bar-group .bar.actual {
-            background: var(--success);
-            opacity: 0.85;
-        }
-
-        .pa-chart-legend {
-            display: flex;
-            justify-content: center;
-            gap: 28px;
-            margin-top: 8px;
-        }
-        .pa-chart-legend span {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            transition: color var(--transition);
-        }
-        .pa-chart-legend .dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-            flex-shrink: 0;
-        }
-        .pa-chart-legend .dot.projection {
-            background: var(--accent);
-        }
-        .pa-chart-legend .dot.actual {
-            background: var(--success);
-        }
-
-        .pa-period-label {
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-top: 8px;
-            text-align: center;
-            transition: color var(--transition);
-            letter-spacing: 0.02em;
+        /* ---- Chart box (Chart.js renders inside this — no dead space) ---- */
+        .pa-chart-box {
+            position: relative;
+            height: 320px;
+            margin: 0 0 16px;
         }
 
         /* ---- Table ---- */
@@ -671,23 +568,8 @@
             .pa-summary-grid {
                 grid-template-columns: 1fr 1fr;
             }
-            .pa-chart-container {
-                height: 200px;
-            }
-            .pa-chart-bars {
-                height: 160px;
-                gap: 6px;
-            }
-            .pa-bar-group {
-                max-width: 34px;
-                min-width: 18px;
-            }
-            .pa-bar-group .bar-value {
-                font-size: 0.5rem;
-            }
-            .pa-period-label {
-                font-size: 0.55rem;
-                margin-top: 6px;
+            .pa-chart-box {
+                height: 240px;
             }
             .pa-filter-area {
                 flex-direction: column;
@@ -699,22 +581,8 @@
             .pa-summary-grid {
                 grid-template-columns: 1fr;
             }
-            .pa-chart-container {
-                height: 160px;
-            }
-            .pa-chart-bars {
-                height: 130px;
-                gap: 4px;
-            }
-            .pa-bar-group {
-                max-width: 28px;
-                min-width: 14px;
-            }
-            .pa-bar-group .bar-value {
-                font-size: 0.45rem;
-            }
-            .pa-period-label {
-                font-size: 0.5rem;
+            .pa-chart-box {
+                height: 200px;
             }
             .pa-table-wrap table {
                 font-size: 0.75rem;
@@ -820,14 +688,8 @@
             </select>
         </div>
 
-        <!-- ─── Chart ─── -->
-        <div class="pa-chart-container" id="paChartContainer">
-            <!-- rendered by JS -->
-        </div>
-        <div class="pa-chart-legend">
-            <span><span class="dot projection"></span> Projection</span>
-            <span><span class="dot actual"></span> Actual</span>
-        </div>
+        <!-- ─── Chart (Chart.js renders inside this box — dead space removed) ─── -->
+        <div class="pa-chart-box" id="paChartBox"></div>
 
         <!-- ─── Table ─── -->
         <div class="pa-table-wrap">
@@ -862,7 +724,9 @@
 (function () {
     'use strict';
 
-    const API = 'http://localhost:5001/api';
+    const API = (location.protocol === 'file:' || !location.hostname)
+        ? 'http://172.23.63.10:5001/api'
+        : 'http://' + location.hostname + ':5001/api';
 
     const getHeaders = () => {
         const h = { 'Content-Type': 'application/json' };
@@ -877,48 +741,29 @@
     let chartInstance = null;
 
     // ============================================================
-    // AUTO-DETECT ELEMENTS
+    // SUMMARY CARD VALUES (direct IDs — no label guessing)
     // ============================================================
-    function setValueByLabel(labelText, value, color) {
-        const leaves = Array.from(document.querySelectorAll('div, span, h3, p, dt'))
-            .filter(n => n.children.length === 0)
-            .find(n => n.textContent.trim().toLowerCase() === labelText);
-        if (!leaves) { console.warn('PVA: label not found →', labelText); return; }
-        const container = leaves.closest('.summary-card') || leaves.parentElement;
-        const valueEl = container.querySelector('.value') || leaves.nextElementSibling;
-        if (!valueEl) return;
-        valueEl.textContent = value;
-        if (color) valueEl.style.color = color;
+    function setSummary(d) {
+    const proj = document.getElementById('paTotalProjected');
+    const act = document.getElementById('paTotalActual');
+    const varEl = document.getElementById('paTotalVariance');
+    const varSub = document.getElementById('paVarianceSub');
+    const acc = document.getElementById('paAccuracy');
+    if (proj) proj.textContent = fmt(d.summary.totalProjected);
+    if (act) act.textContent = fmt(d.summary.totalActual);
+    if (varEl) {
+        varEl.textContent = (d.summary.variance >= 0 ? '+' : '−') + fmt(d.summary.variance);
+        varEl.style.color = d.summary.variance >= 0 ? 'var(--success)' : 'var(--danger)';
     }
+    if (varSub) varSub.textContent = d.summary.variance >= 0 ? 'above projection' : 'below projection';
+    if (acc) acc.textContent = (d.summary.accuracy || 0) + '%';
+}
+    let varSub = null;
 
-    const selects = Array.from(document.querySelectorAll('select'));
-    let timeframeSelect = null, planSelect = null;
-    selects.forEach(s => {
-        const opts = Array.from(s.options).map(o => o.textContent.toLowerCase());
-        if (opts.some(t => t.includes('daily') || t.includes('3-day'))) timeframeSelect = s;
-        else if (opts.some(t => t.includes('all plans'))) planSelect = s;
-    });
-
-    const tbody = document.querySelector('table tbody');
-
-    function findEmptyState() {
-        const cands = Array.from(document.querySelectorAll('div, section, p'))
-            .filter(n => n.textContent.includes('No projection data available'));
-        if (!cands.length) return null;
-        const withLink = cands.filter(n => n.textContent.includes('Go to Income Projection'));
-        return (withLink.length ? withLink : cands)
-            .sort((a, b) => a.textContent.length - b.textContent.length)[0];
-    }
-    const emptyState = findEmptyState();
-
-    function tfValue() {
-        if (!timeframeSelect) return 'monthly';
-        const t = (timeframeSelect.selectedOptions[0] ? timeframeSelect.selectedOptions[0].textContent : '').toLowerCase();
-        if (t.includes('daily') || t.includes('3-day')) return 'daily';
-        if (t.includes('weekly')) return 'weekly';
-        if (t.includes('annual')) return 'annually';
-        return 'monthly';
-    }
+    const timeframeSelect = document.getElementById('paTimeframeFilter');
+    const planSelect = document.getElementById('paPlanFilter');
+    const tbody = document.getElementById('paTableBody');
+    const emptyState = document.getElementById('paNoData');
 
     function statusHtml(status) {
         const s = String(status).toLowerCase();
@@ -935,7 +780,7 @@
     // ============================================================
     async function load() {
         try {
-            const tf = tfValue();
+            const tf = timeframeSelect ? timeframeSelect.value : 'monthly';
             const planId = planSelect ? planSelect.value : '';
             const url = API + '/actual/projection-vs-actual?timeframe=' + tf +
                 (planId && planId !== 'all' ? '&planId=' + planId : '');
@@ -944,12 +789,7 @@
             const d = await res.json();
             if (!res.ok) throw new Error(d.error || 'Failed to load');
 
-            // Summary cards
-            setValueByLabel('total projected', fmt(d.summary.totalProjected));
-            setValueByLabel('total actual', fmt(d.summary.totalActual));
-            setValueByLabel('variance', (d.summary.variance >= 0 ? '+' : '−') + fmt(d.summary.variance),
-                d.summary.variance >= 0 ? '#10b981' : '#ef4444');
-            setValueByLabel('accuracy', d.summary.accuracy + '%');
+            setSummary(d);
 
             // Populate plan dropdown once
             if (planSelect && !planSelect.dataset.filled) {
@@ -963,9 +803,9 @@
 
             // Table
             if (tbody) {
-                if (!d.rows.length) {
+                if (!d.rows || !d.rows.length) {
                     tbody.innerHTML = '';
-                    if (emptyState) emptyState.style.display = '';
+                    if (emptyState) emptyState.style.display = 'block';
                 } else {
                     if (emptyState) emptyState.style.display = 'none';
                     tbody.innerHTML = d.rows.map(r =>
@@ -981,37 +821,27 @@
             }
 
             // ============================================================
-            // BULLETPROOF CHART: destroys hijacker charts, creates canvas if missing
+            // CHART: renders INSIDE #paChartBox (no floating box, no gap)
             // ============================================================
-            let chartCanvas = document.querySelector('canvas');
+            const host = document.getElementById('paChartBox');
+            let chartCanvas = host ? host.querySelector('canvas') : null;
             if (!chartCanvas) {
                 chartCanvas = document.createElement('canvas');
-                const box = document.createElement('div');
-                box.style.cssText = 'margin:24px 0;height:320px;position:relative;';
-                box.appendChild(chartCanvas);
-                const tableEl = document.querySelector('table');
-                if (tableEl) (tableEl.closest('div') || tableEl.parentElement).before(box);
-                else if (document.querySelector('main')) document.querySelector('main').appendChild(box);
+                if (host) host.appendChild(chartCanvas);
             }
 
-            if (window.Chart) {
-                const hijacker = Chart.getChart(chartCanvas);   // colleague's chart squatting on the canvas
+            if (window.Chart && chartCanvas) {
+                const hijacker = Chart.getChart(chartCanvas);
                 if (hijacker) hijacker.destroy();
                 if (chartInstance) chartInstance.destroy();
-
-                const parent = chartCanvas.parentElement;
-                if (parent) {
-                    parent.style.position = 'relative';
-                    if (parent.clientHeight < 50) parent.style.height = '320px';
-                }
 
                 chartInstance = new Chart(chartCanvas.getContext('2d'), {
                     type: 'bar',
                     data: {
-                        labels: d.chart.map(c => c.period),
+                        labels: (d.chart || []).map(c => c.period),
                         datasets: [
-                            { label: 'Projection', data: d.chart.map(c => c.projection), backgroundColor: '#00AFEF', borderRadius: 4 },
-                            { label: 'Actual', data: d.chart.map(c => c.actual), backgroundColor: '#10b981', borderRadius: 4 }
+                            { label: 'Projection', data: (d.chart || []).map(c => c.projection), backgroundColor: '#00AFEF', borderRadius: 4 },
+                            { label: 'Actual', data: (d.chart || []).map(c => c.actual), backgroundColor: '#10b981', borderRadius: 4 }
                         ]
                     },
                     options: {
@@ -1053,15 +883,15 @@
     let darkMode = false;
     function applyTheme(isDark) {
         darkMode = isDark;
-        if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); if (themeIcon) themeIcon.className = 'fas fa-sun'; }
-        else { document.documentElement.removeAttribute('data-theme'); if (themeIcon) themeIcon.className = 'fas fa-moon'; }
+        if (isDark) { document.documentElement.setAttribute('data-theme', 'dark'); themeIcon.className = 'fas fa-sun'; }
+        else { document.documentElement.removeAttribute('data-theme'); themeIcon.className = 'fas fa-moon'; }
         try { localStorage.setItem('prontox-theme', isDark ? 'dark' : 'light'); } catch (_) {}
     }
     try {
         const saved = localStorage.getItem('prontox-theme');
         if (saved === 'dark') applyTheme(true);
         else if (saved === 'light') applyTheme(false);
-        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+        else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
         else applyTheme(false);
     } catch (_) { applyTheme(false); }
     if (themeToggle) themeToggle.addEventListener('click', () => applyTheme(!darkMode));
@@ -1081,7 +911,7 @@
     });
 
     load();
-    console.log('✅ Projection vs Actual connected to live API (bulletproof chart).');
+    console.log('✅ Projection vs Actual connected to live API (chart in fixed box, no dead space).');
 })();
 </script>
 <script>
@@ -1096,5 +926,6 @@ document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
 }, true);
 </script>
 <script src="admin-link.js"></script>
+<script src="ui-enhancements.js"></script>
 </body>
 </html>

@@ -29,6 +29,10 @@
             --danger: #ef4444;
             --danger-hover: #dc2626;
             --danger-light: #fee2e2;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
 
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.08);
@@ -58,6 +62,10 @@
             --danger: #f87171;
             --danger-hover: #ef4444;
             --danger-light: #4a1a1a;
+            --success: #34d399;
+            --success-light: #0a3a2a;
+            --warning: #fbbf24;
+            --warning-light: #3a2a0a;
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.5);
             --shadow-sidebar: 4px 0 30px rgba(0, 0, 0, 0.6);
@@ -431,6 +439,21 @@
             transition: all 0.2s;
         }
         .btn-secondary:hover { background: var(--surface-2); border-color: var(--text-muted); }
+
+        .btn-danger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--danger);
+            color: #fff;
+            border-radius: var(--radius-xs);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-danger:hover { background: var(--danger-hover); }
+        .btn-danger:active { transform: scale(0.97); }
 
         .payments-summary {
             display: grid;
@@ -874,6 +897,53 @@
             transition: border-color var(--transition);
         }
 
+        /* 🆕 Confirmation Modal Styles */
+        .confirm-modal-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.5rem;
+        }
+        .confirm-modal-icon.success {
+            background: var(--success-light);
+            color: var(--success);
+        }
+        .confirm-modal-icon.error {
+            background: var(--danger-light);
+            color: var(--danger);
+        }
+        .confirm-modal-icon.warning {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+        .confirm-modal-icon.info {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .confirm-modal-text {
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .confirm-modal-text strong {
+            color: var(--text-primary);
+        }
+
+        .confirm-modal-footer {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .payments-summary {
@@ -914,6 +984,111 @@
             }
             .form-group.full {
                 grid-column: auto;
+            }
+        }
+
+                /* 🆕 Pagination bar */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+            padding: 14px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            transition: background var(--transition), border-color var(--transition);
+        }
+        .pagination-summary {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            min-width: 34px;
+            height: 34px;
+            padding: 0 10px;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s;
+            font-family: inherit;
+        }
+        .page-btn:hover:not(:disabled):not(.active) {
+            background: var(--surface-2);
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
+        .page-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            cursor: default;
+        }
+        .page-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        .page-ellipsis {
+            padding: 0 4px;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+        }
+
+                /* 🆕 Floating Delete All Button (bottom-right) */
+        .floating-delete-all {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 24px;
+            background: var(--danger);
+            color: #fff;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        .floating-delete-all:hover {
+            background: var(--danger-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(239, 68, 68, 0.5);
+        }
+        .floating-delete-all:active { transform: scale(0.97); }
+        .floating-delete-all:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        @media (max-width: 768px) {
+            .floating-delete-all {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .floating-delete-all {
+                bottom: 15px;
+                right: 15px;
+                left: 15px;
+                justify-content: center;
             }
         }
     </style>
@@ -1039,29 +1214,29 @@
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr>
+                       <tr>
+                            <th>Customer ID</th>
+                            <th>Log Message</th>
                             <th>Date</th>
-                            <th>Customer</th>
-                            <th>Service Plan</th>
-                            <th>Amount</th>
-                            <th>Type</th>
-                            <th>Months</th>
-                            <th>Discount</th>
-                            <th>Payment Method</th>
-                            <th>Reference</th>
-                            <th>Action</th>
+                            <th>Details</th>
                         </tr>
                     </thead>
                     <tbody id="paymentTableBody">
                         <!-- rendered by JS -->
                     </tbody>
                 </table>
+                
+            <!-- 🆕 Pagination Bar -->
+            <div class="pagination-bar" id="paginationBar" style="display:none;">
+                <span class="pagination-summary" id="paginationSummary"></span>
+                <div class="pagination-controls" id="paginationControls"></div>
+            </div>
             </div>
         </div>
 
     </main>
 
-    <!-- ─── GENERIC MODAL (for viewing payment details) ─── -->
+    <!-- ─── GENERIC MODAL (for viewing payment details + confirmations) ─── -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal-box" id="modalBox" role="dialog" aria-modal="true">
             <!-- populated by JS -->
@@ -1102,6 +1277,13 @@
                 <button class="btn-secondary" onclick="closePaymentModal()">Cancel</button>
                 <button class="btn-primary" onclick="recordPayment()">Record Payment</button>
             </div>
+        </div>
+    </div>
+
+    <!-- ─── IMPORT PREVIEW MODAL ─── -->
+    <div class="modal-overlay" id="importPreviewModal" style="z-index:3000;">
+        <div class="modal-box" style="max-width:720px;" id="importPreviewBox">
+            <!-- populated by JS -->
         </div>
     </div>
 
@@ -1167,6 +1349,110 @@
         return 'Manual payment';
     }
 
+    // 🆕 MODAL SYSTEM (replaces all alert/confirm)
+    function showModal(title, message, type, buttons) {
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalBox = document.getElementById('modalBox');
+        
+        const iconClass = {
+            success: 'success',
+            error: 'error',
+            warning: 'warning',
+            info: 'info'
+        }[type] || 'info';
+
+        const iconSymbol = {
+            success: 'fas fa-check',
+            error: 'fas fa-times',
+            warning: 'fas fa-exclamation',
+            info: 'fas fa-info'
+        }[type] || 'fas fa-info';
+
+        let buttonsHtml = '';
+        if (buttons && buttons.length) {
+            buttonsHtml = buttons.map((btn, i) => 
+                `<button class="btn-${btn.type || 'secondary'}" id="modalBtn${i}">${btn.label}</button>`
+            ).join('');
+        } else {
+            buttonsHtml = '<button class="btn-primary" id="modalBtn0">OK</button>';
+        }
+
+        modalBox.innerHTML = `
+            <div class="modal-header">
+                <h3>${title}</h3>
+                <button type="button" class="modal-close-btn" id="modalCloseBtn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-modal-icon ${iconClass}">
+                    <i class="${iconSymbol}"></i>
+                </div>
+                <div class="confirm-modal-text">${message}</div>
+            </div>
+            <div class="confirm-modal-footer">
+                ${buttonsHtml}
+            </div>`;
+
+        modalOverlay.classList.add('open');
+
+        // Wire up close button
+        document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+
+        // Wire up action buttons
+        if (buttons && buttons.length) {
+            buttons.forEach((btn, i) => {
+                const btnEl = document.getElementById(`modalBtn${i}`);
+                if (btnEl && btn.onClick) {
+                    btnEl.addEventListener('click', () => {
+                        closeModal();
+                        btn.onClick();
+                    });
+                } else if (btnEl) {
+                    btnEl.addEventListener('click', closeModal);
+                }
+            });
+        } else {
+            document.getElementById('modalBtn0').addEventListener('click', closeModal);
+        }
+
+        // Close on overlay click
+        modalOverlay.addEventListener('click', function handler(e) {
+            if (e.target === modalOverlay) {
+                closeModal();
+                modalOverlay.removeEventListener('click', handler);
+            }
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function handler(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handler);
+            }
+        });
+    }
+
+    function closeModal() {
+        const modalOverlay = document.getElementById('modalOverlay');
+        modalOverlay.classList.remove('open');
+    }
+
+    // Convenience functions
+    function showSuccess(title, message) {
+        showModal(title, message, 'success');
+    }
+
+    function showError(title, message) {
+        showModal(title, message, 'error');
+    }
+
+    function showWarning(title, message, buttons) {
+        showModal(title, message, 'warning', buttons);
+    }
+
+    function showInfo(title, message) {
+        showModal(title, message, 'info');
+    }
+
     // ============================================================
     // DOM REFS
     // ============================================================
@@ -1185,15 +1471,17 @@
     const amountInput = document.getElementById('amountInput');
     const paymentDateInput = document.getElementById('paymentDateInput');
     const paymentModal = document.getElementById('paymentModal');
-    const modalOverlay = document.getElementById('modalOverlay');
-    const modalBox = document.getElementById('modalBox');
 
     let paymentRecords = [];
     let allPlans = [];
     let allCustomers = [];
     let planPriceMap = {};
     let selectedCustomer = null;
-
+        // 🆕 Pagination state
+    const PAGE_SIZE = 50;
+    let currentPage = 1
+    let currentFilteredData = [];
+    
     // ============================================================
     // LOAD INITIAL DATA
     // ============================================================
@@ -1215,51 +1503,104 @@
             const custData = await (custRes.ok ? custRes.json() : []);
             allCustomers = Array.isArray(custData) ? custData : [];
 
-            populatePlanFilter();
-            populatePlanInput();
-            setupCustomerSearch();
-            filterPayments();
+                    currentPage = 1;  // 🆕 Reset to page 1 after loading data
+        populatePlanFilter();
+        populatePlanInput();
+        setupCustomerSearch();
+        filterPayments();
         } catch (err) {
             console.error('Failed to load payments data:', err);
         }
     }
 
+            // ============================================================
+    // 🆕 PAGINATION HELPERS
     // ============================================================
-    // RENDER PAYMENTS TABLE (now with Type / Months / Discount)
-    // ============================================================
-    function renderPayments(data) {
-        if (!paymentTableBody) return;
-        if (recordCount) recordCount.textContent = `${data.length} records`;
+    function getPageNumberSequence(current, total) {
+        const delta = 1, range = [];
+        for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) range.push(i);
+        let pages = [];
+        if (current - delta > 2) pages.push(1, '...'); else pages.push(1);
+        pages = pages.concat(range);
+        if (current + delta < total - 1) pages.push('...', total); else if (total > 1) pages.push(total);
+        const seen = {};
+        return pages.filter(p => { if (p === '...') return true; if (seen[p]) return false; seen[p] = true; return true; });
+    }
 
-        if (data.length === 0) {
-            paymentTableBody.innerHTML = `<tr><td colspan="10"><div class="empty">No payment records found.</div></td></tr>`;
+    function renderPagination(totalCount) {
+        const paginationBar = document.getElementById('paginationBar');
+        const paginationSummary = document.getElementById('paginationSummary');
+        const paginationControls = document.getElementById('paginationControls');
+        if (!paginationBar) return;
+
+        if (totalCount === 0) {
+            paginationBar.style.display = 'none';
             return;
         }
 
-        paymentTableBody.innerHTML = data.map(p => {
-            const planName = p.planName || p.plan || '';
-            const planClass = planName.toLowerCase().replace(/[+ ]/g, '-');
-            const subId = p.customerExternalId || ('#' + (p.customerId || '').slice(0, 8));
+        paginationBar.style.display = 'flex';
+        const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+        currentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+        const startNum = (currentPage - 1) * PAGE_SIZE + 1;
+        const endNum = Math.min(currentPage * PAGE_SIZE, totalCount);
+        if (paginationSummary) paginationSummary.textContent = `Showing ${startNum}–${endNum} of ${totalCount.toLocaleString('en-US')} payments`;
+
+        let html = `<button type="button" class="page-btn" data-page="${currentPage - 1}" ${currentPage <= 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
+        getPageNumberSequence(currentPage, totalPages).forEach(p => {
+            if (p === '...') html += `<span class="page-ellipsis">…</span>`;
+            else html += `<button type="button" class="page-btn ${p === currentPage ? 'active' : ''}" data-page="${p}">${p}</button>`;
+        });
+        html += `<button type="button" class="page-btn" data-page="${currentPage + 1}" ${currentPage >= totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+        if (paginationControls) paginationControls.innerHTML = html;
+    }
+
+    // Pagination click handler
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('#paginationControls .page-btn');
+        if (btn && !btn.disabled) {
+            currentPage = parseInt(btn.dataset.page);
+            renderPayments(currentFilteredData);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    // ============================================================
+    // RENDER PAYMENTS TABLE (now with Type / Months / Discount)
+    // ============================================================
+            function renderPayments(data) {
+        if (!paymentTableBody) return;
+        if (recordCount) recordCount.textContent = `${data.length} records`;
+
+        // 🆕 Store filtered data for pagination
+        currentFilteredData = data;
+
+        if (data.length === 0) {
+            paymentTableBody.innerHTML = `<tr><td colspan="4"><div class="empty">No payment records found.</div></td></tr>`;
+            renderPagination(0);
+            return;
+        }
+
+        // 🆕 Paginate
+        const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+        currentPage = Math.min(Math.max(1, currentPage), totalPages);
+        const startIdx = (currentPage - 1) * PAGE_SIZE;
+        const pageData = data.slice(startIdx, startIdx + PAGE_SIZE);
+
+        paymentTableBody.innerHTML = pageData.map(p => {
+            const custId = p.customerExternalId || (p.customerId || '—');
             return `
                 <tr>
+                    <td><span class="customer-name" style="font-family:monospace;">${custId}</span></td>
+                    <td>${p.logMessage || '—'}</td>
                     <td>${formatDate(p.paymentDate || p.date)}</td>
-                    <td>
-                        <span class="customer-name">${p.customerName || p.customer}</span>
-                        <span class="customer-id">${subId}</span>
-                    </td>
-                    <td><span class="plan-tag ${planClass}">${planName}</span></td>
-                    <td><span class="amount">${formatCurrency(p.amount)}</span></td>
-                    <td>${typeTagHtml(p)}</td>
-                    <td>${p.monthsPaid || '—'}</td>
-                    <td>${p.discountPercent ? p.discountPercent + '%' : '—'}</td>
-                    <td>${p.method || '—'}</td>
-                    <td><span class="reference">${p.reference || '—'}</span></td>
-                    <td>
-                        <button class="view-btn" data-id="${p.id}">View</button>
-                    </td>
+                    <td>${p.details || '—'}</td>
                 </tr>`;
         }).join('');
-    }
+
+        // 🆕 Render pagination
+        renderPagination(data.length);
+    }  
 
     // ============================================================
     // UPDATE SUMMARY CARDS
@@ -1309,7 +1650,8 @@
 
             return matchSearch && matchPlan && matchMethod && matchDate;
         });
-
+        
+        currentPage = 1;  // 🆕 reset to page 1 on new filter
         renderPayments(filtered);
         updateSummary(filtered);
     }
@@ -1535,7 +1877,7 @@
         const date = paymentDateInput?.value;
 
         if (!customerName || !planName || !amount || !date) {
-            alert('Please fill all fields (Customer, Plan, Amount, Date).');
+            showError('Missing Information', 'Please fill all fields (Customer, Plan, Amount, Date).');
             return;
         }
 
@@ -1543,7 +1885,7 @@
         const plan = allPlans.find(p => p.name === planName);
 
         if (!customer) {
-            alert(`Customer "${customerName}" not found. Please select a customer from the dropdown.`);
+            showError('Customer Not Found', `Customer "<strong>${customerName}</strong>" not found. Please select a customer from the dropdown.`);
             return;
         }
 
@@ -1566,14 +1908,16 @@
             if (!res.ok) {
                 throw new Error(data.error || data.message || 'Failed to record payment');
             }
-            let msg = '✅ Payment recorded!';
-            if (data.brain && data.brain.description) msg += '\n🧠 Detected: ' + data.brain.description;
-            msg += '\n📅 Customer expiry updated automatically.';
-            alert(msg);
+            let msg = 'Payment recorded successfully!';
+            if (data.brain && data.brain.description) msg += '<br><br>🧠 <strong>Detected:</strong> ' + data.brain.description;
+            msg += '<br><br>📅 Customer expiry updated automatically.';
+            
+            showSuccess('✅ Payment Recorded', msg);
             closePaymentModal();
+            clearFilters();  // 🆕 Reset filters so new payment is visible
             await loadAllData();
         } catch (err) {
-            alert('Error: ' + err.message);
+            showError('Error Recording Payment', err.message);
         }
     };
 
@@ -1590,7 +1934,10 @@
 
     async function openViewModal(id) {
         const payment = paymentRecords.find(p => p.id === id);
-        if (!payment || !modalOverlay || !modalBox) return;
+        if (!payment) return;
+
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalBox = document.getElementById('modalBox');
 
         modalBox.innerHTML = `
             <div class="modal-header">
@@ -1690,21 +2037,44 @@
     const logoLink = document.getElementById('logoLink');
     if (logoLink) logoLink.addEventListener('click', (e) => { e.preventDefault(); window.location.href = 'dashboard.html'; });
     const avatarBtn = document.getElementById('avatarBtn');
-    if (avatarBtn) avatarBtn.addEventListener('click', () => alert('👤 User profile – would open user settings.'));
+    if (avatarBtn) avatarBtn.addEventListener('click', () => showInfo('User Profile', '👤 User profile – would open user settings.'));
 
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        if (confirm('Are you sure you want to log out?')) {
-            localStorage.removeItem('prontolog_token');
-            localStorage.removeItem('prontolog_user_id');
-            window.location.href = 'login.html';
-        }
+        showWarning('Confirm Logout', 'Are you sure you want to log out?', [
+            { label: 'Cancel', type: 'secondary' },
+            { 
+                label: 'Logout', 
+                type: 'primary',
+                onClick: () => {
+                    localStorage.removeItem('prontolog_token');
+                    localStorage.removeItem('prontolog_user_id');
+                    window.location.href = 'login.html';
+                }
+            }
+        ]);
     });
 
     // ============================================================
     // INIT
     // ============================================================
+            // 🆕 DELETE ALL PAYMENTS HANDLER
+   
+   
+            // 🛡️ ADMIN-ONLY EYES: hide Delete All button unless /auth/me says SUPER_ADMIN
+    (async () => {
+        try {
+            const r = await fetch(`${API}/auth/me`, { headers: getHeaders() });
+            if (!r.ok) { deleteAllPaymentsBtn.style.display = 'none'; return; }
+            const d = await r.json();
+            const role = d.role || (d.user && d.user.role);
+            if (role !== 'SUPER_ADMIN') deleteAllPaymentsBtn.style.display = 'none';
+        } catch (e) {
+            deleteAllPaymentsBtn.style.display = 'none';
+        }
+    })();
+
     loadAllData();
     console.log('✅ Payments page connected to live API with Payment Brain.');
 })();
@@ -1735,6 +2105,81 @@
         });
     }
 
+    // 🆕 Modal functions (reuse from main script)
+    function showModal(title, message, type, buttons) {
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalBox = document.getElementById('modalBox');
+        
+        const iconClass = { success: 'success', error: 'error', warning: 'warning', info: 'info' }[type] || 'info';
+        const iconSymbol = { success: 'fas fa-check', error: 'fas fa-times', warning: 'fas fa-exclamation', info: 'fas fa-info' }[type] || 'fas fa-info';
+
+        let buttonsHtml = '';
+        if (buttons && buttons.length) {
+            buttonsHtml = buttons.map((btn, i) => 
+                `<button class="btn-${btn.type || 'secondary'}" id="modalBtn${i}">${btn.label}</button>`
+            ).join('');
+        } else {
+            buttonsHtml = '<button class="btn-primary" id="modalBtn0">OK</button>';
+        }
+
+        modalBox.innerHTML = `
+            <div class="modal-header">
+                <h3>${title}</h3>
+                <button type="button" class="modal-close-btn" id="modalCloseBtn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-modal-icon ${iconClass}">
+                    <i class="${iconSymbol}"></i>
+                </div>
+                <div class="confirm-modal-text">${message}</div>
+            </div>
+            <div class="confirm-modal-footer">
+                ${buttonsHtml}
+            </div>`;
+
+        modalOverlay.classList.add('open');
+
+        document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+
+        if (buttons && buttons.length) {
+            buttons.forEach((btn, i) => {
+                const btnEl = document.getElementById(`modalBtn${i}`);
+                if (btnEl && btn.onClick) {
+                    btnEl.addEventListener('click', () => {
+                        closeModal();
+                        btn.onClick();
+                    });
+                } else if (btnEl) {
+                    btnEl.addEventListener('click', closeModal);
+                }
+            });
+        } else {
+            document.getElementById('modalBtn0').addEventListener('click', closeModal);
+        }
+
+        modalOverlay.addEventListener('click', function handler(e) {
+            if (e.target === modalOverlay) {
+                closeModal();
+                modalOverlay.removeEventListener('click', handler);
+            }
+        });
+
+        document.addEventListener('keydown', function handler(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handler);
+            }
+        });
+    }
+
+    function closeModal() {
+        document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    function showSuccess(title, message) { showModal(title, message, 'success'); }
+    function showError(title, message) { showModal(title, message, 'error'); }
+    function showWarning(title, message, buttons) { showModal(title, message, 'warning', buttons); }
+
     const btn = document.getElementById('importPaymentsBtn');
     if (!btn) return;
 
@@ -1744,19 +2189,8 @@
     fileInput.style.display = 'none';
     document.body.appendChild(fileInput);
 
-    const modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px;';
-    modal.innerHTML = `
-        <div style="background:#fff;border-radius:14px;padding:28px;max-width:720px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h2 style="margin:0 0 16px;font-size:20px;color:#1a2332;">📋 Preview Payment Import</h2>
-            <div id="payPreviewContent" style="font-size:14px;color:#475569;"></div>
-            <div style="display:flex;gap:12px;margin-top:24px;">
-                <button id="cancelPayImport" style="flex:1;padding:14px;border:1px solid #e2e8f0;background:#fff;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">Cancel</button>
-                <button id="confirmPayImport" style="flex:1;padding:14px;background:#00AFEF;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:14px;">✅ Import Payments</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
+    const importPreviewModal = document.getElementById('importPreviewModal');
+    const importPreviewBox = document.getElementById('importPreviewBox');
 
     let currentCSV = '';
 
@@ -1780,7 +2214,7 @@
                 csvText = await file.text();
             }
         } catch (err) {
-            alert('Could not read file: ' + err.message);
+            showError('File Read Error', 'Could not read file: ' + err.message);
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-file-import"></i> Import Payments';
             return;
@@ -1796,7 +2230,7 @@
             });
             const preview = await previewRes.json();
             if (!preview.success) {
-                alert('Preview failed: ' + preview.message);
+                showError('Preview Failed', preview.message);
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-file-import"></i> Import Payments';
                 return;
@@ -1804,34 +2238,58 @@
 
             currentCSV = csvText;
 
-            let html = `<p style="margin:0 0 14px;"><strong>File:</strong> ${file.name} (${preview.totalRows} rows)</p>`;
-            html += `<h3 style="font-size:14px;margin:0 0 8px;color:#1a2332;">✅ Column Mapping:</h3><ul style="margin:0 0 14px;padding-left:20px;line-height:1.8;">`;
+            let html = `
+                <div class="modal-header">
+                    <h3>📋 Preview Payment Import</h3>
+                    <button type="button" class="modal-close-btn" id="previewCloseBtn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body" style="max-height:60vh;overflow-y:auto;">
+                    <p style="margin:0 0 14px;"><strong>File:</strong> ${file.name} (${preview.totalRows} rows)</p>
+                    <h4 style="font-size:14px;margin:0 0 8px;color:var(--text-primary);">✅ Column Mapping:</h4>
+                    <ul style="margin:0 0 14px;padding-left:20px;line-height:1.8;font-size:0.9rem;">`;
             Object.keys(preview.mapping).forEach(k => {
-                html += `<li><strong>${preview.mapping[k].label}</strong> ← <em style="color:#64748b;">${preview.mapping[k].csvColumn}</em></li>`;
+                html += `<li><strong>${preview.mapping[k].label}</strong> ← <em style="color:var(--text-muted);">${preview.mapping[k].csvColumn}</em></li>`;
             });
             html += `</ul>`;
             if (preview.discarded && preview.discarded.length) {
-                html += `<p style="margin:0 0 14px;color:#94a3b8;font-size:12px;">Ignored columns: ${preview.discarded.join(', ')}</p>`;
+                html += `<p style="margin:0 0 14px;color:var(--text-muted);font-size:12px;">Ignored columns: ${preview.discarded.join(', ')}</p>`;
             }
-            html += `<h3 style="font-size:14px;margin:16px 0 8px;color:#1a2332;">📝 Sample Rows:</h3>`;
-            html += `<table style="width:100%;border-collapse:collapse;font-size:12px;background:#f8fafc;border-radius:8px;overflow:hidden;">`;
-            html += `<thead><tr style="background:#e2e8f0;"><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Customer ID</th><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Date</th><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Action</th><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Amount</th><th style="text-align:left;padding:8px;border:1px solid #cbd5e1;">Details</th></tr></thead><tbody>`;
+            html += `<h4 style="font-size:14px;margin:16px 0 8px;color:var(--text-primary);">📝 Sample Rows:</h4>`;
+            html += `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;background:var(--surface-2);border-radius:8px;overflow:hidden;">`;
+            html += `<thead><tr style="background:var(--border);"><th style="text-align:left;padding:8px;border:1px solid var(--border);">Customer ID</th><th style="text-align:left;padding:8px;border:1px solid var(--border);">Date</th><th style="text-align:left;padding:8px;border:1px solid var(--border);">Action</th><th style="text-align:left;padding:8px;border:1px solid var(--border);">Amount</th><th style="text-align:left;padding:8px;border:1px solid var(--border);">Details</th></tr></thead><tbody>`;
             (preview.sample || []).forEach(s => {
                 html += `<tr>
-                    <td style="padding:8px;border:1px solid #e2e8f0;font-family:monospace;">${s.customerId || '—'}</td>
-                    <td style="padding:8px;border:1px solid #e2e8f0;">${s.date || '—'}</td>
-                    <td style="padding:8px;border:1px solid #e2e8f0;">${s.action || '—'}</td>
-                    <td style="padding:8px;border:1px solid #e2e8f0;font-weight:700;">${s.amount || '—'}</td>
-                    <td style="padding:8px;border:1px solid #e2e8f0;">${(s.details || '—').substring(0, 40)}</td>
+                    <td style="padding:8px;border:1px solid var(--border);font-family:monospace;">${s.customerId || '—'}</td>
+                    <td style="padding:8px;border:1px solid var(--border);">${s.date || '—'}</td>
+                    <td style="padding:8px;border:1px solid var(--border);">${s.action || '—'}</td>
+                    <td style="padding:8px;border:1px solid var(--border);font-weight:700;">${s.amount || '—'}</td>
+                    <td style="padding:8px;border:1px solid var(--border);">${(s.details || '—').substring(0, 40)}</td>
                 </tr>`;
             });
-            html += `</tbody></table>`;
-            html += `<p style="margin-top:14px;font-size:12px;color:#64748b;">🧠 The Payment Brain will auto-detect renewals, multi-month discounts (4%/8%) and plan upgrades, then update each customer's expiry automatically.</p>`;
+            html += `</tbody></table></div>`;
+            html += `<p style="margin-top:14px;font-size:12px;color:var(--text-muted);">🧠 The Payment Brain will auto-detect renewals, multi-month discounts (4%/8%) and plan upgrades, then update each customer's expiry automatically.</p>`;
+            html += `</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" id="cancelPayImport">Cancel</button>
+                    <button type="button" class="btn-primary" id="confirmPayImport"><i class="fas fa-file-import"></i> Import Payments</button>
+                </div>`;
 
-            document.getElementById('payPreviewContent').innerHTML = html;
-            modal.style.display = 'flex';
+            importPreviewBox.innerHTML = html;
+            importPreviewModal.classList.add('open');
+
+            document.getElementById('previewCloseBtn').addEventListener('click', closePreview);
+            document.getElementById('cancelPayImport').addEventListener('click', closePreview);
+            document.getElementById('confirmPayImport').addEventListener('click', executeImport);
+
+            importPreviewModal.addEventListener('click', function handler(e) {
+                if (e.target === importPreviewModal) {
+                    closePreview();
+                    importPreviewModal.removeEventListener('click', handler);
+                }
+            });
+
         } catch (err) {
-            alert('Preview error: ' + err.message);
+            showError('Preview Error', err.message);
         }
 
         btn.disabled = false;
@@ -1839,12 +2297,12 @@
         fileInput.value = '';
     };
 
-    document.getElementById('cancelPayImport').onclick = () => {
-        modal.style.display = 'none';
+    function closePreview() {
+        importPreviewModal.classList.remove('open');
         currentCSV = '';
-    };
+    }
 
-    document.getElementById('confirmPayImport').onclick = async () => {
+    async function executeImport() {
         if (!currentCSV) return;
         const confirmBtn = document.getElementById('confirmPayImport');
         confirmBtn.disabled = true;
@@ -1858,32 +2316,32 @@
             });
             const exec = await execRes.json();
             if (!exec.success) {
-                alert('Import failed: ' + exec.message);
+                showError('Import Failed', exec.message);
                 confirmBtn.disabled = false;
-                confirmBtn.innerHTML = '✅ Import Payments';
+                confirmBtn.innerHTML = '<i class="fas fa-file-import"></i> Import Payments';
                 return;
             }
 
             const tc = exec.typeCounts || {};
-            let msg = `✅ Imported: ${exec.imported} payments\n`;
-            msg += `🧠 Renewals: ${tc.renewal || 0} · Multi-month: ${tc.multi_month || 0} · Upgrades: ${tc.upgrade || 0} · Manual: ${tc.manual || 0}\n`;
-            msg += `🔁 Duplicates skipped: ${exec.duplicates || 0}\n`;
-            msg += `❓ Customer not found: ${exec.notFound || 0}\n`;
-            msg += `⚠️ Skipped rows: ${exec.skipped || 0}`;
+            let msg = `✅ Imported: <strong>${exec.imported}</strong> payments<br><br>`;
+            msg += `🧠 <strong>Renewals:</strong> ${tc.renewal || 0} · <strong>Multi-month:</strong> ${tc.multi_month || 0} · <strong>Upgrades:</strong> ${tc.upgrade || 0} · <strong>Manual:</strong> ${tc.manual || 0}<br><br>`;
+            msg += `🔁 <strong>Duplicates skipped:</strong> ${exec.duplicates || 0}<br>`;
+            msg += `❓ <strong>Customer not found:</strong> ${exec.notFound || 0}<br>`;
+            msg += `⚠️ <strong>Skipped rows:</strong> ${exec.skipped || 0}`;
             if (exec.sample && exec.sample.length) {
-                msg += '\n\nSample detections:\n' + exec.sample.map(s => `• ${s.pbsId} ${s.customer}: ${s.description}`).join('\n');
+                msg += '<br><br><strong>Sample detections:</strong><br>' + exec.sample.slice(0, 5).map(s => `• ${s.pbsId} ${s.customer}: ${s.description}`).join('<br>');
             }
 
-            alert(msg);
-            modal.style.display = 'none';
-            currentCSV = '';
-            location.reload();
+            closePreview();
+            showSuccess('✅ Import Complete', msg);
+            localStorage.removeItem('paymentFilters');
+            setTimeout(() => location.reload(), 2000);
         } catch (err) {
-            alert('Import error: ' + err.message);
+            showError('Import Error', err.message);
             confirmBtn.disabled = false;
-            confirmBtn.innerHTML = '✅ Import Payments';
+            confirmBtn.innerHTML = '<i class="fas fa-file-import"></i> Import Payments';
         }
-    };
+    }
 
     console.log('✅ Payment import ready.');
 })();
@@ -1893,11 +2351,8 @@
 // UNIVERSAL LOGOUT FIX - Paste at the bottom of all pages
 document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
     e.preventDefault();
-    e.stopImmediatePropagation(); // Stops the old broken logout from running
-    if (confirm('Are you sure you want to log out?')) {
-        localStorage.clear(); // Nukes all tokens - guaranteed logout
-        window.location.href = 'login.html';
-    }
+    e.stopImmediatePropagation();
+    // Already handled by modal in main script
 }, true);
 </script>
 <script src="admin-link.js"></script>
